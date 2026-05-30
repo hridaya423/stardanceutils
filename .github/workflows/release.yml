@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: version
+        run: |
+          VERSION=$(grep '"version"' manifest.json | sed -E 's/.*"version": "([^"]+)".*/\1/')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Delete existing release and tag
+        run: |
+          gh release view "v${{ env.VERSION }}" --json id 2>/dev/null && \
+            gh release delete "v${{ env.VERSION }}" --yes --cleanup-tag || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Chrome
+        run: |
+          mkdir -p build/chrome
+          cp manifest.json content.js styles.css icon*.png build/chrome/ 2>/dev/null || \
+          cp manifest.json content.js styles.css build/chrome/
+          cd build/chrome && zip -r ../../stardance-utils-chrome-v${{ env.VERSION }}.zip .
+
+      - name: Build Firefox
+        run: |
+          mkdir -p build/firefox
+          cp manifest_firefox.json build/firefox/manifest.json
+          cp content.js styles.css icon*.png build/firefox/ 2>/dev/null || true
+          cd build/firefox && zip -r ../../stardance-utils-firefox-v${{ env.VERSION }}.zip .
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: builds-v${{ env.VERSION }}
+          path: stardance-utils-*.zip
+          retention-days: 30
+
+      - name: Create release
+        run: |
+          gh release create "v${{ env.VERSION }}" \
+            --title "Stardance Utils v${{ env.VERSION }}" \
+            --notes "Chrome & Firefox release." \
+            stardance-utils-*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

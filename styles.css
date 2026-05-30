@@ -1,0 +1,7 @@
+.sidebar__nav-link, .sidebar__nav-link * {
+  font-family: 'Space Grotesk', sans-serif !important;
+}
+.sidebar__nav-link--active, .sidebar__nav-link--active * {
+  font-family: 'Cormorant Garamond', serif !important;
+  font-style: italic !important;
+}

@@ -1,0 +1,33 @@
+{
+    "manifest_version": 2,
+    "name": "Stardance Utils",
+    "version": "0.0.1",
+    "description": "A utility extension for Stardance, with multiple useful features to enhance the experience",
+    "permissions": [
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://stardance.hackclub.com/*",
+                "https://beta.stardance.hackclub.com/*"
+            ],
+            "css": [
+                "styles.css"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "run_at": "document_idle"
+        }
+    ],
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "stardance-utils@hackclub.com",
+            "data_collection_permissions": {
+                "required": [
+                    "none"
+                ]
+            }
+        }
+    }
+}
