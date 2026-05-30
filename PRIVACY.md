@@ -12,7 +12,8 @@ No data is sent to any server, third party, or external service. All extension l
 
 | Permission | Purpose |
 |------------|---------|
-| `https://stardance.hackclub.com/*` | Inject custom styles on Stardance pages |
+| `https://stardance.hackclub.com/*` | Inject custom styles on the stable Stardance site |
+| `https://beta.stardance.hackclub.com/*` | Inject custom styles on the beta Stardance site |
 
 ## Third-Party Services
 
