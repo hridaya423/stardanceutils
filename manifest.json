@@ -6,7 +6,7 @@
     "permissions": [],
     "icons": {
         "32": "icon32.png",
-        "48": "icon48.png",
+        "64": "icon64.png",
         "128": "icon128.png"
     },
     "content_scripts": [

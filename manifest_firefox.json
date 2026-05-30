@@ -3,6 +3,11 @@
     "name": "Stardance Utils",
     "version": "0.0.1",
     "description": "A utility extension for Stardance, with multiple useful features to enhance the experience",
+    "icons": {
+        "32": "icon32.png",
+        "64": "icon64.png",
+        "128": "icon128.png"
+    },
     "permissions": [
     ],
     "content_scripts": [
