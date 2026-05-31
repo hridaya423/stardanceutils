@@ -500,18 +500,38 @@ html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item:hover .s
 }
 
 .stardance-utils-hero-ship {
-  align-items: center;
-  display: inline-flex;
-  gap: 0.5rem;
+  backdrop-filter: blur(6px);
+  background: rgba(47, 54, 97, 0.76);
+  border-color: rgba(255, 255, 255, 0.26);
+  border-width: 1px;
+  box-shadow: 0 4px 14px rgba(7, 10, 28, 0.26);
+  font-size: 0.95rem;
+  gap: 0.45rem;
+  padding: 0.48rem 0.92rem;
   position: absolute;
-  right: 1rem;
-  top: 1rem;
+  right: 0.85rem;
+  top: 0.85rem;
   z-index: 2;
 }
 
 .stardance-utils-hero-ship .action-btn__icon--leading {
+  font-size: 0.95em;
   margin: 0;
   order: -1;
+}
+
+.stardance-utils-hero-ship:hover {
+  background: rgba(53, 60, 106, 0.86);
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+@media (max-width: 700px) {
+  .stardance-utils-hero-ship {
+    font-size: 0.88rem;
+    padding: 0.4rem 0.75rem;
+    right: 0.6rem;
+    top: 0.6rem;
+  }
 }
 
 .stardance-utils-inline-composer-shell {

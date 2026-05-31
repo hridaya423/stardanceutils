@@ -704,7 +704,8 @@ function enhanceProjectShowPage() {
   if (shipButton && !heroBanner.querySelector('[data-stardance-utils-hero-ship]')) {
     const shipClone = shipButton.cloneNode(true);
     shipClone.setAttribute('data-stardance-utils-hero-ship', 'true');
-    shipClone.classList.add('stardance-utils-hero-ship');
+    shipClone.className = 'action-btn action-btn--secondary stardance-utils-hero-ship';
+    shipClone.setAttribute('data-tooltip-position-value', 'bottom');
 
     const label = shipClone.querySelector('.action-btn__label');
     if (label) {
@@ -716,6 +717,15 @@ function enhanceProjectShowPage() {
       trailingIcon.classList.remove('action-btn__icon--trailing');
       trailingIcon.classList.add('action-btn__icon--leading');
       shipClone.insertBefore(trailingIcon, shipClone.firstChild);
+    }
+
+    const iconLeading = shipClone.querySelector('.action-btn__icon--leading');
+    if (!iconLeading) {
+      const icon = shipClone.querySelector('.action-btn__icon');
+      if (icon) {
+        icon.classList.add('action-btn__icon--leading');
+        shipClone.insertBefore(icon, shipClone.firstChild);
+      }
     }
 
     heroBanner.appendChild(shipClone);
