@@ -17,7 +17,7 @@ No data is sent to any server, third party, or external service. All extension l
 
 ## Third-Party Services
 
-This extension loads fonts from Google Fonts (Space Grotesk, Cormorant Garamond) when you visit Stardance. Google's privacy policy applies to that request.
+This extension loads fonts from Google Fonts and Fontshare when you visit Stardance. Their privacy policies apply to those font requests.
 
 No analytics, tracking, or telemetry is used.
 
