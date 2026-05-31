@@ -6,6 +6,7 @@ const GOOGLE_FONT_LINK_ID = 'stardance-utils-google-fonts';
 const FONTSHARE_LINK_ID = 'stardance-utils-fontshare-fonts';
 const TRY_PANEL_ID = 'stardance-utils-try-panel';
 const REORDER_BANNER_ID = 'stardance-utils-reorder-banner';
+const INLINE_COMPOSER_ATTR = 'data-stardance-utils-inline-composer';
 const CUSTOM_FONT_PAIRINGS_KEY = 'customSidebarFontPairings';
 const SIDEBAR_ORDER_KEY = 'sidebarTabOrder';
 const FONT_DATALIST_ID = 'stardance-utils-font-suggestions';
@@ -685,6 +686,87 @@ function closeTryPanel(resetPreview = true) {
   panel.remove();
 }
 
+function enhanceProjectShowPage() {
+  const projectMain = document.querySelector('.app-layout__main');
+  const actionsNav = projectMain?.querySelector('.project-show__actions');
+  const heroBanner = projectMain?.querySelector('.project-show__banner');
+  const feedSection = projectMain?.querySelector('.project-show__feed');
+  if (!projectMain || !heroBanner || !feedSection) {
+    return;
+  }
+
+  const completeInfoLink = actionsNav?.querySelector('a.action-btn[href*="complete=true"]');
+  completeInfoLink?.remove();
+
+  const shipButton = [...(actionsNav?.querySelectorAll('.action-btn') ?? [])].find((button) =>
+    button.textContent?.includes('Ship your project')
+  );
+  if (shipButton && !heroBanner.querySelector('[data-stardance-utils-hero-ship]')) {
+    const shipClone = shipButton.cloneNode(true);
+    shipClone.setAttribute('data-stardance-utils-hero-ship', 'true');
+    shipClone.classList.add('stardance-utils-hero-ship');
+
+    const label = shipClone.querySelector('.action-btn__label');
+    if (label) {
+      label.textContent = 'Ship';
+    }
+
+    const trailingIcon = shipClone.querySelector('.action-btn__icon--trailing');
+    if (trailingIcon) {
+      trailingIcon.classList.remove('action-btn__icon--trailing');
+      trailingIcon.classList.add('action-btn__icon--leading');
+      shipClone.insertBefore(trailingIcon, shipClone.firstChild);
+    }
+
+    heroBanner.appendChild(shipClone);
+    shipButton.remove();
+  }
+
+  const postDevlogButton = [...(actionsNav?.querySelectorAll('.action-btn') ?? [])].find((button) =>
+    button.textContent?.includes('Post a devlog')
+  );
+  const modalMatch = postDevlogButton?.getAttribute('onclick')?.match(/composer-modal-(\d+)/);
+  const modalId = modalMatch ? `composer-modal-${modalMatch[1]}` : null;
+  const composerDialog = (modalId ? document.getElementById(modalId) : null)
+    ?? [...document.querySelectorAll('.composer-modal')].find((dialog) => dialog.querySelector('.feed-composer'));
+  const composerSection = composerDialog?.querySelector('.feed-composer')
+    ?? projectMain.querySelector('.feed-composer');
+  const inlineComposerShell = projectMain.querySelector('.stardance-utils-inline-composer-shell');
+  if (composerSection && composerSection.getAttribute(INLINE_COMPOSER_ATTR) !== 'true' && !inlineComposerShell) {
+    const composerShell = document.createElement('section');
+    composerShell.className = 'stardance-utils-inline-composer-shell';
+
+    const composerHeader = document.createElement('div');
+    composerHeader.className = 'stardance-utils-inline-composer-header';
+
+    const composerTitle = document.createElement('h2');
+    composerTitle.className = 'stardance-utils-inline-composer-title';
+    composerTitle.textContent = 'Post a devlog';
+
+    composerHeader.appendChild(composerTitle);
+
+    const chipsRow = composerSection.querySelector('.feed-composer__chips');
+    chipsRow?.remove();
+
+    composerSection.setAttribute(INLINE_COMPOSER_ATTR, 'true');
+    composerSection.classList.add('stardance-utils-inline-composer');
+
+    composerShell.appendChild(composerHeader);
+    composerShell.appendChild(composerSection);
+    feedSection.parentNode.insertBefore(composerShell, feedSection);
+
+    if (composerDialog) {
+      composerDialog.removeAttribute('open');
+      composerDialog.setAttribute('hidden', 'hidden');
+      composerDialog.setAttribute('aria-hidden', 'true');
+      composerDialog.style.display = 'none';
+      document.body.appendChild(composerDialog);
+    }
+  }
+
+  actionsNav?.remove();
+}
+
 function hasTryModeSurface() {
   return Boolean(document.querySelector('.discover-rail') && document.querySelector('#primary-nav'));
 }
@@ -1137,6 +1219,7 @@ async function syncEnhancements() {
 
   applySidebarOrder(savedSidebarOrder);
   applyFontPairing(getEffectivePairing());
+  enhanceProjectShowPage();
 
   const dialog = document.getElementById('settings-modal');
   if (dialog) {
@@ -1180,7 +1263,10 @@ const observer = new MutationObserver((mutations) => {
       return element.id === 'settings-modal'
         || element.id === 'primary-nav'
         || element.classList?.contains('discover-rail')
-        || Boolean(element.querySelector?.('#settings-modal, #primary-nav, .discover-rail'));
+        || element.classList?.contains('project-show__actions')
+        || element.classList?.contains('project-show__feed')
+        || element.classList?.contains('composer-modal')
+        || Boolean(element.querySelector?.('#settings-modal, #primary-nav, .discover-rail, .project-show__actions, .project-show__feed, .composer-modal'));
     });
   });
 
@@ -1192,5 +1278,9 @@ const observer = new MutationObserver((mutations) => {
 if (document.body) {
   observer.observe(document.body, { childList: true, subtree: true });
 }
+
+window.addEventListener('turbo:load', scheduleSync);
+window.addEventListener('turbo:render', scheduleSync);
+window.addEventListener('pageshow', scheduleSync);
 
 scheduleSync();
