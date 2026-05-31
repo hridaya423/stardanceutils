@@ -5,10 +5,13 @@ const MODAL_ATTR = 'data-stardance-utils-enhanced';
 const GOOGLE_FONT_LINK_ID = 'stardance-utils-google-fonts';
 const FONTSHARE_LINK_ID = 'stardance-utils-fontshare-fonts';
 const TRY_PANEL_ID = 'stardance-utils-try-panel';
+const REORDER_BANNER_ID = 'stardance-utils-reorder-banner';
 const CUSTOM_FONT_PAIRINGS_KEY = 'customSidebarFontPairings';
+const SIDEBAR_ORDER_KEY = 'sidebarTabOrder';
 const FONT_DATALIST_ID = 'stardance-utils-font-suggestions';
 const DEFAULT_FONT_PAIRING = 'outfit-instrument';
 const TRY_MODE_FALLBACK_PATH = '/home';
+const SIDEBAR_REORDER_CLASS = 'stardance-utils-sidebar-reordering';
 const FONT_PAIRINGS = {
   'outfit-instrument': {
     label: 'Outfit + Instrument Serif',
@@ -163,8 +166,10 @@ const FONTSHARE_FONT_CATALOG = [
 let savedFontPairing = DEFAULT_FONT_PAIRING;
 let previewFontPairing = null;
 let customFontPairings = [];
+let savedSidebarOrder = [];
 let googleFontCatalog = null;
 let googleFontCatalogPromise = null;
+let draggedSidebarItemId = null;
 
 const extensionStorage = globalThis.browser?.storage?.local ?? globalThis.chrome?.storage?.local ?? null;
 
@@ -383,6 +388,200 @@ function ensureFontFamilyLoaded(family) {
   document.head.appendChild(link);
 }
 
+function getSidebarNavEntries() {
+  const navItems = [...document.querySelectorAll('#primary-nav .sidebar__nav-item')];
+  return navItems.map((item) => {
+    const control = item.querySelector('[data-slug]');
+    if (!control) {
+      return null;
+    }
+
+    const label = item.querySelector('.sidebar__nav-label')?.textContent?.trim();
+    const slug = control.getAttribute('data-slug');
+    if (!slug || !label) {
+      return null;
+    }
+
+    return {
+      id: slug,
+      label,
+      item
+    };
+  }).filter(Boolean);
+}
+
+function normalizeSidebarOrder(order) {
+  const entries = getSidebarNavEntries();
+  const entryIds = entries.map((entry) => entry.id);
+  const validOrder = (Array.isArray(order) ? order : []).filter((id) => entryIds.includes(id));
+  const missingIds = entryIds.filter((id) => !validOrder.includes(id));
+  return [...validOrder, ...missingIds];
+}
+
+function applySidebarOrder(order = savedSidebarOrder) {
+  const navList = document.querySelector('#primary-nav .sidebar__nav-list');
+  if (!navList) {
+    return;
+  }
+
+  const entries = getSidebarNavEntries();
+  const entryMap = new Map(entries.map((entry) => [entry.id, entry.item]));
+  const nextOrder = normalizeSidebarOrder(order);
+
+  nextOrder.forEach((id) => {
+    const item = entryMap.get(id);
+    if (item) {
+      navList.appendChild(item);
+    }
+  });
+}
+
+async function saveSidebarOrder(order) {
+  savedSidebarOrder = normalizeSidebarOrder(order);
+  applySidebarOrder(savedSidebarOrder);
+  await setStoredSetting({ [SIDEBAR_ORDER_KEY]: savedSidebarOrder });
+  const dialog = document.getElementById('settings-modal');
+  if (dialog) {
+    updateUtilsPanel(dialog);
+  }
+}
+
+function getCurrentSidebarOrder() {
+  return getSidebarNavEntries().map((entry) => entry.id);
+}
+
+function getSidebarOrderLabels(order = savedSidebarOrder) {
+  const entryMap = new Map(getSidebarNavEntries().map((entry) => [entry.id, entry.label]));
+  return normalizeSidebarOrder(order)
+    .map((id) => entryMap.get(id))
+    .filter(Boolean);
+}
+
+function disableSidebarReorderMode() {
+  document.documentElement.classList.remove(SIDEBAR_REORDER_CLASS);
+  getSidebarNavEntries().forEach(({ item }) => {
+    item.draggable = false;
+    item.classList.remove('stardance-utils-sidebar-item--dragging');
+    item.ondragstart = null;
+    item.ondragend = null;
+    item.ondragover = null;
+    item.ondrop = null;
+  });
+
+  const banner = document.getElementById(REORDER_BANNER_ID);
+  if (banner) {
+    banner.remove();
+  }
+
+  draggedSidebarItemId = null;
+}
+
+function handleSidebarDragStart(event) {
+  const item = event.currentTarget;
+  const control = item.querySelector('[data-slug]');
+  draggedSidebarItemId = control?.getAttribute('data-slug') ?? null;
+  item.classList.add('stardance-utils-sidebar-item--dragging');
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move';
+  }
+}
+
+function handleSidebarDragEnd(event) {
+  event.currentTarget.classList.remove('stardance-utils-sidebar-item--dragging');
+  draggedSidebarItemId = null;
+}
+
+function handleSidebarDragOver(event) {
+  if (!draggedSidebarItemId) {
+    return;
+  }
+
+  event.preventDefault();
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move';
+  }
+}
+
+function handleSidebarDrop(event) {
+  event.preventDefault();
+  const targetItem = event.currentTarget;
+  const targetSlug = targetItem.querySelector('[data-slug]')?.getAttribute('data-slug');
+  if (!draggedSidebarItemId || !targetSlug || draggedSidebarItemId === targetSlug) {
+    return;
+  }
+
+  const navList = document.querySelector('#primary-nav .sidebar__nav-list');
+  const draggedItem = getSidebarNavEntries().find((entry) => entry.id === draggedSidebarItemId)?.item;
+  if (!navList || !draggedItem) {
+    return;
+  }
+
+  const targetRect = targetItem.getBoundingClientRect();
+  const shouldInsertAfter = event.clientY > targetRect.top + (targetRect.height / 2);
+  if (shouldInsertAfter) {
+    navList.insertBefore(draggedItem, targetItem.nextSibling);
+  } else {
+    navList.insertBefore(draggedItem, targetItem);
+  }
+
+  saveSidebarOrder(getCurrentSidebarOrder());
+}
+
+function enableSidebarReorderMode() {
+  const nav = document.querySelector('#primary-nav');
+  if (!nav) {
+    return;
+  }
+
+  disableSidebarReorderMode();
+  document.documentElement.classList.add(SIDEBAR_REORDER_CLASS);
+
+  getSidebarNavEntries().forEach(({ item }) => {
+    item.draggable = true;
+    item.ondragstart = handleSidebarDragStart;
+    item.ondragend = handleSidebarDragEnd;
+    item.ondragover = handleSidebarDragOver;
+    item.ondrop = handleSidebarDrop;
+  });
+
+  const userCard = document.querySelector('#primary-nav .sidebar__user');
+  if (!userCard) {
+    return;
+  }
+
+  const banner = document.createElement('div');
+  banner.id = REORDER_BANNER_ID;
+  banner.className = 'stardance-utils-reorder-banner';
+
+  const text = document.createElement('div');
+  text.className = 'stardance-utils-reorder-copy';
+  text.textContent = 'Drag sidebar tabs to reorder. Changes save automatically.';
+
+  const doneButton = document.createElement('button');
+  doneButton.type = 'button';
+  doneButton.className = 'stardance-utils-reorder-done';
+  doneButton.textContent = 'Done';
+  doneButton.addEventListener('click', () => disableSidebarReorderMode());
+
+  banner.appendChild(text);
+  banner.appendChild(doneButton);
+  userCard.insertAdjacentElement('beforebegin', banner);
+}
+
+function renderSidebarOrderList(container) {
+  if (!container) {
+    return;
+  }
+
+  container.replaceChildren();
+
+  const text = document.createElement('div');
+  text.className = 'stardance-utils-order-summary';
+  text.textContent = getSidebarOrderLabels().join(' / ');
+
+  container.appendChild(text);
+}
+
 function getValidPairing(pairingKey) {
   return getAllPairingsMap()[pairingKey] ? pairingKey : DEFAULT_FONT_PAIRING;
 }
@@ -429,9 +628,14 @@ function updateUtilsPanel(dialog) {
   }
 
   const select = dialog.querySelector('[data-stardance-utils-setting="sidebar-font-pairing"]');
+  const orderList = dialog.querySelector('[data-stardance-utils-sidebar-order]');
 
   if (select) {
     renderPairingOptions(select, getEffectivePairing());
+  }
+
+  if (orderList) {
+    renderSidebarOrderList(orderList);
   }
 }
 
@@ -678,6 +882,29 @@ function buildUtilsPanel(selectedPairing) {
   const customBody = document.createElement('div');
   customBody.className = 'stardance-utils-accordion-body';
 
+  const orderAccordion = document.createElement('details');
+  orderAccordion.className = 'stardance-utils-accordion stardance-utils-accordion--nested';
+
+  const orderSummary = document.createElement('summary');
+  orderSummary.className = 'stardance-utils-accordion-summary';
+  orderSummary.textContent = 'Navigation order';
+
+  const orderBody = document.createElement('div');
+  orderBody.className = 'stardance-utils-accordion-body';
+
+  const orderHint = document.createElement('small');
+  orderHint.className = 'settings-form__hint';
+  orderHint.textContent = 'Drag tabs directly in the sidebar. Changes save automatically.';
+
+  const orderList = document.createElement('div');
+  orderList.className = 'stardance-utils-order-list';
+  orderList.setAttribute('data-stardance-utils-sidebar-order', 'true');
+
+  const orderLaunchButton = document.createElement('button');
+  orderLaunchButton.type = 'button';
+  orderLaunchButton.className = 'stardance-utils-utility-button';
+  orderLaunchButton.textContent = 'Start reordering';
+
   const customHint = document.createElement('small');
   customHint.className = 'settings-form__hint';
   customHint.textContent = 'Pick a regular and active font from Google Fonts.';
@@ -801,6 +1028,15 @@ function buildUtilsPanel(selectedPairing) {
     }
   });
 
+  orderLaunchButton.addEventListener('click', () => {
+    enableSidebarReorderMode();
+
+    const dialog = panel.closest('dialog');
+    if (dialog?.open) {
+      dialog.close();
+    }
+  });
+
   actions.appendChild(saveButton);
   actions.appendChild(resetButton);
 
@@ -819,8 +1055,15 @@ function buildUtilsPanel(selectedPairing) {
   customBody.appendChild(customStatus);
   customBody.appendChild(addButton);
 
+  orderBody.appendChild(orderHint);
+  orderBody.appendChild(orderList);
+  orderBody.appendChild(orderLaunchButton);
+
   customAccordion.appendChild(customSummary);
   customAccordion.appendChild(customBody);
+  orderAccordion.appendChild(orderSummary);
+  orderAccordion.appendChild(orderBody);
+  sidebarBody.appendChild(orderAccordion);
   sidebarBody.appendChild(customAccordion);
 
   sidebarAccordion.appendChild(sidebarSummary);
@@ -883,14 +1126,16 @@ function enhanceSettingsModal(dialog, selectedPairing) {
 async function syncEnhancements() {
   ensureFontLink();
 
-  const storedValues = await getStoredSettings([FONT_PAIRING_KEY, TRY_MODE_PENDING_KEY, CUSTOM_FONT_PAIRINGS_KEY]);
+  const storedValues = await getStoredSettings([FONT_PAIRING_KEY, TRY_MODE_PENDING_KEY, CUSTOM_FONT_PAIRINGS_KEY, SIDEBAR_ORDER_KEY]);
   customFontPairings = Array.isArray(storedValues?.[CUSTOM_FONT_PAIRINGS_KEY]) ? storedValues[CUSTOM_FONT_PAIRINGS_KEY] : [];
+  savedSidebarOrder = normalizeSidebarOrder(storedValues?.[SIDEBAR_ORDER_KEY]);
   savedFontPairing = getValidPairing(storedValues?.[FONT_PAIRING_KEY]);
 
   if (!previewFontPairing) {
     previewFontPairing = savedFontPairing;
   }
 
+  applySidebarOrder(savedSidebarOrder);
   applyFontPairing(getEffectivePairing());
 
   const dialog = document.getElementById('settings-modal');

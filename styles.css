@@ -221,6 +221,78 @@ html.stardance-utils-fonts-enabled .sidebar__nav-link--active * {
   margin-top: 0.45rem;
 }
 
+.stardance-utils-order-list {
+  display: block;
+  margin-top: 0.5rem;
+}
+
+.stardance-utils-order-summary {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  opacity: 0.82;
+}
+
+.stardance-utils-reorder-banner {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.85rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin: 0 0 0.9rem;
+  padding: 0.75rem 0.8rem;
+}
+
+.stardance-utils-reorder-copy {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  opacity: 0.88;
+}
+
+.stardance-utils-reorder-done {
+  appearance: none;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0.7rem;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  min-height: 2.1rem;
+  padding: 0.45rem 0.8rem;
+}
+
+html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item {
+  cursor: grab;
+}
+
+html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-link,
+html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-link--locked {
+  position: relative;
+}
+
+html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-link::after,
+html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-link--locked::after {
+  content: '⋮⋮';
+  font-size: 0.8rem;
+  letter-spacing: -0.12em;
+  margin-left: auto;
+  opacity: 0.45;
+  padding-left: 0.6rem;
+}
+
+html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item--dragging,
+html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item.stardance-utils-sidebar-item--dragging {
+  opacity: 0.45;
+}
+
+html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item:hover .sidebar__nav-link,
+html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item:hover .sidebar__nav-link--locked {
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .stardance-utils-font-input {
   margin-top: 0;
 }
