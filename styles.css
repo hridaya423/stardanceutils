@@ -538,6 +538,7 @@ html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item:hover .s
   display: grid;
   gap: 0.75rem;
   margin: 1.25rem 0 1.5rem;
+  position: relative;
 }
 
 .stardance-utils-inline-composer-header {
@@ -560,6 +561,29 @@ html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item:hover .s
   display: inline-flex;
   gap: 0.35rem;
   margin-right: 0.5rem;
+}
+
+.stardance-utils-draft-controls {
+  position: absolute;
+  right: 0.25rem;
+  top: 0;
+  z-index: 2;
+}
+
+.stardance-utils-draft-discard {
+  background: rgba(18, 22, 46, 0.72);
+  border: 1px solid rgba(133, 143, 199, 0.34);
+  border-radius: 999px;
+  color: rgba(223, 230, 255, 0.92);
+  cursor: pointer;
+  font-size: 0.72rem;
+  line-height: 1;
+  padding: 0.28rem 0.62rem;
+}
+
+.stardance-utils-draft-discard:hover {
+  background: rgba(30, 37, 75, 0.82);
+  border-color: rgba(156, 168, 226, 0.42);
 }
 
 .stardance-utils-speech-btn {

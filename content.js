@@ -9,6 +9,7 @@ const REORDER_BANNER_ID = 'stardance-utils-reorder-banner';
 const INLINE_COMPOSER_ATTR = 'data-stardance-utils-inline-composer';
 const DEVLOG_SPEECH_ATTR = 'data-stardance-utils-speech';
 const DEVLOG_INLINE_EDIT_LINK_ATTR = 'data-stardance-utils-inline-edit-link';
+const DEVLOG_DRAFT_ATTR = 'data-stardance-utils-draft';
 const CUSTOM_FONT_PAIRINGS_KEY = 'customSidebarFontPairings';
 const SIDEBAR_ORDER_KEY = 'sidebarTabOrder';
 const FONT_DATALIST_ID = 'stardance-utils-font-suggestions';
@@ -771,6 +772,109 @@ function finalizeTranscriptText(text) {
   return capitalizeSentences(normalizeTranscriptText(text));
 }
 
+function getDevlogDraftKey(form) {
+  const action = form?.getAttribute('action') || window.location.pathname;
+  return `stardance-utils:devlog-draft:${action}`;
+}
+
+function bindDevlogDraftPersistence(composerSection) {
+  if (!composerSection || composerSection.getAttribute(DEVLOG_DRAFT_ATTR) === 'true') {
+    return;
+  }
+
+  const form = composerSection.querySelector('.feed-composer__form');
+  const textarea = composerSection.querySelector('textarea[name="post_devlog[body]"]');
+  const submitGroup = composerSection.querySelector('.feed-composer__submit-group');
+  if (!form || !textarea || !submitGroup) {
+    return;
+  }
+
+  composerSection.setAttribute(DEVLOG_DRAFT_ATTR, 'true');
+  const draftKey = getDevlogDraftKey(form);
+
+  const draftControls = document.createElement('div');
+  draftControls.className = 'stardance-utils-draft-controls';
+
+  const discardButton = document.createElement('button');
+  discardButton.type = 'button';
+  discardButton.className = 'stardance-utils-draft-discard';
+  discardButton.textContent = 'Discard draft';
+  discardButton.hidden = true;
+
+  draftControls.appendChild(discardButton);
+
+  const composerShell = composerSection.closest('.stardance-utils-inline-composer-shell');
+  if (composerShell) {
+    composerShell.appendChild(draftControls);
+  } else {
+    submitGroup.appendChild(draftControls);
+  }
+
+  const syncDraftControls = () => {
+    discardButton.hidden = !textarea.value.trim();
+  };
+
+  try {
+    const savedDraft = window.localStorage.getItem(draftKey);
+    if (savedDraft && !textarea.value.trim()) {
+      textarea.value = savedDraft;
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  } catch (error) {
+    // Ignore localStorage access failures.
+  }
+
+  syncDraftControls();
+
+  let saveTimer = null;
+  const persistDraft = () => {
+    const value = textarea.value || '';
+    try {
+      if (value.trim()) {
+        window.localStorage.setItem(draftKey, value);
+      } else {
+        window.localStorage.removeItem(draftKey);
+      }
+    } catch (error) {
+      // Ignore localStorage access failures.
+    }
+  };
+
+  textarea.addEventListener('input', () => {
+    syncDraftControls();
+    if (saveTimer) {
+      window.clearTimeout(saveTimer);
+    }
+    saveTimer = window.setTimeout(persistDraft, 250);
+  });
+
+  discardButton.addEventListener('click', () => {
+    textarea.value = '';
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    try {
+      window.localStorage.removeItem(draftKey);
+    } catch (error) {
+      // Ignore localStorage access failures.
+    }
+    syncDraftControls();
+    textarea.focus();
+  });
+
+  form.addEventListener('submit', () => {
+    const activeSubmitButton = form.querySelector('button[type="submit"]');
+    const isDisabled = activeSubmitButton?.disabled || activeSubmitButton?.getAttribute('aria-disabled') === 'true';
+    if (isDisabled) {
+      return;
+    }
+
+    try {
+      window.localStorage.removeItem(draftKey);
+    } catch (error) {
+      // Ignore localStorage access failures.
+    }
+  });
+}
+
 function enhanceDevlogSpeech(composerSection) {
   if (!composerSection || composerSection.getAttribute(DEVLOG_SPEECH_ATTR) === 'true') {
     return;
@@ -805,7 +909,12 @@ function enhanceDevlogSpeech(composerSection) {
 
   speechWrap.appendChild(speechButton);
   speechWrap.appendChild(speechStatus);
-  submitGroup.insertBefore(speechWrap, submitGroup.firstChild);
+  const submitButton = submitGroup.querySelector('button[type="submit"]');
+  if (submitButton) {
+    submitGroup.insertBefore(speechWrap, submitButton);
+  } else {
+    submitGroup.appendChild(speechWrap);
+  }
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
@@ -1135,6 +1244,7 @@ function enhanceProjectShowPage() {
 
   const activeInlineComposer = [...projectMain.querySelectorAll('.stardance-utils-inline-composer.feed-composer, .feed-composer')]
     .find((composer) => isDevlogComposer(composer));
+  bindDevlogDraftPersistence(activeInlineComposer);
   enhanceDevlogSpeech(activeInlineComposer);
   enhanceInlineDevlogEdit(projectMain);
 
