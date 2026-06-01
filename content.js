@@ -8,6 +8,7 @@ const TRY_PANEL_ID = 'stardance-utils-try-panel';
 const REORDER_BANNER_ID = 'stardance-utils-reorder-banner';
 const INLINE_COMPOSER_ATTR = 'data-stardance-utils-inline-composer';
 const DEVLOG_SPEECH_ATTR = 'data-stardance-utils-speech';
+const DEVLOG_INLINE_EDIT_LINK_ATTR = 'data-stardance-utils-inline-edit-link';
 const CUSTOM_FONT_PAIRINGS_KEY = 'customSidebarFontPairings';
 const SIDEBAR_ORDER_KEY = 'sidebarTabOrder';
 const FONT_DATALIST_ID = 'stardance-utils-font-suggestions';
@@ -925,6 +926,98 @@ function enhanceDevlogSpeech(composerSection) {
   });
 }
 
+async function mountInlineDevlogEditor(editLink) {
+  const href = editLink.getAttribute('href');
+  if (!href) {
+    return;
+  }
+
+  const host = editLink.closest('article.feed-post-card, article, li, .feed-item, .feed-card, section') || editLink.parentElement;
+  if (!host || !host.parentNode) {
+    window.location.href = href;
+    return;
+  }
+
+  const existing = host.parentNode.querySelector(`[data-stardance-utils-inline-edit-for="${href}"]`);
+  if (existing) {
+    const originalId = existing.getAttribute('data-stardance-utils-inline-edit-host-id');
+    const originalNode = originalId ? document.getElementById(originalId) : null;
+    if (originalNode) {
+      existing.replaceWith(originalNode);
+    } else {
+      existing.remove();
+    }
+    return;
+  }
+
+  const wrapper = document.createElement('section');
+  wrapper.className = 'stardance-utils-inline-edit';
+  wrapper.setAttribute('data-stardance-utils-inline-edit-for', href);
+  if (host.id) {
+    wrapper.setAttribute('data-stardance-utils-inline-edit-host-id', host.id);
+  }
+  wrapper.textContent = 'Loading editor...';
+  host.replaceWith(wrapper);
+
+  try {
+    const response = await fetch(href, { credentials: 'same-origin' });
+    if (!response.ok) {
+      throw new Error(`Failed to load editor (${response.status})`);
+    }
+
+    const html = await response.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const editCard = doc.querySelector('.devlog-edit__card');
+    if (!editCard) {
+      throw new Error('Edit UI not found');
+    }
+
+    wrapper.textContent = '';
+
+    const closeRow = document.createElement('div');
+    closeRow.className = 'stardance-utils-inline-edit-close-row';
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'action-btn action-btn--small action-btn--secondary';
+    closeButton.innerHTML = '<span class="action-btn__label">Close editor</span>';
+    closeButton.addEventListener('click', () => wrapper.replaceWith(host));
+    closeRow.appendChild(closeButton);
+
+    const importedCard = document.importNode(editCard, true);
+    importedCard.classList.add('stardance-utils-inline-edit-card');
+
+    const cancelLink = importedCard.querySelector('.devlog-edit__actions a.action-btn');
+    if (cancelLink) {
+      cancelLink.setAttribute('href', '#');
+      cancelLink.addEventListener('click', (event) => {
+        event.preventDefault();
+        wrapper.replaceWith(host);
+      });
+    }
+
+    wrapper.appendChild(closeRow);
+    wrapper.appendChild(importedCard);
+  } catch (error) {
+    wrapper.replaceWith(host);
+    window.location.href = href;
+  }
+}
+
+function enhanceInlineDevlogEdit(projectMain) {
+  const editLinks = projectMain.querySelectorAll('a[href*="/devlogs/"][href$="/edit"]');
+  editLinks.forEach((editLink) => {
+    if (editLink.getAttribute(DEVLOG_INLINE_EDIT_LINK_ATTR) === 'true') {
+      return;
+    }
+
+    editLink.setAttribute(DEVLOG_INLINE_EDIT_LINK_ATTR, 'true');
+    editLink.addEventListener('click', (event) => {
+      event.preventDefault();
+      mountInlineDevlogEditor(editLink);
+    });
+  });
+}
+
 function enhanceProjectShowPage() {
   const projectMain = document.querySelector('.app-layout__main');
   const actionsNav = projectMain?.querySelector('.project-show__actions');
@@ -1043,6 +1136,7 @@ function enhanceProjectShowPage() {
   const activeInlineComposer = [...projectMain.querySelectorAll('.stardance-utils-inline-composer.feed-composer, .feed-composer')]
     .find((composer) => isDevlogComposer(composer));
   enhanceDevlogSpeech(activeInlineComposer);
+  enhanceInlineDevlogEdit(projectMain);
 
   actionsNav?.remove();
 }

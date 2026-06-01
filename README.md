@@ -10,6 +10,7 @@ A utility extension for Stardance.
 - Project page enhancements:
   - Hero-level Ship button placement.
   - Inline devlog posts on project pages.
+  - Inline devlog editing
   - Removal of unnecessary "Complete project info" action.
 - Devlog speech-to-text with native browser recognition:
   - Basic auto-formatting (capitalization + punctuation cleanup).
@@ -19,7 +20,7 @@ A utility extension for Stardance.
 ### Chrome
 
 **Chrome Web Store:**
-1. Visit the Chrome Web Store
+1. Visit the [Chrome Web Store](https://chromewebstore.google.com/detail/stardance-utils/kapdpeddcghffhildgnbbdnaedeebdoj)
 2. Click "Add to Chrome"
 3. Confirm the installation
 
