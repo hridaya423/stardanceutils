@@ -641,3 +641,134 @@ html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item:hover .s
   border-radius: 1rem;
   padding: 1rem;
 }
+
+.stardance-utils-slack-icon {
+  height: 0.9rem;
+  width: 0.9rem;
+}
+
+.stardance-utils-slack-picker-tab {
+  color: inherit;
+  min-width: 32px;
+  padding-inline: 0.25rem;
+}
+
+.stardance-utils-nav-tab-muted {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.stardance-utils-slack-picker-tab.is-active {
+  color: #4b8dff;
+}
+
+.stardance-utils-slack-category-body {
+  display: grid;
+  gap: 0.25rem;
+  padding-bottom: 0.65rem;
+}
+
+.stardance-utils-slack-picker-subhead {
+  opacity: 0.8;
+}
+
+.stardance-utils-slack-picker-empty {
+  font-size: 0.74rem;
+  opacity: 0.82;
+  padding-inline: 0.5rem;
+}
+
+.stardance-utils-slack-picker-grid {
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(auto-fill, minmax(28px, 28px));
+  justify-content: start;
+  padding-inline: 0.45rem;
+}
+
+.stardance-utils-slack-picker-emoji {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 20px;
+  height: 28px;
+  justify-content: center;
+  line-height: 0;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  width: 28px;
+}
+
+.stardance-utils-slack-picker-emoji img {
+  border-radius: 0.16rem;
+  display: block;
+  height: 18px;
+  max-height: 18px;
+  max-width: 18px;
+  object-fit: contain;
+  width: 18px;
+}
+
+.stardance-utils-slack-picker-emoji:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 100%;
+}
+
+.feed-composer__field {
+  position: relative;
+}
+
+.stardance-utils-emoji-autocomplete {
+  background: rgba(10, 12, 31, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.65rem;
+  bottom: -0.4rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+  display: grid;
+  gap: 0.15rem;
+  left: 0;
+  max-width: min(420px, 100%);
+  padding: 0.3rem;
+  position: absolute;
+  transform: translateY(100%);
+  width: 100%;
+  z-index: 15;
+}
+
+.stardance-utils-emoji-autocomplete[hidden] {
+  display: none;
+}
+
+.stardance-utils-emoji-autocomplete-item {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.42rem;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: 1rem 1fr;
+  padding: 0.3rem;
+  text-align: left;
+}
+
+.stardance-utils-emoji-autocomplete-item img {
+  border-radius: 0.18rem;
+  height: 1rem;
+  object-fit: cover;
+  width: 1rem;
+}
+
+.stardance-utils-emoji-autocomplete-item span {
+  font-size: 0.74rem;
+  line-height: 1.1;
+}
+
+.stardance-utils-emoji-autocomplete-item.is-active,
+.stardance-utils-emoji-autocomplete-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+}
