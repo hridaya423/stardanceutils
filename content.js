@@ -1,4 +1,5 @@
 const FONT_PAIRING_KEY = 'sidebarFontPairing';
+const THEME_KEY = 'siteTheme';
 const TRY_MODE_PENDING_KEY = 'sidebarFontTryModePending';
 const FONT_CLASS = 'stardance-utils-fonts-enabled';
 const MODAL_ATTR = 'data-stardance-utils-enhanced';
@@ -6,6 +7,8 @@ const GOOGLE_FONT_LINK_ID = 'stardance-utils-google-fonts';
 const FONTSHARE_LINK_ID = 'stardance-utils-fontshare-fonts';
 const TRY_PANEL_ID = 'stardance-utils-try-panel';
 const REORDER_BANNER_ID = 'stardance-utils-reorder-banner';
+const HOME_PAGE_CLASS = 'stardance-utils-home-page';
+const CUSTOM_THEME_CLASS = 'stardance-utils-theme-custom';
 const INLINE_COMPOSER_ATTR = 'data-stardance-utils-inline-composer';
 const DEVLOG_SPEECH_ATTR = 'data-stardance-utils-speech';
 const DEVLOG_INLINE_EDIT_LINK_ATTR = 'data-stardance-utils-inline-edit-link';
@@ -16,8 +19,49 @@ const CUSTOM_FONT_PAIRINGS_KEY = 'customSidebarFontPairings';
 const SIDEBAR_ORDER_KEY = 'sidebarTabOrder';
 const FONT_DATALIST_ID = 'stardance-utils-font-suggestions';
 const DEFAULT_FONT_PAIRING = 'outfit-instrument';
+const DEFAULT_THEME = 'default';
 const TRY_MODE_FALLBACK_PATH = '/home';
 const SIDEBAR_REORDER_CLASS = 'stardance-utils-sidebar-reordering';
+const THEMES = {
+  default: {
+    label: 'Stardance default'
+  },
+  kanagawa: {
+    label: 'Kanagawa',
+    className: 'stardance-utils-theme-kanagawa',
+    filePath: 'themes/kanagawa.css'
+  },
+  nord: {
+    label: 'Nord',
+    className: 'stardance-utils-theme-nord',
+    filePath: 'themes/nord.css'
+  },
+  'tokyo-night': {
+    label: 'Tokyo Night',
+    className: 'stardance-utils-theme-tokyo-night',
+    filePath: 'themes/tokyo-night.css'
+  },
+  frappe: {
+    label: 'Catppuccin Frappe',
+    className: 'stardance-utils-theme-frappe',
+    filePath: 'themes/catppuccin-frappe.css'
+  },
+  macchiato: {
+    label: 'Catppuccin Macchiato',
+    className: 'stardance-utils-theme-macchiato',
+    filePath: 'themes/catppuccin-macchiato.css'
+  },
+  'catppuccin-mocha': {
+    label: 'Catppuccin Mocha',
+    className: 'stardance-utils-theme-catppuccin-mocha',
+    filePath: 'themes/catppuccin-mocha.css'
+  },
+  latte: {
+    label: 'Catppuccin Latte',
+    className: 'stardance-utils-theme-latte',
+    filePath: 'themes/catppuccin-latte.css'
+  }
+};
 const FONT_PAIRINGS = {
   'outfit-instrument': {
     label: 'Outfit + Instrument Serif',
@@ -169,8 +213,19 @@ const FONTSHARE_FONT_CATALOG = [
   { name: 'Chillax', slug: 'chillax', fallback: 'sans-serif' }
 ];
 
+const LOCAL_SETTINGS_PREFIX = 'stardance-utils:';
+const LOCAL_SETTINGS_KEYS = new Set([
+  THEME_KEY,
+  FONT_PAIRING_KEY,
+  TRY_MODE_PENDING_KEY,
+  CUSTOM_FONT_PAIRINGS_KEY,
+  SIDEBAR_ORDER_KEY
+]);
+
 let savedFontPairing = DEFAULT_FONT_PAIRING;
 let previewFontPairing = null;
+let savedTheme = DEFAULT_THEME;
+let previewTheme = null;
 let customFontPairings = [];
 let savedSidebarOrder = [];
 let googleFontCatalog = null;
@@ -180,6 +235,83 @@ let slackEmojiCache = null;
 let slackEmojiRequestPromise = null;
 
 const extensionStorage = globalThis.browser?.storage?.local ?? globalThis.chrome?.storage?.local ?? null;
+
+function usesLocalStorage(key) {
+  return LOCAL_SETTINGS_KEYS.has(key);
+}
+
+function getLocalStorageKey(key) {
+  return `${LOCAL_SETTINGS_PREFIX}${key}`;
+}
+
+function readLocalSetting(key) {
+  try {
+    const rawValue = window.localStorage.getItem(getLocalStorageKey(key));
+    return rawValue === null ? undefined : JSON.parse(rawValue);
+  } catch {
+    return undefined;
+  }
+}
+
+function writeLocalSetting(key, value) {
+  try {
+    window.localStorage.setItem(getLocalStorageKey(key), JSON.stringify(value));
+  } catch {
+    // Ignore localStorage access failures.
+  }
+}
+
+function clearLocalSetting(key) {
+  try {
+    window.localStorage.removeItem(getLocalStorageKey(key));
+  } catch {
+    // Ignore localStorage access failures.
+  }
+}
+
+function getExtensionStoredSetting(key) {
+  if (!extensionStorage) {
+    return Promise.resolve(undefined);
+  }
+
+  if (globalThis.browser?.storage?.local) {
+    return globalThis.browser.storage.local.get(key).then((result) => result?.[key]);
+  }
+
+  return new Promise((resolve) => {
+    extensionStorage.get(key, (result) => {
+      resolve(result?.[key]);
+    });
+  });
+}
+
+function setExtensionStoredSetting(values) {
+  if (!extensionStorage) {
+    return Promise.resolve();
+  }
+
+  if (globalThis.browser?.storage?.local) {
+    return globalThis.browser.storage.local.set(values);
+  }
+
+  return new Promise((resolve) => {
+    extensionStorage.set(values, () => resolve());
+  });
+}
+
+function removeExtensionStoredSetting(key) {
+  if (!extensionStorage) {
+    return Promise.resolve();
+  }
+
+  if (globalThis.browser?.storage?.local) {
+    return globalThis.browser.storage.local.remove(key);
+  }
+
+  return new Promise((resolve) => {
+    extensionStorage.remove(key, () => resolve());
+  });
+}
 
 function ensureFontLink() {
   if (!document.getElementById(GOOGLE_FONT_LINK_ID)) {
@@ -200,63 +332,50 @@ function ensureFontLink() {
 }
 
 function getStoredSetting(key) {
-  if (!extensionStorage) {
-    return Promise.resolve(undefined);
-  }
+  if (usesLocalStorage(key)) {
+    const localValue = readLocalSetting(key);
+    if (localValue !== undefined) {
+      return Promise.resolve(localValue);
+    }
 
-  if (globalThis.browser?.storage?.local) {
-    return globalThis.browser.storage.local.get(key).then((result) => result?.[key]);
-  }
-
-  return new Promise((resolve) => {
-    extensionStorage.get(key, (result) => {
-      resolve(result?.[key]);
+    return getExtensionStoredSetting(key).then((value) => {
+      if (value !== undefined) {
+        writeLocalSetting(key, value);
+        void removeExtensionStoredSetting(key);
+      }
+      return value;
     });
-  });
+  }
+
+  return getExtensionStoredSetting(key);
 }
 
-function getStoredSettings(keys) {
-  if (!extensionStorage) {
-    return Promise.resolve({});
-  }
-
-  if (globalThis.browser?.storage?.local) {
-    return globalThis.browser.storage.local.get(keys);
-  }
-
-  return new Promise((resolve) => {
-    extensionStorage.get(keys, (result) => {
-      resolve(result ?? {});
-    });
-  });
+async function getStoredSettings(keys) {
+  const entries = await Promise.all(keys.map(async (key) => [key, await getStoredSetting(key)]));
+  return Object.fromEntries(entries);
 }
 
 function setStoredSetting(values) {
-  if (!extensionStorage) {
-    return Promise.resolve();
-  }
+  const extensionValues = {};
 
-  if (globalThis.browser?.storage?.local) {
-    return globalThis.browser.storage.local.set(values);
-  }
-
-  return new Promise((resolve) => {
-    extensionStorage.set(values, () => resolve());
+  Object.entries(values).forEach(([key, value]) => {
+    if (usesLocalStorage(key)) {
+      writeLocalSetting(key, value);
+      void removeExtensionStoredSetting(key);
+    } else {
+      extensionValues[key] = value;
+    }
   });
+
+  return Object.keys(extensionValues).length > 0 ? setExtensionStoredSetting(extensionValues) : Promise.resolve();
 }
 
 function removeStoredSetting(key) {
-  if (!extensionStorage) {
-    return Promise.resolve();
+  if (usesLocalStorage(key)) {
+    clearLocalSetting(key);
   }
 
-  if (globalThis.browser?.storage?.local) {
-    return globalThis.browser.storage.local.remove(key);
-  }
-
-  return new Promise((resolve) => {
-    extensionStorage.remove(key, () => resolve());
-  });
+  return removeExtensionStoredSetting(key);
 }
 
 function normalizeFontName(value) {
@@ -299,6 +418,29 @@ function getAllPairingsMap() {
   return { ...FONT_PAIRINGS, ...customEntries };
 }
 
+function getValidTheme(themeId) {
+  return THEMES[themeId] ? themeId : DEFAULT_THEME;
+}
+
+function getEffectiveTheme() {
+  return getValidTheme(previewTheme ?? savedTheme);
+}
+
+function renderThemeOptions(select, selectedValue) {
+  if (!select) {
+    return;
+  }
+
+  select.replaceChildren();
+  Object.entries(THEMES).forEach(([value, theme]) => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = theme.label;
+    option.selected = value === selectedValue;
+    select.appendChild(option);
+  });
+}
+
 function renderPairingOptions(select, selectedValue) {
   if (!select) {
     return;
@@ -332,9 +474,33 @@ function renderPairingOptions(select, selectedValue) {
   }
 }
 
+function syncPageClasses() {
+  document.documentElement.classList.toggle(HOME_PAGE_CLASS, Boolean(document.querySelector('.feed-home')));
+}
+
 function refreshPairingSelectors() {
   renderPairingOptions(document.querySelector('[data-stardance-utils-setting="sidebar-font-pairing"]'), getEffectivePairing());
   renderPairingOptions(document.querySelector('[data-stardance-utils-try-select]'), getEffectivePairing());
+}
+
+async function applyTheme(themeId) {
+  const nextThemeId = getValidTheme(themeId);
+  const nextTheme = THEMES[nextThemeId] ?? THEMES[DEFAULT_THEME];
+  const root = document.documentElement;
+
+  root.classList.remove(CUSTOM_THEME_CLASS);
+  Object.values(THEMES).forEach((theme) => {
+    if (theme.className) {
+      root.classList.remove(theme.className);
+    }
+  });
+
+  if (nextTheme.className) {
+    root.classList.add(CUSTOM_THEME_CLASS);
+    root.classList.add(nextTheme.className);
+  }
+
+  root.setAttribute('data-stardance-utils-theme', nextThemeId);
 }
 
 async function updateFontSuggestions(datalist, query) {
@@ -636,10 +802,15 @@ function updateUtilsPanel(dialog) {
   }
 
   const select = dialog.querySelector('[data-stardance-utils-setting="sidebar-font-pairing"]');
+  const themeSelect = dialog.querySelector('[data-stardance-utils-setting="site-theme"]');
   const orderList = dialog.querySelector('[data-stardance-utils-sidebar-order]');
 
   if (select) {
     renderPairingOptions(select, getEffectivePairing());
+  }
+
+  if (themeSelect) {
+    renderThemeOptions(themeSelect, getEffectiveTheme());
   }
 
   if (orderList) {
@@ -673,11 +844,24 @@ async function saveCurrentPairing() {
   updateTryPanel();
 }
 
+async function saveCurrentTheme() {
+  savedTheme = getEffectiveTheme();
+  previewTheme = savedTheme;
+  await setStoredSetting({ [THEME_KEY]: savedTheme });
+  updateUtilsPanel(document.getElementById('settings-modal'));
+}
+
 function resetToSavedPairing() {
   previewFontPairing = savedFontPairing;
   applyFontPairing(previewFontPairing);
   updateUtilsPanel(document.getElementById('settings-modal'));
   updateTryPanel();
+}
+
+function resetToSavedTheme() {
+  previewTheme = savedTheme;
+  void applyTheme(previewTheme);
+  updateUtilsPanel(document.getElementById('settings-modal'));
 }
 
 function closeTryPanel(resetPreview = true) {
@@ -1786,9 +1970,49 @@ function buildUtilsPanel(selectedPairing) {
   const field = document.createElement('div');
   field.className = 'settings-form__field';
 
+  const appearanceAccordion = document.createElement('details');
+  appearanceAccordion.className = 'stardance-utils-accordion';
+
+  const appearanceSummary = document.createElement('summary');
+  appearanceSummary.className = 'stardance-utils-accordion-summary';
+  appearanceSummary.textContent = 'Appearance';
+
+  const appearanceBody = document.createElement('div');
+  appearanceBody.className = 'stardance-utils-accordion-body';
+
+  const appearanceHeader = document.createElement('div');
+  appearanceHeader.className = 'stardance-utils-inline-header';
+
+  const themeLabel = document.createElement('label');
+  themeLabel.className = 'settings-form__label stardance-utils-section-label';
+  themeLabel.setAttribute('for', 'stardance-utils-theme-select');
+  themeLabel.textContent = 'Theme';
+
+  const themeSelect = document.createElement('select');
+  themeSelect.id = 'stardance-utils-theme-select';
+  themeSelect.className = 'settings-form__input stardance-utils-select';
+  themeSelect.setAttribute('data-stardance-utils-setting', 'site-theme');
+  renderThemeOptions(themeSelect, getEffectiveTheme());
+
+  const themeHint = document.createElement('small');
+  themeHint.className = 'settings-form__hint';
+  themeHint.textContent = 'Applies a site palette and rethemes Utils surfaces.';
+
+  const themeActions = document.createElement('div');
+  themeActions.className = 'stardance-utils-actions';
+
+  const themeSaveButton = document.createElement('button');
+  themeSaveButton.type = 'button';
+  themeSaveButton.className = 'modal__actions-close modal__actions-close--primary stardance-utils-action-button stardance-utils-action-button--primary';
+  themeSaveButton.textContent = 'Save';
+
+  const themeResetButton = document.createElement('button');
+  themeResetButton.type = 'button';
+  themeResetButton.className = 'modal__actions-close stardance-utils-action-button stardance-utils-action-button--secondary';
+  themeResetButton.textContent = 'Reset';
+
   const sidebarAccordion = document.createElement('details');
   sidebarAccordion.className = 'stardance-utils-accordion';
-  sidebarAccordion.open = true;
 
   const sidebarSummary = document.createElement('summary');
   sidebarSummary.className = 'stardance-utils-accordion-summary';
@@ -1886,6 +2110,13 @@ function buildUtilsPanel(selectedPairing) {
   const actions = document.createElement('div');
   actions.className = 'stardance-utils-actions';
 
+  const closeDialog = () => {
+    const dialog = panel.closest('dialog');
+    if (dialog?.open) {
+      dialog.close();
+    }
+  };
+
   const saveButton = document.createElement('button');
   saveButton.type = 'button';
   saveButton.className = 'modal__actions-close modal__actions-close--primary stardance-utils-action-button stardance-utils-action-button--primary';
@@ -1901,6 +2132,12 @@ function buildUtilsPanel(selectedPairing) {
     applyFontPairing(previewFontPairing);
     updateUtilsPanel(panel.closest('dialog'));
     updateTryPanel();
+  });
+
+  themeSelect.addEventListener('change', () => {
+    previewTheme = getValidTheme(themeSelect.value);
+    void applyTheme(previewTheme);
+    updateUtilsPanel(panel.closest('dialog'));
   });
 
   const handleAutocompleteInput = async (event) => {
@@ -1951,10 +2188,20 @@ function buildUtilsPanel(selectedPairing) {
 
   saveButton.addEventListener('click', async () => {
     await saveCurrentPairing();
+    closeDialog();
+  });
+
+  themeSaveButton.addEventListener('click', async () => {
+    await saveCurrentTheme();
+    closeDialog();
   });
 
   resetButton.addEventListener('click', () => {
     resetToSavedPairing();
+  });
+
+  themeResetButton.addEventListener('click', () => {
+    resetToSavedTheme();
   });
 
   tryButton.addEventListener('click', () => {
@@ -1982,9 +2229,16 @@ function buildUtilsPanel(selectedPairing) {
 
   actions.appendChild(saveButton);
   actions.appendChild(resetButton);
+  themeActions.appendChild(themeSaveButton);
+  themeActions.appendChild(themeResetButton);
 
   customGrid.appendChild(regularInput);
   customGrid.appendChild(activeInput);
+  appearanceHeader.appendChild(themeLabel);
+  appearanceBody.appendChild(appearanceHeader);
+  appearanceBody.appendChild(themeSelect);
+  appearanceBody.appendChild(themeHint);
+  appearanceBody.appendChild(themeActions);
   curatedHeader.appendChild(label);
   curatedHeader.appendChild(tryButton);
   sidebarBody.appendChild(curatedHeader);
@@ -2006,6 +2260,9 @@ function buildUtilsPanel(selectedPairing) {
   customAccordion.appendChild(customBody);
   orderAccordion.appendChild(orderSummary);
   orderAccordion.appendChild(orderBody);
+  appearanceAccordion.appendChild(appearanceSummary);
+  appearanceAccordion.appendChild(appearanceBody);
+  field.appendChild(appearanceAccordion);
   sidebarBody.appendChild(orderAccordion);
   sidebarBody.appendChild(customAccordion);
 
@@ -2068,16 +2325,23 @@ function enhanceSettingsModal(dialog, selectedPairing) {
 
 async function syncEnhancements() {
   ensureFontLink();
+  syncPageClasses();
 
-  const storedValues = await getStoredSettings([FONT_PAIRING_KEY, TRY_MODE_PENDING_KEY, CUSTOM_FONT_PAIRINGS_KEY, SIDEBAR_ORDER_KEY]);
+  const storedValues = await getStoredSettings([THEME_KEY, FONT_PAIRING_KEY, TRY_MODE_PENDING_KEY, CUSTOM_FONT_PAIRINGS_KEY, SIDEBAR_ORDER_KEY]);
   customFontPairings = Array.isArray(storedValues?.[CUSTOM_FONT_PAIRINGS_KEY]) ? storedValues[CUSTOM_FONT_PAIRINGS_KEY] : [];
   savedSidebarOrder = normalizeSidebarOrder(storedValues?.[SIDEBAR_ORDER_KEY]);
+  savedTheme = getValidTheme(storedValues?.[THEME_KEY]);
   savedFontPairing = getValidPairing(storedValues?.[FONT_PAIRING_KEY]);
+
+  if (!previewTheme) {
+    previewTheme = savedTheme;
+  }
 
   if (!previewFontPairing) {
     previewFontPairing = savedFontPairing;
   }
 
+  await applyTheme(getEffectiveTheme());
   applySidebarOrder(savedSidebarOrder);
   applyFontPairing(getEffectivePairing());
   enhanceProjectShowPage();

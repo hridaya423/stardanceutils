@@ -17,7 +17,14 @@
                 "https://stardance.hackclub.com/*"
             ],
             "css": [
-                "styles.css"
+                "styles.css",
+                "themes/kanagawa.css",
+                "themes/nord.css",
+                "themes/tokyo-night.css",
+                "themes/catppuccin-mocha.css",
+                "themes/catppuccin-frappe.css",
+                "themes/catppuccin-macchiato.css",
+                "themes/catppuccin-latte.css"
             ],
             "js": [
                 "content.js"

@@ -7,6 +7,7 @@ A utility extension for Stardance.
 - Sidebar typography customization with curated font pairings.
 - Custom font pairing creation with Google Fonts autocomplete.
 - Sidebar tab reordering directly in the sidebar with drag and drop.
+- Custom themes across Catppuccin, Kanagawa, Nord, and Tokyo Night.
 - Project page enhancements:
   - Hero-level Ship button placement.
   - Inline devlog posts on project pages.

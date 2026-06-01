@@ -6,9 +6,10 @@
 
 Stardance Utils does not run its own backend and does not sell or share your data.
 
-The extension stores settings and draft text locally in your browser using extension storage/local storage to support user-facing features.
+The extension stores Utils settings and draft text locally in your browser using site localStorage to support user-facing features.
 
 Stored locally may include:
+- Selected site theme
 - Selected sidebar font pairing
 - Custom font pairings
 - Sidebar tab order
@@ -19,7 +20,7 @@ Stored locally may include:
 
 | Permission | Purpose |
 |------------|---------|
-| `storage` | Save extension settings and local draft data |
+| `storage` | Read and migrate older extension-saved settings when available |
 | `https://stardance.hackclub.com/*` | Run extension features on Stardance pages |
 
 ## Third-Party Services
