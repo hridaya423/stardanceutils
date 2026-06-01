@@ -7,6 +7,7 @@ const FONTSHARE_LINK_ID = 'stardance-utils-fontshare-fonts';
 const TRY_PANEL_ID = 'stardance-utils-try-panel';
 const REORDER_BANNER_ID = 'stardance-utils-reorder-banner';
 const INLINE_COMPOSER_ATTR = 'data-stardance-utils-inline-composer';
+const DEVLOG_SPEECH_ATTR = 'data-stardance-utils-speech';
 const CUSTOM_FONT_PAIRINGS_KEY = 'customSidebarFontPairings';
 const SIDEBAR_ORDER_KEY = 'sidebarTabOrder';
 const FONT_DATALIST_ID = 'stardance-utils-font-suggestions';
@@ -686,6 +687,244 @@ function closeTryPanel(resetPreview = true) {
   panel.remove();
 }
 
+function composeTranscriptText(baseText, finalText, interimText) {
+  const parts = [baseText, finalText, interimText]
+    .map((value) => (value || '').replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+  return parts.join(' ').trim();
+}
+
+function normalizeTranscriptText(text) {
+  let normalized = (text || '').replace(/\s+/g, ' ').trim();
+  if (!normalized) {
+    return '';
+  }
+
+  normalized = normalized
+    .replace(/\bi\b/g, 'I')
+    .replace(/\s+([,.;!?])/g, '$1')
+    .replace(/([,.;!?])(\S)/g, '$1 $2')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  return normalized;
+}
+
+function addCommaHints(text) {
+  return text
+    .replace(/\b(however|therefore|meanwhile|instead|also|anyway)\b/gi, ', $1,')
+    .replace(/\s+,/g, ',')
+    .replace(/,{2,}/g, ',')
+    .replace(/,\s*,/g, ', ')
+    .replace(/^,\s*/g, '')
+    .replace(/\s+,\s*$/g, '');
+}
+
+function capitalizeSentences(text) {
+  let shouldCapitalize = true;
+  let output = '';
+
+  for (const char of text) {
+    if (shouldCapitalize && /[a-z]/.test(char)) {
+      output += char.toUpperCase();
+      shouldCapitalize = false;
+      continue;
+    }
+
+    output += char;
+    if (/[.!?]/.test(char)) {
+      shouldCapitalize = true;
+    } else if (!/\s/.test(char)) {
+      shouldCapitalize = false;
+    }
+  }
+
+  return output;
+}
+
+function formatTranscriptChunk(rawChunk, contextText = '', isFinal = false) {
+  let chunk = normalizeTranscriptText(rawChunk);
+  if (!chunk) {
+    return '';
+  }
+
+  chunk = addCommaHints(chunk);
+
+  const sentenceContext = normalizeTranscriptText(contextText);
+  const shouldCapitalizeFirst = !sentenceContext || /[.!?]\s*$/.test(sentenceContext);
+  if (shouldCapitalizeFirst) {
+    chunk = chunk.replace(/^([a-z])/, (char) => char.toUpperCase());
+  }
+
+  if (isFinal && !/[.!?]$/.test(chunk)) {
+    const wordCount = chunk.split(/\s+/).length;
+    if (wordCount >= 14) {
+      chunk = `${chunk}.`;
+    }
+  }
+
+  return chunk;
+}
+
+function finalizeTranscriptText(text) {
+  return capitalizeSentences(normalizeTranscriptText(text));
+}
+
+function enhanceDevlogSpeech(composerSection) {
+  if (!composerSection || composerSection.getAttribute(DEVLOG_SPEECH_ATTR) === 'true') {
+    return;
+  }
+
+  const textarea = composerSection.querySelector('textarea[name="post_devlog[body]"]');
+  if (!textarea) {
+    return;
+  }
+
+  composerSection.setAttribute(DEVLOG_SPEECH_ATTR, 'true');
+
+  const submitGroup = composerSection.querySelector('.feed-composer__submit-group');
+  if (!submitGroup) {
+    return;
+  }
+
+  const speechWrap = document.createElement('div');
+  speechWrap.className = 'stardance-utils-speech-wrap';
+
+  const speechButton = document.createElement('button');
+  speechButton.type = 'button';
+  speechButton.className = 'feed-composer__tool-btn stardance-utils-speech-btn';
+  speechButton.setAttribute('aria-pressed', 'false');
+  speechButton.setAttribute('aria-label', 'Start speech to text');
+  speechButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" class="stardance-utils-speech-icon"><path fill="currentColor" d="M12 3a3.5 3.5 0 0 0-3.5 3.5v5a3.5 3.5 0 1 0 7 0v-5A3.5 3.5 0 0 0 12 3Zm-5 8.25a.75.75 0 0 1 .75.75 4.25 4.25 0 1 0 8.5 0 .75.75 0 0 1 1.5 0 5.75 5.75 0 0 1-5 5.693V20h2a.75.75 0 0 1 0 1.5h-5.5a.75.75 0 0 1 0-1.5h2v-2.307a5.75 5.75 0 0 1-5-5.693.75.75 0 0 1 .75-.75Z"/></svg>';
+
+  const speechStatus = document.createElement('span');
+  speechStatus.className = 'stardance-utils-speech-status';
+  speechStatus.setAttribute('aria-live', 'polite');
+  speechStatus.textContent = '';
+
+  speechWrap.appendChild(speechButton);
+  speechWrap.appendChild(speechStatus);
+  submitGroup.insertBefore(speechWrap, submitGroup.firstChild);
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    speechButton.disabled = true;
+    speechStatus.textContent = 'Speech not supported in this browser';
+    return;
+  }
+
+  let recognition = null;
+  let isListening = false;
+  let finalBuffer = '';
+  let sessionBaseText = '';
+  let sessionFinalText = '';
+  let sessionInterimText = '';
+
+  const setStatus = (message, mode = 'idle') => {
+    speechStatus.textContent = message;
+    speechStatus.setAttribute('data-mode', mode);
+  };
+
+  const setListening = (listening) => {
+    isListening = listening;
+    speechButton.setAttribute('aria-pressed', listening ? 'true' : 'false');
+    speechButton.classList.toggle('is-listening', listening);
+    speechButton.setAttribute('aria-label', listening ? 'Stop speech to text' : 'Start speech to text');
+  };
+
+  const getRecognition = () => {
+    if (recognition) {
+      return recognition;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = navigator.language || 'en-US';
+
+    recognition.onstart = () => {
+      finalBuffer = '';
+      sessionBaseText = textarea.value || '';
+      sessionFinalText = '';
+      sessionInterimText = '';
+      setListening(true);
+      setStatus('', 'listening');
+    };
+
+    recognition.onresult = (event) => {
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const result = event.results[i];
+        const transcript = result[0]?.transcript ?? '';
+        if (result.isFinal) {
+          finalBuffer += `${transcript} `;
+        } else {
+          interim += transcript;
+        }
+      }
+
+      if (finalBuffer.trim()) {
+        const formattedFinal = formatTranscriptChunk(finalBuffer, composeTranscriptText(sessionBaseText, sessionFinalText, ''), true);
+        sessionFinalText = composeTranscriptText(sessionFinalText, formattedFinal, '');
+        finalBuffer = '';
+      }
+
+      sessionInterimText = formatTranscriptChunk(interim, composeTranscriptText(sessionBaseText, sessionFinalText, ''), false);
+
+      const nextValue = finalizeTranscriptText(composeTranscriptText(sessionBaseText, sessionFinalText, sessionInterimText));
+      textarea.value = nextValue;
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+
+      setStatus('', 'listening');
+    };
+
+    recognition.onerror = (event) => {
+      const code = event?.error;
+      if (code === 'not-allowed' || code === 'service-not-allowed') {
+        setStatus('Microphone permission denied', 'error');
+      } else if (code === 'audio-capture') {
+        setStatus('No microphone found', 'error');
+      } else if (code === 'network') {
+        setStatus('Speech service network issue', 'error');
+      } else if (code === 'no-speech') {
+        setStatus('No speech detected', 'warn');
+      } else {
+        setStatus('Speech to text unavailable', 'error');
+      }
+    };
+
+    recognition.onend = () => {
+      if (finalBuffer.trim()) {
+        const formattedFinal = formatTranscriptChunk(finalBuffer, composeTranscriptText(sessionBaseText, sessionFinalText, ''), true);
+        sessionFinalText = composeTranscriptText(sessionFinalText, formattedFinal, '');
+        finalBuffer = '';
+      }
+      const committedValue = finalizeTranscriptText(composeTranscriptText(sessionBaseText, sessionFinalText, ''));
+      textarea.value = committedValue;
+      textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      setListening(false);
+      setStatus('', 'idle');
+    };
+
+    return recognition;
+  };
+
+  speechButton.addEventListener('click', () => {
+    const activeRecognition = getRecognition();
+    if (!isListening) {
+      textarea.focus();
+      try {
+        activeRecognition.start();
+      } catch (error) {
+        setStatus('Could not start microphone', 'error');
+      }
+      return;
+    }
+
+    activeRecognition.stop();
+  });
+}
+
 function enhanceProjectShowPage() {
   const projectMain = document.querySelector('.app-layout__main');
   const actionsNav = projectMain?.querySelector('.project-show__actions');
@@ -732,15 +971,42 @@ function enhanceProjectShowPage() {
     shipButton.remove();
   }
 
+  const pathMatch = window.location.pathname.match(/\/projects\/(\d+)/);
+  const projectId = pathMatch?.[1] ?? null;
+
   const postDevlogButton = [...(actionsNav?.querySelectorAll('.action-btn') ?? [])].find((button) =>
     button.textContent?.includes('Post a devlog')
   );
   const modalMatch = postDevlogButton?.getAttribute('onclick')?.match(/composer-modal-(\d+)/);
   const modalId = modalMatch ? `composer-modal-${modalMatch[1]}` : null;
+
+  const isDevlogComposer = (composer) => {
+    const form = composer?.querySelector('.feed-composer__form');
+    if (!form) {
+      return false;
+    }
+
+    const action = form.getAttribute('action') || '';
+    const bodyField = form.querySelector('textarea[name="post_devlog[body]"]');
+    if (bodyField) {
+      return true;
+    }
+
+    if (!action.includes('/devlogs')) {
+      return false;
+    }
+
+    return projectId ? action.includes(`/projects/${projectId}/devlogs`) : true;
+  };
+
   const composerDialog = (modalId ? document.getElementById(modalId) : null)
-    ?? [...document.querySelectorAll('.composer-modal')].find((dialog) => dialog.querySelector('.feed-composer'));
+    ?? [...document.querySelectorAll('.composer-modal')].find((dialog) => {
+      const composer = dialog.querySelector('.feed-composer');
+      return isDevlogComposer(composer);
+    });
+
   const composerSection = composerDialog?.querySelector('.feed-composer')
-    ?? projectMain.querySelector('.feed-composer');
+    ?? [...projectMain.querySelectorAll('.feed-composer')].find((composer) => isDevlogComposer(composer));
   const inlineComposerShell = projectMain.querySelector('.stardance-utils-inline-composer-shell');
   if (composerSection && composerSection.getAttribute(INLINE_COMPOSER_ATTR) !== 'true' && !inlineComposerShell) {
     const composerShell = document.createElement('section');
@@ -773,6 +1039,10 @@ function enhanceProjectShowPage() {
       document.body.appendChild(composerDialog);
     }
   }
+
+  const activeInlineComposer = [...projectMain.querySelectorAll('.stardance-utils-inline-composer.feed-composer, .feed-composer')]
+    .find((composer) => isDevlogComposer(composer));
+  enhanceDevlogSpeech(activeInlineComposer);
 
   actionsNav?.remove();
 }

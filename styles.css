@@ -554,3 +554,50 @@ html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item:hover .s
 .stardance-utils-inline-composer.feed-composer {
   border-radius: 1rem;
 }
+
+.stardance-utils-speech-wrap {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+  margin-right: 0.5rem;
+}
+
+.stardance-utils-speech-btn {
+  align-items: center;
+  border-radius: 999px;
+  justify-content: center;
+  min-width: 0;
+  padding: 0.42rem;
+  position: relative;
+}
+
+.stardance-utils-speech-icon {
+  height: 1rem;
+  width: 1rem;
+}
+
+.stardance-utils-speech-btn.is-listening {
+  background-color: rgba(230, 70, 86, 0.18);
+  border-color: rgba(230, 70, 86, 0.4);
+}
+
+.stardance-utils-speech-status {
+  font-size: 0.74rem;
+  line-height: 1.2;
+  min-width: 0;
+  opacity: 0;
+}
+
+.stardance-utils-speech-status[data-mode="listening"] {
+  opacity: 0;
+}
+
+.stardance-utils-speech-status[data-mode="error"] {
+  color: #ff8b8b;
+  opacity: 1;
+}
+
+.stardance-utils-speech-status[data-mode="warn"] {
+  color: #f7d67b;
+  opacity: 1;
+}
