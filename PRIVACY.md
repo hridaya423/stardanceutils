@@ -1,23 +1,36 @@
 # Privacy Policy
 
-**Last Updated:** May 30, 2026
+**Last Updated:** June 1, 2026
 
 ## Data Collection
 
-Stardance Utils **does not collect, store, or transmit any personal data.**
+Stardance Utils does not run its own backend and does not sell or share your data.
 
-No data is sent to any server, third party, or external service. All extension logic runs entirely within your browser.
+The extension stores settings and draft text locally in your browser using extension storage/local storage to support user-facing features.
+
+Stored locally may include:
+- Selected sidebar font pairing
+- Custom font pairings
+- Sidebar tab order
+- Devlog draft text for autosave/restore
+- Temporary extension UI state
 
 ## Permissions
 
 | Permission | Purpose |
 |------------|---------|
-| `https://stardance.hackclub.com/*` | Inject custom styles on the stable Stardance site |
-| `https://beta.stardance.hackclub.com/*` | Inject custom styles on the beta Stardance site |
+| `storage` | Save extension settings and local draft data |
+| `https://stardance.hackclub.com/*` | Run extension features on Stardance pages |
 
 ## Third-Party Services
 
-This extension loads fonts from Google Fonts and Fontshare when you visit Stardance. Their privacy policies apply to those font requests.
+This extension may interact with third-party services as part of requested features:
+
+- Google Fonts and Fontshare assets (for typography options)
+- Google Fonts metadata endpoint (for custom font autocomplete)
+- Browser-provided speech recognition services when speech-to-text is used
+
+These services are governed by their own privacy policies.
 
 No analytics, tracking, or telemetry is used.
 
