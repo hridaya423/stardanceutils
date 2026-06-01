@@ -31,6 +31,7 @@ jobs:
           mkdir -p build/chrome
           cp manifest.json content.js styles.css icon*.png build/chrome/ 2>/dev/null || \
           cp manifest.json content.js styles.css build/chrome/
+          cp themes/*.css build/chrome/themes/
           cd build/chrome && zip -r ../../stardance-utils-chrome-v${{ env.VERSION }}.zip .
 
       - name: Build Firefox
@@ -38,6 +39,7 @@ jobs:
           mkdir -p build/firefox
           cp manifest_firefox.json build/firefox/manifest.json
           cp content.js styles.css icon*.png build/firefox/ 2>/dev/null || true
+          cp themes/*.css build/firefox/themes/
           cd build/firefox && zip -r ../../stardance-utils-firefox-v${{ env.VERSION }}.zip .
 
       - name: Upload artifacts
