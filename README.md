@@ -2,6 +2,18 @@
 
 A utility extension for Stardance.
 
+## Features
+
+- Sidebar typography customization with curated font pairings.
+- Custom font pairing creation with Google Fonts autocomplete.
+- Sidebar tab reordering directly in the sidebar with drag and drop.
+- Project page enhancements:
+  - Hero-level Ship button placement.
+  - Inline devlog posts on project pages.
+  - Removal of unnecessary "Complete project info" action.
+- Devlog speech-to-text with native browser recognition:
+  - Basic auto-formatting (capitalization + punctuation cleanup).
+
 ## Installation
 
 ### Chrome
