@@ -28,17 +28,18 @@ jobs:
 
       - name: Build Chrome
         run: |
-          mkdir -p build/chrome
-          cp manifest.json content.js styles.css icon*.png build/chrome/ 2>/dev/null || \
+          mkdir -p build/chrome/themes
           cp manifest.json content.js styles.css build/chrome/
+          cp icon*.png build/chrome/ 2>/dev/null || true
           cp themes/*.css build/chrome/themes/
           cd build/chrome && zip -r ../../stardance-utils-chrome-v${{ env.VERSION }}.zip .
 
       - name: Build Firefox
         run: |
-          mkdir -p build/firefox
+          mkdir -p build/firefox/themes
           cp manifest_firefox.json build/firefox/manifest.json
-          cp content.js styles.css icon*.png build/firefox/ 2>/dev/null || true
+          cp content.js styles.css build/firefox/
+          cp icon*.png build/firefox/ 2>/dev/null || true
           cp themes/*.css build/firefox/themes/
           cd build/firefox && zip -r ../../stardance-utils-firefox-v${{ env.VERSION }}.zip .
 
