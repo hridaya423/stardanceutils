@@ -4,18 +4,27 @@ A utility extension for Stardance.
 
 ## Features
 
-- Sidebar typography customization with curated font pairings.
-- Custom font pairing creation with Google Fonts autocomplete.
-- Sidebar tab reordering directly in the sidebar with drag and drop.
-- Custom themes across Catppuccin, Kanagawa, Nord, and Tokyo Night.
-- Project page enhancements:
+- Appearance and navigation:
+  - Curated sidebar font pairings.
+  - Custom font pairings with Google Fonts autocomplete.
+  - Sidebar tab reordering with drag and drop.
+  - Try mode preview panel for cycling through font pairings before saving.
+  - Built-in themes: Kanagawa, Nord, Tokyo Night, and Catppuccin variants.
+- Project page improvements:
   - Hero-level Ship button placement.
-  - Inline devlog posts on project pages.
-  - Inline devlog editing
-  - Removal of unnecessary "Complete project info" action.
-- Devlog speech-to-text with native browser recognition:
-  - Basic auto-formatting (capitalization + punctuation cleanup).
-
+  - Inline devlog composer on project pages.
+  - Inline devlog editing.
+  - Removal of the unnecessary "Complete project info" action.
+- Devlog writing tools:
+  - Drafts for devlogs.
+  - Native browser speech-to-text.
+  - Basic transcript cleanup for capitalization and punctuation.
+  - Slack emoji autocomplete and picker integration. (Functional when devlog images PR is merged)
+- Feed AI checks:
+  - Adds a `Check AI` action to feed cards.
+  - Sends image checks through OpenAI Verify.
+  - Gemini check to be added.
+  
 ## Installation
 
 ### Chrome
@@ -35,7 +44,7 @@ A utility extension for Stardance.
 ### Firefox
 
 **Mozilla Addons:**
-1. Visit Mozilla Addons
+1. Visit [Mozilla Addons](https://addons.mozilla.org/en-US/firefox/addon/stardance-utils/)
 2. Click "Add to Firefox"
 3. Confirm the installation
 
@@ -46,3 +55,17 @@ A utility extension for Stardance.
 4. Click "This Firefox"
 5. Click "Load Temporary Add-on"
 6. Select the `manifest.json` from the firefox release
+
+## Development Notes
+
+- Main Stardance content script is split across:
+  - `shared.js`
+  - `themes.js`
+  - `sidebar.js`
+  - `ai-check.js`
+  - `projects.js`
+  - `settings.js`
+  - `content.js`
+- OpenAI Verify automation lives in:
+  - `background.js`
+  - `openai-verify.js`

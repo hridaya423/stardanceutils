@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Stardance Utils",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "A utility extension for Stardance, with multiple useful features to enhance the experience",
     "permissions": [
         "storage"
@@ -31,6 +31,12 @@
                 "themes/catppuccin-latte.css"
             ],
             "js": [
+                "shared.js",
+                "themes.js",
+                "sidebar.js",
+                "ai-check.js",
+                "projects.js",
+                "settings.js",
                 "content.js"
             ],
             "run_at": "document_idle"
