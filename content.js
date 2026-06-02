@@ -9,6 +9,11 @@ const TRY_PANEL_ID = 'stardance-utils-try-panel';
 const REORDER_BANNER_ID = 'stardance-utils-reorder-banner';
 const HOME_PAGE_CLASS = 'stardance-utils-home-page';
 const CUSTOM_THEME_CLASS = 'stardance-utils-theme-custom';
+const FEED_AI_ATTR = 'data-stardance-utils-ai';
+const FEED_AI_BUTTON_ATTR = 'data-stardance-utils-ai-button';
+const FEED_AI_BUTTON_WRAP_ATTR = 'data-stardance-utils-ai-button-wrap';
+const AI_LOG_PREFIX = '[Stardance Utils AI]';
+const AI_BUTTON_RESET_MS = 3000;
 const INLINE_COMPOSER_ATTR = 'data-stardance-utils-inline-composer';
 const DEVLOG_SPEECH_ATTR = 'data-stardance-utils-speech';
 const DEVLOG_INLINE_EDIT_LINK_ATTR = 'data-stardance-utils-inline-edit-link';
@@ -235,6 +240,8 @@ let slackEmojiCache = null;
 let slackEmojiRequestPromise = null;
 
 const extensionStorage = globalThis.browser?.storage?.local ?? globalThis.chrome?.storage?.local ?? null;
+const extensionRuntime = globalThis.browser?.runtime ?? globalThis.chrome?.runtime ?? null;
+const aiButtonResetTimers = new WeakMap();
 
 function usesLocalStorage(key) {
   return LOCAL_SETTINGS_KEYS.has(key);
@@ -329,6 +336,239 @@ function ensureFontLink() {
     fontshareLink.href = 'https://api.fontshare.com/v2/css?f[]=switzer@400,500,700&f[]=general-sans@400,500,700&f[]=cabinet-grotesk@400,500,700&f[]=satoshi@400,500,700&display=swap';
     document.head.appendChild(fontshareLink);
   }
+}
+
+function logAiDebug(message, data) {
+  if (data === undefined) { 
+    console.debug(AI_LOG_PREFIX, message);
+    return;
+  }
+
+  console.debug(AI_LOG_PREFIX, message, data);
+}
+
+function logAiWarn(message, data) {
+  if (data === undefined) {
+    console.warn(AI_LOG_PREFIX, message);
+    return;
+  }
+
+  console.warn(AI_LOG_PREFIX, message, data);
+}
+
+function logAiError(message, error) {
+  console.error(AI_LOG_PREFIX, message, error);
+}
+
+function getOriginalFeedImageUrl(imageUrl) {
+  if (typeof imageUrl !== 'string' || imageUrl.length === 0) {
+    return null;
+  }
+
+  try {
+    const url = new URL(imageUrl, window.location.origin);
+    const representationMatch = url.pathname.match(/^\/rails\/active_storage\/representations\/proxy\/([^/]+)\/[^/]+\/(.+)$/);
+    if (representationMatch) {
+      const originalUrl = `${url.origin}/rails/active_storage/blobs/proxy/${representationMatch[1]}/${representationMatch[2]}`;
+      logAiDebug('Derived original blob URL from Active Storage representation', {
+        representationUrl: url.toString(),
+        originalUrl
+      });
+      return originalUrl;
+    }
+
+    logAiDebug('Using image URL directly for AI verification', { imageUrl: url.toString() });
+    return url.toString();
+  } catch {
+    logAiWarn('Failed to parse image URL for AI verification', { imageUrl });
+    return null;
+  }
+}
+
+async function runFeedAiVerification(imageUrl, mode = 'basic') {
+  if (!extensionRuntime?.sendMessage) {
+    throw new Error('Extension background messaging is unavailable');
+  }
+
+  logAiDebug('Fetching original image bytes for AI verification', { imageUrl, mode });
+  const response = await fetch(imageUrl, { credentials: 'include' });
+  if (!response.ok) {
+    throw new Error(`Image fetch failed (${response.status})`);
+  }
+
+  const blob = await response.blob();
+  const fileName = decodeURIComponent(imageUrl.split('/').pop() || 'image');
+  const buffer = await blob.arrayBuffer();
+  const byteArray = Array.from(new Uint8Array(buffer));
+  logAiDebug('Dispatching AI verification request to background worker', {
+    imageUrl,
+    mode,
+    type: blob.type,
+    size: blob.size,
+    fileName,
+    byteLength: byteArray.length
+  });
+
+  return new Promise((resolve, reject) => {
+    extensionRuntime.sendMessage({
+      type: 'stardance-utils-ai-check',
+      imageUrl,
+      mode,
+      fileName,
+      mimeType: blob.type || 'image/png',
+      bytes: byteArray
+    }, (response) => {
+      const runtimeError = globalThis.chrome?.runtime?.lastError;
+      if (runtimeError) {
+        reject(new Error(runtimeError.message));
+        return;
+      }
+
+      if (!response?.ok) {
+        reject(new Error(response?.error?.message || 'Background AI verification failed'));
+        return;
+      }
+
+      logAiDebug('Received AI verification response from background worker', response.result);
+      resolve(response.result);
+    });
+  });
+}
+
+function ensureFeedAiButton(card) {
+  let wrap = card.querySelector(`[${FEED_AI_BUTTON_WRAP_ATTR}]`);
+  if (wrap) {
+    return wrap.querySelector(`[${FEED_AI_BUTTON_ATTR}]`);
+  }
+
+  const media = card.querySelector('.feed-post-card__media') || card.querySelector('.feed-post-card__media-viewport') || card;
+  media.classList.add('stardance-utils-ai-media-host');
+
+  wrap = document.createElement('div');
+  wrap.className = 'stardance-utils-ai-button-wrap';
+  wrap.setAttribute(FEED_AI_BUTTON_WRAP_ATTR, 'true');
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'stardance-utils-ai-button';
+  button.setAttribute(FEED_AI_BUTTON_ATTR, 'true');
+  button.textContent = 'Check AI';
+
+  wrap.appendChild(button);
+  media.appendChild(wrap);
+  return button;
+}
+
+function scheduleAiButtonReset(button) {
+  const existingTimer = aiButtonResetTimers.get(button);
+  if (existingTimer) {
+    clearTimeout(existingTimer);
+  }
+
+  const timeoutId = window.setTimeout(() => {
+    button.className = 'stardance-utils-ai-button';
+    button.textContent = 'Check AI';
+    button.title = '';
+    aiButtonResetTimers.delete(button);
+  }, AI_BUTTON_RESET_MS);
+
+  aiButtonResetTimers.set(button, timeoutId);
+}
+
+function updateFeedAiUi(card, result, source = 'passive') {
+  const button = ensureFeedAiButton(card);
+  if (!button) {
+    return;
+  }
+
+  logAiDebug('Updated feed card AI UI', {
+    source,
+    status: result.status,
+    label: result.label,
+    postId: card.id || null
+  });
+
+  button.title = result.detail;
+  if (source === 'manual') {
+    button.textContent = result.label;
+    button.className = `stardance-utils-ai-button stardance-utils-ai-button--${result.status}`;
+    scheduleAiButtonReset(button);
+  } else {
+    button.className = 'stardance-utils-ai-button';
+    button.textContent = 'Re-check AI';
+  }
+}
+
+async function verifyFeedCard(card, mode = 'basic', source = 'passive') {
+  logAiDebug('Verifying feed card', {
+    postId: card.id || null,
+    mode,
+    source
+  });
+  const image = card.querySelector('.feed-post-card__image');
+  const imageUrl = getOriginalFeedImageUrl(image?.getAttribute('src') || '');
+  if (!imageUrl) {
+    logAiWarn('Skipping AI verification because no image URL was found', {
+      postId: card.id || null
+    });
+    if (source === 'manual') {
+      updateFeedAiUi(card, {
+        status: 'error',
+        label: 'Check failed',
+        detail: 'No image source was found for this post.'
+      }, 'manual');
+    }
+    return;
+  }
+
+  const button = ensureFeedAiButton(card);
+  if (source === 'manual' && button) {
+    button.disabled = true;
+    button.className = 'stardance-utils-ai-button';
+    button.textContent = 'Checking...';
+  }
+
+  try {
+    const result = await runFeedAiVerification(imageUrl, mode);
+    updateFeedAiUi(card, result, source);
+  } catch (error) {
+    logAiError('AI verification failed', {
+      postId: card.id || null,
+      imageUrl,
+      mode,
+      source,
+      error
+    });
+    if (source === 'manual') {
+      updateFeedAiUi(card, {
+        status: 'error',
+        label: 'Check failed',
+        detail: 'Could not inspect this image.'
+      }, 'manual');
+    }
+  } finally {
+    if (source === 'manual' && button) {
+      button.disabled = false;
+    }
+  }
+}
+
+function enhanceFeedAiVerification() {
+  const cards = document.querySelectorAll('article.feed-post-card');
+  logAiDebug('Scanning feed cards for AI verification', { totalCards: cards.length });
+  cards.forEach((card) => {
+    card.querySelectorAll('.stardance-utils-ai-row').forEach((row) => row.remove());
+    if (card.getAttribute(FEED_AI_ATTR) === 'true') {
+      return;
+    }
+
+    card.setAttribute(FEED_AI_ATTR, 'true');
+    logAiDebug('Attached AI verification hooks to feed card', { postId: card.id || null });
+    const button = ensureFeedAiButton(card);
+    button?.addEventListener('click', () => {
+      void verifyFeedCard(card, 'deep', 'manual');
+    });
+  });
 }
 
 function getStoredSetting(key) {
@@ -2345,6 +2585,7 @@ async function syncEnhancements() {
   applySidebarOrder(savedSidebarOrder);
   applyFontPairing(getEffectivePairing());
   enhanceProjectShowPage();
+  enhanceFeedAiVerification();
 
   const dialog = document.getElementById('settings-modal');
   if (dialog) {

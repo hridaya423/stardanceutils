@@ -9,7 +9,9 @@
         "128": "icon128.png"
     },
     "permissions": [
-        "storage"
+        "storage",
+        "https://stardance.hackclub.com/*",
+        "https://openai.com/*"
     ],
     "content_scripts": [
         {
@@ -30,8 +32,22 @@
                 "content.js"
             ],
             "run_at": "document_idle"
+        },
+        {
+            "matches": [
+                "https://openai.com/research/verify/*"
+            ],
+            "js": [
+                "openai-verify.js"
+            ],
+            "run_at": "document_idle"
         }
     ],
+    "background": {
+        "scripts": [
+            "background.js"
+        ]
+    },
     "browser_specific_settings": {
         "gecko": {
             "id": "stardance-utils@hackclub.com",

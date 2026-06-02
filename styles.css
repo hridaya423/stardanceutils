@@ -809,3 +809,66 @@ html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item:hover .s
   background: var(--stardance-utils-surface-7);
   border-color: var(--stardance-utils-border-strong);
 }
+
+.feed-post-card[data-stardance-utils-ai='true'] {
+  position: relative;
+}
+
+.stardance-utils-ai-media-host {
+  position: relative;
+}
+
+.stardance-utils-ai-button-wrap {
+  position: absolute;
+  right: 0.85rem;
+  top: 0.85rem;
+  z-index: 3;
+}
+
+.stardance-utils-ai-button {
+  appearance: none;
+  background: var(--stardance-utils-surface-1);
+  border: 1px solid var(--stardance-utils-border);
+  border-radius: 999px;
+  color: var(--stardance-utils-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  min-height: 1.7rem;
+  padding: 0.22rem 0.6rem;
+}
+
+.stardance-utils-ai-button:hover,
+.stardance-utils-ai-button:focus-visible {
+  color: var(--stardance-utils-text);
+  border-color: var(--stardance-utils-border-strong);
+  outline: none;
+}
+
+.stardance-utils-ai-button:disabled {
+  color: var(--stardance-utils-text-muted);
+  cursor: wait;
+}
+
+.stardance-utils-ai-button--verified-openai,
+.stardance-utils-ai-button--verified-ai {
+  background: rgba(137, 180, 250, 0.12);
+  border-color: rgba(137, 180, 250, 0.3);
+  color: #b9d0ff;
+}
+
+.stardance-utils-ai-button--none,
+.stardance-utils-ai-button--unsupported,
+.stardance-utils-ai-button--unavailable {
+  background: rgba(249, 226, 175, 0.12);
+  border-color: rgba(249, 226, 175, 0.24);
+  color: #f6e3b1;
+}
+
+.stardance-utils-ai-button--error {
+  background: rgba(243, 139, 168, 0.12);
+  border-color: rgba(243, 139, 168, 0.24);
+  color: #f6b4c6;
+}
