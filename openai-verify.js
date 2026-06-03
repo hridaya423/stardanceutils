@@ -1,4 +1,5 @@
 const LOG_PREFIX = '[Stardance Utils OpenAI Verify]';
+const VERIFY_RESULT_TIMEOUT_MS = 45000;
 
 function log(message, payload) {
   if (payload === undefined) {
@@ -100,7 +101,7 @@ function setFileInputFile(input, file) {
 
 function clickVerifyAnotherIfPresent() {
   const buttons = [...document.querySelectorAll('button')];
-  const verifyAnother = buttons.find((button) => /verify another image/i.test(button.textContent || ''));
+  const verifyAnother = buttons.find((button) => /verify another image/i.test(button.textContent || '') || button.getAttribute('data-analytics') === 'provenance-image-verifier-verify-another');
   verifyAnother?.click();
 }
 
@@ -122,7 +123,7 @@ async function resetVerifierState() {
 
 function extractResult() {
   const positiveHeading = [...document.querySelectorAll('h1, h2, h3, h4')]
-    .find((element) => /generated with openai tools/i.test(element.textContent?.trim() || ''));
+    .find((element) => /generated with openai tools|generated using openai tools/i.test(element.textContent?.trim() || ''));
   if (positiveHeading) {
     log('Detected positive verifier heading', { text: positiveHeading.textContent?.trim() || '' });
     return {
@@ -133,7 +134,7 @@ function extractResult() {
   }
 
   const negativeHeading = [...document.querySelectorAll('h1, h2, h3, h4')]
-    .find((element) => /^(no signal|no supported signal|no verifiable signal)( found)?$/i.test(element.textContent?.trim() || ''));
+    .find((element) => /^(no signal|no supported signal|no verifiable signal|no openai signals detected)( found)?$/i.test(element.textContent?.trim() || ''));
   if (negativeHeading) {
     log('Detected negative verifier heading', { text: negativeHeading.textContent?.trim() || '' });
     return {
@@ -143,8 +144,18 @@ function extractResult() {
     };
   }
 
+  const noSignalCopy = document.body?.innerText || '';
+  if (/no openai signals detected/i.test(noSignalCopy) || /we did not find evidence that the content was generated using openai tools/i.test(noSignalCopy)) {
+    log('Detected negative verifier copy', { snippet: noSignalCopy.slice(0, 200) });
+    return {
+      status: 'none',
+      label: 'No signal',
+      detail: 'OpenAI Verify did not find a supported provenance signal.'
+    };
+  }
+
   const verifyAnotherButton = [...document.querySelectorAll('button')]
-    .find((button) => /verify another image/i.test(button.textContent || ''));
+    .find((button) => /verify another image/i.test(button.textContent || '') || button.getAttribute('data-analytics') === 'provenance-image-verifier-verify-another');
   const resultImage = document.querySelector('img[src^="blob:https://openai.com/"]');
   const bodyText = document.body?.innerText || '';
   if (verifyAnotherButton && resultImage) {
@@ -163,7 +174,7 @@ function extractResult() {
       };
     }
 
-    if (/no signal|no supported signal|no verifiable signal/i.test(headingText || '') || /did not find a supported provenance signal/i.test(bodyText)) {
+    if (/no signal|no supported signal|no verifiable signal|no openai signals detected/i.test(headingText || '') || /did not find a supported provenance signal|no openai signals detected/i.test(bodyText)) {
       return {
         status: 'none',
         label: 'No signal',
@@ -190,7 +201,7 @@ function extractUploadError() {
   return null;
 }
 
-async function waitForResult(timeoutMs = 90000) {
+async function waitForResult(timeoutMs = VERIFY_RESULT_TIMEOUT_MS) {
   const startedAt = Date.now();
 
   while (Date.now() - startedAt < timeoutMs) {
@@ -203,6 +214,7 @@ async function waitForResult(timeoutMs = 90000) {
     if (result) {
       return result;
     }
+
     await sleep(500);
   }
 
@@ -217,6 +229,7 @@ async function executeVerification(requestId, imageUrl, fileName, mimeType, byte
   const input = await waitForSelector('input[type="file"][accept*="image/"]');
   await sendLog('file-input-ready', { requestId, inputId: input.id || null });
   logTurnstileTokenStatus();
+  await sleep(2000);
   const file = buildFileFromPayload(imageUrl, fileName, mimeType, bytes);
   log('Uploading image into verifier', { filename: file.name, size: file.size, type: file.type });
   await sendLog('uploading-file', { requestId, filename: file.name, size: file.size, type: file.type });
@@ -224,7 +237,7 @@ async function executeVerification(requestId, imageUrl, fileName, mimeType, byte
   const result = await waitForResult();
   log('OpenAI Verify produced result', { requestId, result });
   await sendLog('result-detected', { requestId, result });
-  await sendMessage({ type: 'stardance-utils-openai-result', requestId, ok: true, result });
+  void sendMessage({ type: 'stardance-utils-openai-result', requestId, ok: true, result }).catch(() => {});
 }
 
 function installMessageListener() {
@@ -250,7 +263,7 @@ function installMessageListener() {
       .catch(async (error) => {
         log('OpenAI Verify automation failed', { requestId, error: error?.message || String(error) });
         await sendLog('execute-failed', { requestId, error: error?.message || String(error) });
-        await sendMessage({
+        void sendMessage({
           type: 'stardance-utils-openai-result',
           requestId,
           ok: false,

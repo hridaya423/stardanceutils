@@ -43,7 +43,9 @@
         },
         {
             "matches": [
-                "https://openai.com/research/verify/*"
+                "https://openai.com/research/verify*",
+                "https://openai.com/*/research/verify*",
+                "https://openai.com/*-*/research/verify*"
             ],
             "js": [
                 "openai-verify.js"

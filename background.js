@@ -218,12 +218,12 @@ async function ensureVerifierTab() {
   const existingTabs = await queryTabs({ url: `${AI_VERIFY_URL}*` }).catch(() => []);
   const existingTab = existingTabs.find((tab) => tab?.id !== undefined);
   if (existingTab?.id !== undefined) {
-    await updateTab(existingTab.id, { active: true, pinned: true, url: AI_VERIFY_URL });
+    await updateTab(existingTab.id, { pinned: true, url: AI_VERIFY_URL });
     logAi('Reusing existing verifier tab', { verifierTabId: existingTab.id });
     return existingTab.id;
   }
 
-  const tab = await createTab({ url: AI_VERIFY_URL, active: true, pinned: true, index: 0 });
+  const tab = await createTab({ url: AI_VERIFY_URL, active: false, pinned: true, index: 0 });
   const verifierTabId = tab?.id ?? null;
   logAi('Opened verifier tab', { verifierTabId });
   if (verifierTabId === null) {
@@ -297,9 +297,6 @@ async function runOpenAiToolCheck(imageUrl, fileName, mimeType, bytes, sourceTab
     };
   } finally {
     await removeTab(tabId).catch(() => {});
-    if (typeof sourceTabId === 'number') {
-      await updateTab(sourceTabId, { active: true }).catch(() => {});
-    }
   }
 }
 
