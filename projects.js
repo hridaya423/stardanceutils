@@ -1296,6 +1296,144 @@
     });
   };
 
+  SU.getProfileProjectList = () => document.querySelector('.profile-tab-content[aria-label="Projects"] .project-list, .profile-tab-content .project-list');
+
+  SU.getProfileProjectId = (item) => {
+    const href = item?.querySelector('a.profile-project-card[href^="/projects/"]')?.getAttribute('href') || '';
+    const match = href.match(/\/projects\/(\d+)/);
+    return match?.[1] ?? null;
+  };
+
+  SU.normalizePinnedProjectIds = (ids, availableIds = null) => {
+    const seen = new Set();
+    const availableSet = Array.isArray(availableIds) ? new Set(availableIds) : null;
+
+    return (Array.isArray(ids) ? ids : []).reduce((acc, id) => {
+      if (typeof id !== 'string' || !id || seen.has(id)) {
+        return acc;
+      }
+
+      if (availableSet && !availableSet.has(id)) {
+        return acc;
+      }
+
+      seen.add(id);
+      acc.push(id);
+      return acc;
+    }, []);
+  };
+
+  SU.updateProfileProjectPinButtons = (list) => {
+    const pinnedIds = new Set(SU.savedPinnedProjectIds);
+
+    list.querySelectorAll('.project-list__item').forEach((item) => {
+      const projectId = SU.getProfileProjectId(item);
+      if (!projectId) {
+        return;
+      }
+
+      let button = item.querySelector('[data-stardance-utils-project-pin]');
+      if (!button) {
+        button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'profile-project-card__pin';
+        button.setAttribute('data-stardance-utils-project-pin', 'true');
+        button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" aria-hidden="true" focusable="false"><path fill="currentColor" d="M160 96C160 78.3 174.3 64 192 64L448 64C465.7 64 480 78.3 480 96C480 113.7 465.7 128 448 128L418.5 128L428.8 262.1C465.9 283.3 494.6 318.5 507 361.8L510.8 375.2C513.6 384.9 511.6 395.2 505.6 403.3C499.6 411.4 490 416 480 416L160 416C150 416 140.5 411.3 134.5 403.3C128.5 395.3 126.5 384.9 129.3 375.2L133 361.8C145.4 318.5 174 283.3 211.2 262.1L221.5 128L192 128C174.3 128 160 113.7 160 96zM288 464L352 464L352 576C352 593.7 337.7 608 320 608C302.3 608 288 593.7 288 576L288 464z"/></svg>';
+        button.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          SU.toggleProfileProjectPin(projectId);
+        });
+        item.appendChild(button);
+      }
+
+      const isPinned = pinnedIds.has(projectId);
+      button.classList.toggle('is-pinned', isPinned);
+      button.setAttribute('aria-label', isPinned ? 'Unpin project' : 'Pin project');
+      button.setAttribute('aria-pressed', String(isPinned));
+      button.title = isPinned ? 'Unpin project' : 'Pin project';
+    });
+  };
+
+  SU.toggleProfileProjectPin = async (projectId) => {
+    if (!projectId) {
+      return;
+    }
+
+    const current = SU.normalizePinnedProjectIds(SU.savedPinnedProjectIds);
+    const next = current.includes(projectId)
+      ? current.filter((id) => id !== projectId)
+      : [projectId, ...current];
+
+    SU.savedPinnedProjectIds = next;
+    await SU.setStoredSetting({ [SU.PROJECT_PINNED_IDS_KEY]: next });
+    SU.applyProfileProjectPins();
+  };
+
+  SU.applyProfileProjectPins = () => {
+    const list = SU.getProfileProjectList();
+    if (!list) {
+      return;
+    }
+
+    if (list.getAttribute('data-stardance-utils-project-pins-busy') === 'true') {
+      return;
+    }
+
+    list.setAttribute('data-stardance-utils-project-pins-busy', 'true');
+
+    const items = [...list.querySelectorAll('.project-list__item')];
+    const projectIds = items.map((item) => SU.getProfileProjectId(item)).filter(Boolean);
+    const pinnedIds = SU.normalizePinnedProjectIds(SU.savedPinnedProjectIds, projectIds);
+    const pinnedSet = new Set(pinnedIds);
+    const pinnedItems = [];
+    const unpinnedItems = [];
+    const specialItems = [];
+
+    items.forEach((item) => {
+      const projectId = SU.getProfileProjectId(item);
+      if (!projectId) {
+        specialItems.push(item);
+        return;
+      }
+
+      if (pinnedSet.has(projectId)) {
+        pinnedItems.push(item);
+        return;
+      }
+
+      unpinnedItems.push(item);
+    });
+
+    if (pinnedIds.join('|') !== SU.savedPinnedProjectIds.join('|')) {
+      SU.savedPinnedProjectIds = pinnedIds;
+      void SU.setStoredSetting({ [SU.PROJECT_PINNED_IDS_KEY]: pinnedIds });
+    }
+
+    [...pinnedItems, ...unpinnedItems, ...specialItems].forEach((item) => list.appendChild(item));
+    SU.updateProfileProjectPinButtons(list);
+
+    setTimeout(() => {
+      if (list.getAttribute('data-stardance-utils-project-pins-busy') === 'true') {
+        list.removeAttribute('data-stardance-utils-project-pins-busy');
+      }
+    }, 0);
+  };
+
+  SU.enhanceProfileProjectsPage = () => {
+    const list = SU.getProfileProjectList();
+    if (!list) {
+      return;
+    }
+
+    if (list.getAttribute('data-stardance-utils-project-pins-busy') === 'true') {
+      return;
+    }
+
+    list.setAttribute('data-stardance-utils-project-pins', 'true');
+    SU.applyProfileProjectPins();
+  };s
+
   SU.enhanceProjectShowPage = () => {
     const projectMain = document.querySelector('.app-layout__main');
     const actionsNav = projectMain?.querySelector('.project-show__actions');

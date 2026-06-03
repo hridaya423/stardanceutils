@@ -535,6 +535,80 @@ html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item:hover .s
   position: relative;
 }
 
+.profile-tab-content .project-list__item {
+  position: relative;
+  overflow: visible;
+}
+
+.profile-tab-content .profile-project-card {
+  overflow: visible;
+}
+
+.profile-tab-content .profile-project-card__body {
+  padding-right: 2.8rem;
+}
+
+.profile-tab-content .profile-project-card__header {
+  padding-right: 0.1rem;
+}
+
+.profile-tab-content .profile-project-card__pin {
+  align-items: center;
+  appearance: none;
+  background: var(--stardance-utils-overlay-bg);
+  border: 1px solid var(--stardance-utils-border-accent);
+  border-radius: 999px;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  height: 2.15rem;
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+  right: -0.55rem;
+  top: -0.55rem;
+  width: 2.15rem;
+  z-index: 2;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.24);
+}
+
+.profile-tab-content .profile-project-card__pin svg {
+  height: 1rem;
+  width: 1rem;
+  transform-origin: 50% 50%;
+  transition: transform 140ms ease;
+}
+
+.profile-tab-content .profile-project-card__pin:hover,
+.profile-tab-content .profile-project-card__pin:focus-visible {
+  background: var(--stardance-utils-overlay-bg-hover);
+  border-color: var(--stardance-utils-border-stronger);
+  outline: none;
+}
+
+.profile-tab-content .profile-project-card__pin.is-pinned {
+  background: var(--stardance-utils-hero-ship-bg);
+  border-color: var(--stardance-utils-border-stronger);
+  color: var(--stardance-utils-text);
+}
+
+.profile-tab-content .profile-project-card__pin.is-pinned svg {
+  transform: rotate(45deg);
+}
+
+@media (max-width: 700px) {
+  .profile-tab-content .profile-project-card__pin {
+    height: 1.95rem;
+    right: -0.45rem;
+    top: -0.45rem;
+    width: 1.95rem;
+  }
+
+  .profile-tab-content .profile-project-card__body {
+    padding-right: 2.45rem;
+  }
+}
+
 .stardance-utils-hero-ship {
   backdrop-filter: blur(6px);
   background: var(--stardance-utils-hero-ship-bg);

@@ -10,10 +10,12 @@
       SU.FONT_PAIRING_KEY,
       SU.TRY_MODE_PENDING_KEY,
       SU.CUSTOM_FONT_PAIRINGS_KEY,
-      SU.SIDEBAR_ORDER_KEY
+      SU.SIDEBAR_ORDER_KEY,
+      SU.PROJECT_PINNED_IDS_KEY
     ]);
     SU.customFontPairings = Array.isArray(storedValues?.[SU.CUSTOM_FONT_PAIRINGS_KEY]) ? storedValues[SU.CUSTOM_FONT_PAIRINGS_KEY] : [];
     SU.savedSidebarOrder = SU.normalizeSidebarOrder(storedValues?.[SU.SIDEBAR_ORDER_KEY]);
+    SU.savedPinnedProjectIds = SU.normalizePinnedProjectIds?.(storedValues?.[SU.PROJECT_PINNED_IDS_KEY]) ?? [];
     SU.savedTheme = SU.getValidTheme(storedValues?.[SU.THEME_KEY]);
     SU.savedFontPairing = SU.getValidPairing(storedValues?.[SU.FONT_PAIRING_KEY]);
 
@@ -29,6 +31,7 @@
     SU.applySidebarOrder(SU.savedSidebarOrder);
     SU.applyFontPairing(SU.getEffectivePairing());
     SU.enhanceProjectShowPage();
+    SU.enhanceProfileProjectsPage();
     SU.enhanceFeedAiVerification();
 
     const dialog = document.getElementById('settings-modal');
@@ -73,10 +76,12 @@
         return element.id === 'settings-modal'
           || element.id === 'primary-nav'
           || element.classList?.contains('discover-rail')
+          || element.classList?.contains('profile-tab-content')
+          || element.classList?.contains('project-list')
           || element.classList?.contains('project-show__actions')
           || element.classList?.contains('project-show__feed')
           || element.classList?.contains('composer-modal')
-          || Boolean(element.querySelector?.('#settings-modal, #primary-nav, .discover-rail, .project-show__actions, .project-show__feed, .composer-modal'));
+          || Boolean(element.querySelector?.('#settings-modal, #primary-nav, .discover-rail, .profile-tab-content, .project-list, .project-show__actions, .project-show__feed, .composer-modal'));
       });
     });
 
