@@ -761,6 +761,285 @@ html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item:hover .s
   position: relative;
 }
 
+.stardance-utils-markdown-field {
+  padding-top: 0;
+}
+
+.stardance-utils-markdown-field-label {
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.stardance-utils-markdown-toolbar {
+  --stardance-utils-markdown-offset: 0px;
+  --stardance-utils-markdown-width: auto;
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  margin-top: 0;
+  margin-right: 0;
+  margin-bottom: 1rem;
+  margin-left: var(--stardance-utils-markdown-offset);
+  padding: 0.15rem 0 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  width: var(--stardance-utils-markdown-width);
+}
+
+.stardance-utils-markdown-toolbar-group {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.1rem;
+  padding-right: 0.4rem;
+  position: relative;
+}
+
+.stardance-utils-markdown-toolbar-group:not(:last-child)::after {
+  background: rgba(255, 255, 255, 0.08);
+  content: '';
+  height: 0.95rem;
+  margin-left: 0.25rem;
+  width: 1px;
+}
+
+.stardance-utils-markdown-toolbar-btn {
+  appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.45rem;
+  color: rgba(255, 255, 255, 0.66);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1;
+  min-height: 1.6rem;
+  min-width: 1.6rem;
+  padding: 0.18rem 0.36rem;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.stardance-utils-markdown-toolbar-btn--emphasized {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.stardance-utils-markdown-toolbar-btn:hover,
+.stardance-utils-markdown-toolbar-btn:focus-visible {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.98);
+  outline: none;
+}
+
+.stardance-utils-markdown-toolbar-btn--icon {
+  padding-inline: 0.26rem;
+}
+
+.stardance-utils-markdown-toolbar-icon {
+  align-items: center;
+  display: inline-flex;
+  height: 0.95rem;
+  justify-content: center;
+  width: 0.95rem;
+}
+
+.stardance-utils-markdown-toolbar-icon svg {
+  display: block;
+  height: 100%;
+  width: 100%;
+  overflow: visible;
+}
+
+.stardance-utils-markdown-preview-wrap {
+  display: grid;
+  align-items: start;
+}
+
+.stardance-utils-markdown-preview-wrap > * {
+  grid-area: 1 / 1;
+}
+
+.stardance-utils-markdown-preview-wrap .feed-composer__textarea {
+  position: relative;
+  z-index: 2;
+  background: transparent !important;
+}
+
+.stardance-utils-markdown-preview-wrap.is-active .feed-composer__textarea {
+  color: transparent !important;
+  caret-color: var(--stardance-utils-text) !important;
+}
+
+.stardance-utils-markdown-live-preview {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+  overflow: hidden;
+  color: var(--stardance-utils-text-soft);
+  box-sizing: border-box;
+  cursor: text;
+}
+
+.stardance-utils-md-syntax {
+  color: var(--stardance-utils-text-muted);
+  opacity: 0.38;
+}
+
+.stardance-utils-md-line {
+  display: inline;
+}
+
+.stardance-utils-md-heading {
+  color: var(--stardance-utils-text);
+  letter-spacing: inherit;
+  line-height: inherit;
+  font-size: inherit;
+}
+
+.stardance-utils-md-heading-1 {
+  font-weight: 700;
+}
+
+.stardance-utils-md-heading-2 {
+  font-weight: 700;
+}
+
+.stardance-utils-md-heading-3 {
+  font-weight: 700;
+  color: var(--stardance-utils-text-soft);
+}
+
+.stardance-utils-md-heading-4,
+.stardance-utils-md-heading-5,
+.stardance-utils-md-heading-6 {
+  font-weight: 600;
+  color: var(--stardance-utils-text-muted);
+}
+
+.stardance-utils-md-list-item {
+  display: inline;
+}
+
+.stardance-utils-md-bullet {
+  color: var(--stardance-utils-accent);
+  opacity: 0.92;
+}
+
+.stardance-utils-md-quote {
+  color: var(--stardance-utils-text-muted);
+}
+
+.stardance-utils-md-strike del {
+  text-decoration-thickness: 1px;
+}
+
+.stardance-utils-md-rule {
+  display: inline-block;
+  min-width: 100%;
+}
+
+.stardance-utils-md-rule .stardance-utils-md-syntax {
+  display: block;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  color: transparent;
+  line-height: inherit;
+}
+
+.stardance-utils-md-code code {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: var(--stardance-utils-text);
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0;
+}
+
+.stardance-utils-md-codeblock,
+.stardance-utils-md-codeblock-line {
+  color: rgba(214, 219, 255, 0.94);
+}
+
+.stardance-utils-md-codeblock-body {
+  color: rgba(214, 219, 255, 0.94);
+}
+
+.stardance-utils-md-code-lang {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.stardance-utils-md-url {
+  color: #c8d6ff;
+  text-decoration: none;
+}
+
+.stardance-utils-md-link-render {
+  color: #c8d6ff;
+  text-decoration: underline;
+  text-decoration-color: rgba(200, 214, 255, 0.28);
+  text-underline-offset: 0.12em;
+  pointer-events: none;
+}
+
+.stardance-utils-md-image-render {
+  display: block;
+  margin: 0.45rem 0;
+  pointer-events: none;
+}
+
+.stardance-utils-md-image-render img {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.8rem;
+  display: block;
+  height: auto;
+  max-width: min(100%, 28rem);
+}
+
+.stardance-utils-md-u u,
+.stardance-utils-md-u {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.12em;
+}
+
+.stardance-utils-md-mark mark,
+.stardance-utils-md-mark {
+  background: rgba(255, 241, 160, 0.18);
+  color: var(--stardance-utils-text);
+}
+
+.stardance-utils-md-sub sub,
+.stardance-utils-md-sub {
+  font-size: 0.82em;
+  vertical-align: sub;
+}
+
+.stardance-utils-md-sup sup,
+.stardance-utils-md-sup {
+  font-size: 0.82em;
+  vertical-align: super;
+}
+
+.stardance-utils-inline-composer .feed-composer__scroll {
+  padding-top: 0.2rem;
+}
+
+.stardance-utils-inline-composer .feed-composer__main {
+  align-items: flex-start;
+}
+
+.stardance-utils-inline-composer .feed-composer__avatar {
+  margin-top: 0;
+}
+
 .stardance-utils-emoji-autocomplete {
   background: var(--stardance-utils-surface-0);
   border: 1px solid var(--stardance-utils-border);

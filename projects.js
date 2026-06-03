@@ -138,6 +138,494 @@
     textarea.focus();
   };
 
+  SU.replaceTextareaSelection = (textarea, nextValue, nextStart = null, nextEnd = null) => {
+    textarea.value = nextValue;
+    if (typeof nextStart === 'number' && typeof nextEnd === 'number') {
+      textarea.setSelectionRange(nextStart, nextEnd);
+    }
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    textarea.focus();
+  };
+
+  SU.wrapTextareaSelection = (textarea, before, after = before, placeholder = 'text') => {
+    const current = textarea.value || '';
+    const start = textarea.selectionStart ?? current.length;
+    const end = textarea.selectionEnd ?? current.length;
+    const selected = current.slice(start, end);
+    const content = selected || placeholder;
+    const nextValue = `${current.slice(0, start)}${before}${content}${after}${current.slice(end)}`;
+    const contentStart = start + before.length;
+    const contentEnd = contentStart + content.length;
+    SU.replaceTextareaSelection(textarea, nextValue, selected ? contentStart : contentStart, selected ? contentEnd : contentEnd);
+  };
+
+  SU.prefixTextareaSelectionLines = (textarea, prefix) => {
+    const current = textarea.value || '';
+    const start = textarea.selectionStart ?? current.length;
+    const end = textarea.selectionEnd ?? current.length;
+    const hasSelection = start !== end;
+    const lineStart = current.lastIndexOf('\n', Math.max(0, start - 1)) + 1;
+    const lineEnd = hasSelection ? end : current.indexOf('\n', start);
+    const selectionEnd = lineEnd === -1 ? current.length : lineEnd;
+    const target = current.slice(lineStart, selectionEnd);
+    const prefixed = target
+      .split('\n')
+      .map((line) => (line.startsWith(prefix) ? line : `${prefix}${line}`))
+      .join('\n');
+    const nextValue = `${current.slice(0, lineStart)}${prefixed}${current.slice(selectionEnd)}`;
+    SU.replaceTextareaSelection(textarea, nextValue, lineStart, lineStart + prefixed.length);
+  };
+
+  SU.insertMarkdownImage = (textarea) => {
+    SU.wrapTextareaSelection(textarea, '![', '](https://)', 'alt text');
+  };
+
+  SU.insertMarkdownRule = (textarea) => {
+    const current = textarea.value || '';
+    const start = textarea.selectionStart ?? current.length;
+    const before = current.slice(0, start);
+    const after = current.slice(start);
+    const prefix = before && !before.endsWith('\n') ? '\n' : '';
+    const suffix = after && !after.startsWith('\n') ? '\n' : '';
+    SU.insertTextAtCursor(textarea, `${prefix}---${suffix}`);
+  };
+
+  SU.escapeHtml = (value) => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  SU.renderInlineMarkdown = (text) => {
+    let html = SU.escapeHtml(text);
+    html = html.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '<img src="$2" alt="$1" />');
+    html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+    return html;
+  };
+
+  SU.renderMarkdownPreviewHtml = (raw, options = {}) => {
+    if (!raw) {
+      return '';
+    }
+
+    const richMedia = options.richMedia === true;
+    const selectionStart = typeof options.selectionStart === 'number' ? options.selectionStart : null;
+    const selectionEnd = typeof options.selectionEnd === 'number' ? options.selectionEnd : null;
+    const isTokenActive = (offset, length) => {
+      if (!richMedia || selectionStart === null || selectionEnd === null) {
+        return false;
+      }
+
+      const tokenStart = offset;
+      const tokenEnd = offset + length;
+      if (selectionStart === selectionEnd) {
+        return selectionStart >= tokenStart && selectionStart <= tokenEnd;
+      }
+
+      return selectionStart < tokenEnd && selectionEnd > tokenStart;
+    };
+
+    const collectTokens = (source, regex) => {
+      const tokens = [];
+      let match;
+      regex.lastIndex = 0;
+      while ((match = regex.exec(source)) !== null) {
+        tokens.push({
+          text: match[0],
+          start: match.index,
+          end: match.index + match[0].length,
+          active: isTokenActive(match.index, match[0].length)
+        });
+      }
+      regex.lastIndex = 0;
+      return tokens;
+    };
+
+    const imageTokens = collectTokens(raw, /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g);
+    const linkTokens = collectTokens(raw, /(?<!\!)\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g);
+    const autolinkTokens = collectTokens(raw, /(?<!["'=\[(])(https?:\/\/[^\s<)]+)/g);
+    const editingRichMediaToken = [...imageTokens, ...linkTokens, ...autolinkTokens].some((token) => token.active);
+    let imageTokenIndex = 0;
+    let linkTokenIndex = 0;
+    let autolinkTokenIndex = 0;
+
+    let html = SU.escapeHtml(raw.replace(/\r\n/g, '\n'));
+    const stashed = [];
+    const stash = (value) => `\uE000${stashed.push(value) - 1}\uE001`;
+
+    html = html.replace(/```([^\n`]*)\n([\s\S]*?)\n```/g, (_match, language, body) => {
+      const header = language?.trim() ? ` ${SU.escapeHtml(language.trim())}` : '';
+      const bodyHtml = SU.escapeHtml(body).replace(/\n/g, '<br>');
+      return stash(`<span class="stardance-utils-md-codeblock"><span class="stardance-utils-md-syntax">&#96;&#96;&#96;${header}</span><br><span class="stardance-utils-md-codeblock-body">${bodyHtml}</span><br><span class="stardance-utils-md-syntax">&#96;&#96;&#96;</span></span>`);
+    });
+
+    html = html.replace(/^((?: {4}|\t).+)$/gm, (_match, line) => {
+      return stash(`<span class="stardance-utils-md-codeblock-line">${line}</span>`);
+    });
+
+    html = html.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, (_match, alt, url) => {
+      const token = imageTokens[imageTokenIndex];
+      imageTokenIndex += 1;
+      if (editingRichMediaToken || token?.active) {
+        return stash(`<span class="stardance-utils-md-image"><span class="stardance-utils-md-syntax">![</span>${alt}<span class="stardance-utils-md-syntax">](</span><span class="stardance-utils-md-url">${url}</span><span class="stardance-utils-md-syntax">)</span></span>`);
+      }
+      return stash(`<span class="stardance-utils-md-rich-token stardance-utils-md-image-render" data-token-start="${token?.start ?? 0}" data-token-end="${token?.end ?? 0}"><img src="${url}" alt="${alt}" loading="lazy" decoding="async" referrerpolicy="no-referrer"></span>`);
+    });
+
+    html = html.replace(/(?<!\!)\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_match, text, url) => {
+      const token = linkTokens[linkTokenIndex];
+      linkTokenIndex += 1;
+      if (editingRichMediaToken || token?.active) {
+        return stash(`<span class="stardance-utils-md-link"><span class="stardance-utils-md-syntax">[</span>${text}<span class="stardance-utils-md-syntax">](</span><span class="stardance-utils-md-url">${url}</span><span class="stardance-utils-md-syntax">)</span></span>`);
+      }
+      return stash(`<span class="stardance-utils-md-rich-token stardance-utils-md-link-render" data-token-start="${token?.start ?? 0}" data-token-end="${token?.end ?? 0}"><a href="${url}" target="_blank" rel="noopener noreferrer">${text}</a></span>`);
+    });
+
+    html = html.replace(/&lt;(u|mark|sub|sup)&gt;([\s\S]*?)&lt;\/\1&gt;/g, (_match, tag, content) => {
+      return stash(`<span class="stardance-utils-md-${tag}"><span class="stardance-utils-md-syntax">&lt;${tag}&gt;</span>${content}<span class="stardance-utils-md-syntax">&lt;/${tag}&gt;</span></span>`);
+    });
+
+    html = html.replace(/^((?:\*\*\*|---|___))$/gm, '<span class="stardance-utils-md-rule"><span class="stardance-utils-md-syntax">$1</span></span>');
+
+    html = html.replace(/^(#{1,6}) (.+)$/gm, (_match, hashes, text) => {
+      const level = hashes.length;
+      return `<span class="stardance-utils-md-line stardance-utils-md-heading stardance-utils-md-heading-${level}"><span class="stardance-utils-md-syntax">${hashes} </span>${text}</span>`;
+    });
+
+    html = html.replace(/^([ \t]*)([*\-]) (.+)$/gm, (_match, indent, marker, text) => {
+      return `${indent}<span class="stardance-utils-md-line stardance-utils-md-list-item"><span class="stardance-utils-md-syntax stardance-utils-md-bullet">${marker}</span> ${text}</span>`;
+    });
+
+    html = html.replace(/^([ \t]*)(\d+)\. (.+)$/gm, (_match, indent, number, text) => {
+      return `${indent}<span class="stardance-utils-md-line stardance-utils-md-list-item"><span class="stardance-utils-md-syntax">${number}.</span> ${text}</span>`;
+    });
+
+    html = html.replace(/^> ?(.+)$/gm, '<span class="stardance-utils-md-line stardance-utils-md-quote"><span class="stardance-utils-md-syntax">&gt; </span>$1</span>');
+
+    html = html.replace(/~~(.+?)~~/g, '<span class="stardance-utils-md-strike"><span class="stardance-utils-md-syntax">~~</span><del>$1</del><span class="stardance-utils-md-syntax">~~</span></span>');
+    html = html.replace(/(\*{3}|_{3})(.+?)\1/g, '<span class="stardance-utils-md-bold stardance-utils-md-italic"><span class="stardance-utils-md-syntax">$1</span><strong><em>$2</em></strong><span class="stardance-utils-md-syntax">$1</span></span>');
+    html = html.replace(/(\*{2}|_{2})(.+?)\1/g, '<span class="stardance-utils-md-bold"><span class="stardance-utils-md-syntax">$1</span><strong>$2</strong><span class="stardance-utils-md-syntax">$1</span></span>');
+    html = html.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<span class="stardance-utils-md-italic"><span class="stardance-utils-md-syntax">*</span><em>$1</em><span class="stardance-utils-md-syntax">*</span></span>');
+    html = html.replace(/(?<!_)_(?!_)(.+?)(?<!_)_(?!_)/g, '<span class="stardance-utils-md-italic"><span class="stardance-utils-md-syntax">_</span><em>$1</em><span class="stardance-utils-md-syntax">_</span></span>');
+    html = html.replace(/`([^`]+)`/g, '<span class="stardance-utils-md-code"><span class="stardance-utils-md-syntax">`</span><code>$1</code><span class="stardance-utils-md-syntax">`</span></span>');
+
+    html = html.replace(/(?<!["'=\[(])(https?:\/\/[^\s<)]+)/g, (_match, url) => {
+      const token = autolinkTokens[autolinkTokenIndex];
+      autolinkTokenIndex += 1;
+      if (editingRichMediaToken || token?.active) {
+        return `<span class="stardance-utils-md-autolink stardance-utils-md-url">${url}</span>`;
+      }
+      return `<span class="stardance-utils-md-rich-token stardance-utils-md-link-render stardance-utils-md-autolink" data-token-start="${token?.start ?? 0}" data-token-end="${token?.end ?? 0}"><a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a></span>`;
+    });
+
+    html = html.replace(/\n/g, '<br>');
+    html = html.replace(/\uE000(\d+)\uE001/g, (_match, index) => stashed[Number(index)] || '');
+    return html;
+  };
+
+  SU.selectionTouchesMarkdownSyntax = (raw, selectionStart, selectionEnd) => {
+    if (typeof selectionStart !== 'number' || typeof selectionEnd !== 'number') {
+      return false;
+    }
+
+    const overlaps = (start, length) => {
+      const end = start + length;
+      if (selectionStart === selectionEnd) {
+        return selectionStart >= start && selectionStart <= end;
+      }
+      return selectionStart < end && selectionEnd > start;
+    };
+
+    const tokenPatterns = [
+      /^#{1,6}\s.+$/gm,
+      /^(?:[ \t]*)(?:[*\-]|\d+\.)\s.+$/gm,
+      /^>\s?.+$/gm,
+      /(?:\*\*|__)[^\n]+?(?:\*\*|__)/g,
+      /(?:\*|_)[^\n]+?(?:\*|_)/g,
+      /~~[^\n]+?~~/g,
+      /`[^`]+`/g,
+      /```[^\n`]*\n[\s\S]*?\n```/g,
+      /^((?: {4}|\t).+)$/gm,
+      /!\[[^\]]*\]\((https?:\/\/[^\s)]+)\)/g,
+      /(?<!\!)\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/g,
+      /(?<!["'=\[(])(https?:\/\/[^\s<)]+)/g,
+      /^((?:\*\*\*|---|___))$/gm,
+      /&lt;(?:u|mark|sub|sup)&gt;[\s\S]*?&lt;\/(?:u|mark|sub|sup)&gt;/g
+    ];
+
+    return tokenPatterns.some((pattern) => {
+      let match;
+      pattern.lastIndex = 0;
+      while ((match = pattern.exec(raw)) !== null) {
+        if (overlaps(match.index, match[0].length)) {
+          return true;
+        }
+      }
+      return false;
+    });
+  };
+
+  SU.mountMarkdownPreview = (composerSection, textarea) => {
+    if (!composerSection || !textarea || composerSection.getAttribute('data-stardance-utils-markdown-preview') === 'true') {
+      return;
+    }
+
+    composerSection.setAttribute('data-stardance-utils-markdown-preview', 'true');
+
+    const field = textarea.closest('.feed-composer__field');
+    if (!field) {
+      return;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'stardance-utils-markdown-preview-wrap';
+
+    const preview = document.createElement('div');
+    preview.className = 'stardance-utils-markdown-live-preview';
+    preview.setAttribute('aria-hidden', 'true');
+
+    textarea.parentNode.insertBefore(wrapper, textarea);
+    wrapper.appendChild(preview);
+    wrapper.appendChild(textarea);
+
+    const syncStyles = () => {
+      const computed = window.getComputedStyle(textarea);
+      const props = [
+        'fontSize',
+        'fontFamily',
+        'fontWeight',
+        'lineHeight',
+        'letterSpacing',
+        'paddingTop',
+        'paddingLeft',
+        'paddingRight',
+        'paddingBottom',
+        'boxSizing',
+        'textAlign',
+        'wordBreak',
+        'overflowWrap',
+        'whiteSpace',
+        'borderTopWidth',
+        'borderRightWidth',
+        'borderBottomWidth',
+        'borderLeftWidth'
+      ];
+
+      props.forEach((prop) => {
+        preview.style[prop] = computed[prop];
+      });
+
+      preview.style.width = `${textarea.clientWidth}px`;
+      preview.style.minHeight = `${textarea.clientHeight}px`;
+    };
+
+    const syncHeight = () => {
+      const nextHeight = Math.max(textarea.scrollHeight, preview.scrollHeight, textarea.clientHeight, 30);
+      wrapper.style.minHeight = `${nextHeight}px`;
+      textarea.style.minHeight = `${nextHeight}px`;
+      preview.style.minHeight = `${nextHeight}px`;
+    };
+
+    const syncScroll = () => {
+      preview.scrollTop = textarea.scrollTop;
+      preview.scrollLeft = textarea.scrollLeft;
+    };
+
+    const syncPreview = () => {
+      const value = textarea.value || '';
+      const isFocused = document.activeElement === textarea;
+      const editingMarkdownSyntax = isFocused && SU.selectionTouchesMarkdownSyntax(
+        value,
+        textarea.selectionStart ?? 0,
+        textarea.selectionEnd ?? 0
+      );
+      if (!value.trim()) {
+        preview.hidden = true;
+        wrapper.classList.remove('is-active');
+        wrapper.classList.toggle('is-focused', isFocused);
+        syncHeight();
+        return;
+      }
+
+      if (editingMarkdownSyntax) {
+        preview.hidden = true;
+        wrapper.classList.remove('is-active');
+        wrapper.classList.toggle('is-focused', isFocused);
+        syncHeight();
+        return;
+      }
+
+      preview.hidden = false;
+      preview.innerHTML = SU.renderMarkdownPreviewHtml(value, {
+        richMedia: !isFocused,
+        selectionStart: null,
+        selectionEnd: null
+      });
+      wrapper.classList.add('is-active');
+      wrapper.classList.toggle('is-focused', isFocused);
+      preview.querySelectorAll('img').forEach((img) => {
+        if (!img.complete) {
+          img.addEventListener('load', syncHeight, { once: true });
+        }
+      });
+      syncHeight();
+      syncScroll();
+    };
+
+    textarea.addEventListener('input', syncPreview);
+    textarea.addEventListener('scroll', syncScroll);
+    textarea.addEventListener('focus', syncPreview);
+    textarea.addEventListener('click', syncPreview);
+    textarea.addEventListener('keyup', syncPreview);
+    textarea.addEventListener('select', syncPreview);
+    textarea.addEventListener('blur', () => requestAnimationFrame(syncPreview));
+
+    preview.addEventListener('mousedown', (event) => {
+      event.preventDefault();
+      const token = event.target.closest('.stardance-utils-md-rich-token');
+      if (token) {
+        const start = Number.parseInt(token.getAttribute('data-token-start') || '0', 10);
+        textarea.focus();
+        textarea.setSelectionRange(start, start);
+        syncPreview();
+        return;
+      }
+
+      textarea.focus();
+    });
+
+    const observer = new ResizeObserver(() => {
+      syncStyles();
+      syncHeight();
+      syncScroll();
+    });
+    observer.observe(textarea);
+
+    syncStyles();
+    syncPreview();
+  };
+
+  SU.mountMarkdownToolbar = (composerSection, textarea) => {
+    if (!composerSection || !textarea || composerSection.getAttribute('data-stardance-utils-markdown-toolbar') === 'true') {
+      return;
+    }
+
+    composerSection.setAttribute('data-stardance-utils-markdown-toolbar', 'true');
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'stardance-utils-markdown-toolbar';
+    toolbar.setAttribute('role', 'toolbar');
+    toolbar.setAttribute('aria-label', 'Markdown formatting');
+
+    const iconMap = {
+      bold: '<svg viewBox="0 0 16 16" aria-hidden="true" fill="none"><path d="M5 3.5h3.7c1.7 0 2.8.9 2.8 2.3 0 1-.6 1.7-1.5 2 1.2.2 2 1.1 2 2.3 0 1.6-1.3 2.7-3.3 2.7H5zM6.8 5v2.2h1.7c.8 0 1.3-.4 1.3-1.1 0-.7-.5-1.1-1.3-1.1zm0 3.7V11h2c.9 0 1.5-.4 1.5-1.2 0-.7-.6-1.1-1.5-1.1z" fill="currentColor"/></svg>',
+      italic: '<svg viewBox="0 0 16 16" aria-hidden="true" fill="none"><path d="M6 3.5h6.5v1.4H10l-2.1 6.2h2.6v1.4H4v-1.4h2.2L8.3 4.9H6z" fill="currentColor"/></svg>',
+      bullets: '<svg viewBox="0 0 16 16" aria-hidden="true" fill="none"><circle cx="3" cy="4.75" r="1.1" fill="currentColor"/><circle cx="3" cy="8" r="1.1" fill="currentColor"/><circle cx="3" cy="11.25" r="1.1" fill="currentColor"/><path d="M6 4.75h6.5M6 8h6.5M6 11.25h6.5" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg>',
+      numbered: '<svg viewBox="0 0 640 640" aria-hidden="true" fill="none"><path d="M64 136C64 122.8 74.7 112 88 112L136 112C149.3 112 160 122.7 160 136L160 240L184 240C197.3 240 208 250.7 208 264C208 277.3 197.3 288 184 288L88 288C74.7 288 64 277.3 64 264C64 250.7 74.7 240 88 240L112 240L112 160L88 160C74.7 160 64 149.3 64 136zM94.4 365.2C105.8 356.6 119.7 352 134 352L138.9 352C172.6 352 200 379.4 200 413.1C200 432.7 190.6 451 174.8 462.5L150.8 480L184 480C197.3 480 208 490.7 208 504C208 517.3 197.3 528 184 528L93.3 528C77.1 528 64 514.9 64 498.7C64 489.3 68.5 480.5 76.1 475L146.6 423.7C150 421.2 152 417.3 152 413.1C152 405.9 146.1 400 138.9 400L134 400C130.1 400 126.3 401.3 123.2 403.6L102.4 419.2C91.8 427.2 76.8 425 68.8 414.4C60.8 403.8 63 388.8 73.6 380.8L94.4 365.2zM288 128L544 128C561.7 128 576 142.3 576 160C576 177.7 561.7 192 544 192L288 192C270.3 192 256 177.7 256 160C256 142.3 270.3 128 288 128zM288 288L544 288C561.7 288 576 302.3 576 320C576 337.7 561.7 352 544 352L288 352C270.3 352 256 337.7 256 320C256 302.3 270.3 288 288 288zM288 448L544 448C561.7 448 576 462.3 576 480C576 497.7 561.7 512 544 512L288 512C270.3 512 256 497.7 256 480C256 462.3 270.3 448 288 448z" fill="currentColor"/></svg>',
+      link: '<svg viewBox="0 0 640 640" aria-hidden="true" fill="none"><path d="M451.5 160C434.9 160 418.8 164.5 404.7 172.7C388.9 156.7 370.5 143.3 350.2 133.2C378.4 109.2 414.3 96 451.5 96C537.9 96 608 166 608 252.5C608 294 591.5 333.8 562.2 363.1L491.1 434.2C461.8 463.5 422 480 380.5 480C294.1 480 224 410 224 323.5C224 322 224 320.5 224.1 319C224.6 301.3 239.3 287.4 257 287.9C274.7 288.4 288.6 303.1 288.1 320.8C288.1 321.7 288.1 322.6 288.1 323.4C288.1 374.5 329.5 415.9 380.6 415.9C405.1 415.9 428.6 406.2 446 388.8L517.1 317.7C534.4 300.4 544.2 276.8 544.2 252.3C544.2 201.2 502.8 159.8 451.7 159.8zM307.2 237.3C305.3 236.5 303.4 235.4 301.7 234.2C289.1 227.7 274.7 224 259.6 224C235.1 224 211.6 233.7 194.2 251.1L123.1 322.2C105.8 339.5 96 363.1 96 387.6C96 438.7 137.4 480.1 188.5 480.1C205 480.1 221.1 475.7 235.2 467.5C251 483.5 269.4 496.9 289.8 507C261.6 530.9 225.8 544.2 188.5 544.2C102.1 544.2 32 474.2 32 387.7C32 346.2 48.5 306.4 77.8 277.1L148.9 206C178.2 176.7 218 160.2 259.5 160.2C346.1 160.2 416 230.8 416 317.1C416 318.4 416 319.7 416 321C415.6 338.7 400.9 352.6 383.2 352.2C365.5 351.8 351.6 337.1 352 319.4C352 318.6 352 317.9 352 317.1C352 283.4 334 253.8 307.2 237.5z" fill="currentColor"/></svg>',
+      image: '<svg viewBox="0 0 16 16" aria-hidden="true" fill="none"><rect x="2.25" y="3" width="11.5" height="10" rx="1.8" stroke="currentColor" stroke-width="1.3"/><circle cx="10.7" cy="5.9" r="1.1" fill="currentColor"/><path d="m3.9 11 2.9-3 2.15 2.15 1.35-1.35L12.1 11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      rule: '<svg viewBox="0 0 16 16" aria-hidden="true" fill="none"><path d="M2.5 8h11" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/><path d="M2.5 5.3h2" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" opacity="0.45"/><path d="M11.5 10.7h2" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" opacity="0.45"/></svg>'
+    };
+
+    const createGroup = () => {
+      const group = document.createElement('div');
+      group.className = 'stardance-utils-markdown-toolbar-group';
+      toolbar.appendChild(group);
+      return group;
+    };
+
+    let toolbarGroup = createGroup();
+
+    const addButton = (content, title, onClick, emphasized = false, isIcon = false) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'stardance-utils-markdown-toolbar-btn';
+      if (emphasized) {
+        button.classList.add('stardance-utils-markdown-toolbar-btn--emphasized');
+      }
+      button.setAttribute('aria-label', title);
+      button.title = title;
+      if (isIcon) {
+        button.classList.add('stardance-utils-markdown-toolbar-btn--icon');
+        button.innerHTML = `<span class="stardance-utils-markdown-toolbar-icon">${content}</span>`;
+      } else {
+        button.textContent = content;
+      }
+      button.addEventListener('mousedown', (event) => {
+        event.preventDefault();
+      });
+      button.addEventListener('click', onClick);
+      toolbarGroup.appendChild(button);
+    };
+
+    addButton(iconMap.bold, 'Bold', () => SU.wrapTextareaSelection(textarea, '**', '**'), false, true);
+    addButton(iconMap.italic, 'Italic', () => SU.wrapTextareaSelection(textarea, '_', '_'), false, true);
+
+    toolbarGroup = createGroup();
+    addButton('H1', 'Heading 1', () => SU.prefixTextareaSelectionLines(textarea, '# '));
+    addButton('H2', 'Heading 2', () => SU.prefixTextareaSelectionLines(textarea, '## '));
+    addButton('H3', 'Heading 3', () => SU.prefixTextareaSelectionLines(textarea, '### '));
+
+    toolbarGroup = createGroup();
+    addButton(iconMap.bullets, 'Bulleted list', () => SU.prefixTextareaSelectionLines(textarea, '- '), false, true);
+    addButton(iconMap.numbered, 'Numbered list', () => SU.prefixTextareaSelectionLines(textarea, '1. '), false, true);
+
+    toolbarGroup = createGroup();
+    addButton(iconMap.link, 'Link', () => SU.wrapTextareaSelection(textarea, '[', '](https://)', 'text'), true, true);
+    addButton(iconMap.image, 'Image', () => SU.insertMarkdownImage(textarea), false, true);
+    addButton(iconMap.rule, 'Horizontal rule', () => SU.insertMarkdownRule(textarea), false, true);
+
+    const field = textarea.closest('.feed-composer__field');
+    const composerMain = composerSection.querySelector('.feed-composer__main');
+    const composerScroll = composerSection.querySelector('.feed-composer__scroll');
+    if (field) {
+      field.classList.add('stardance-utils-markdown-field');
+      const label = field.querySelector('.feed-composer__label');
+      if (label) {
+        label.classList.add('stardance-utils-markdown-field-label');
+      }
+    }
+
+    if (composerScroll && composerMain) {
+      composerScroll.insertBefore(toolbar, composerMain);
+    } else if (field) {
+      field.insertBefore(toolbar, field.firstChild);
+    } else {
+      textarea.insertAdjacentElement('beforebegin', toolbar);
+    }
+
+    const alignToolbarToField = () => {
+      if (!field) {
+        return;
+      }
+
+      const parentRect = toolbar.parentElement?.getBoundingClientRect();
+      const fieldRect = field.getBoundingClientRect();
+      if (!parentRect) {
+        return;
+      }
+
+      const textareaStyles = window.getComputedStyle(textarea);
+      const paddingLeft = Number.parseFloat(textareaStyles.paddingLeft || '0') || 0;
+      const paddingRight = Number.parseFloat(textareaStyles.paddingRight || '0') || 0;
+      const offset = Math.max(0, (fieldRect.left - parentRect.left) + paddingLeft);
+      const width = Math.max(0, fieldRect.width - paddingLeft - paddingRight);
+      toolbar.style.setProperty('--stardance-utils-markdown-offset', `${offset}px`);
+      toolbar.style.setProperty('--stardance-utils-markdown-width', `${width}px`);
+    };
+
+    requestAnimationFrame(alignToolbarToField);
+    if (globalThis.ResizeObserver && field) {
+      const observer = new ResizeObserver(alignToolbarToField);
+      observer.observe(field);
+      observer.observe(composerSection);
+    }
+  };
+
   SU.getDevlogDraftKey = (form) => {
     const action = form?.getAttribute('action') || window.location.pathname;
     return `stardance-utils:devlog-draft:${action}`;
@@ -157,6 +645,8 @@
 
     composerSection.setAttribute(SU.DEVLOG_DRAFT_ATTR, 'true');
     const draftKey = SU.getDevlogDraftKey(form);
+    SU.mountMarkdownToolbar(composerSection, textarea);
+    SU.mountMarkdownPreview(composerSection, textarea);
 
     const draftControls = document.createElement('div');
     draftControls.className = 'stardance-utils-draft-controls';
