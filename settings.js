@@ -9,6 +9,9 @@
     const select = dialog.querySelector('[data-stardance-utils-setting="sidebar-font-pairing"]');
     const themeSelect = dialog.querySelector('[data-stardance-utils-setting="site-theme"]');
     const orderList = dialog.querySelector('[data-stardance-utils-sidebar-order]');
+    const shopLayoutToggle = dialog.querySelector('[data-stardance-utils-setting="shop-layout-enabled"]');
+    const shopSidebarToggle = dialog.querySelector('[data-stardance-utils-setting="shop-sidebar-enabled"]');
+    const shopOrdersToggle = dialog.querySelector('[data-stardance-utils-setting="shop-orders-button"]');
 
     if (select) {
       SU.renderPairingOptions(select, SU.getEffectivePairing());
@@ -20,6 +23,20 @@
 
     if (orderList) {
       SU.renderSidebarOrderList(orderList);
+    }
+
+    if (shopLayoutToggle) {
+      shopLayoutToggle.checked = SU.savedShopLayoutEnabled !== false;
+    }
+
+    if (shopSidebarToggle) {
+      shopSidebarToggle.checked = SU.savedShopLayoutUseRail !== false;
+      shopSidebarToggle.disabled = SU.savedShopLayoutEnabled === false;
+    }
+
+    if (shopOrdersToggle) {
+      shopOrdersToggle.checked = SU.savedShopOrdersButtonEnabled === false;
+      shopOrdersToggle.disabled = SU.savedShopLayoutEnabled === false || SU.savedShopLayoutUseRail === false;
     }
   };
 
@@ -191,6 +208,72 @@
     const actions = document.createElement('div');
     actions.className = 'stardance-utils-actions';
 
+    const shopAccordion = document.createElement('details');
+    shopAccordion.className = 'stardance-utils-accordion';
+
+    const shopSummary = document.createElement('summary');
+    shopSummary.className = 'stardance-utils-accordion-summary';
+    shopSummary.textContent = 'Shop';
+
+    const shopBody = document.createElement('div');
+    shopBody.className = 'stardance-utils-accordion-body';
+
+    const shopLayoutField = document.createElement('div');
+    shopLayoutField.className = 'settings-form__field';
+
+    const shopLayoutLabel = document.createElement('label');
+    shopLayoutLabel.className = 'settings-form__checkbox';
+    const shopLayoutToggle = document.createElement('input');
+    shopLayoutToggle.type = 'checkbox';
+    shopLayoutToggle.checked = SU.savedShopLayoutEnabled !== false;
+    shopLayoutToggle.setAttribute('data-stardance-utils-setting', 'shop-layout-enabled');
+    const shopLayoutText = document.createElement('span');
+    shopLayoutText.textContent = 'Use improved shop layout';
+    shopLayoutLabel.appendChild(shopLayoutToggle);
+    shopLayoutLabel.appendChild(shopLayoutText);
+
+    const shopLayoutHint = document.createElement('small');
+    shopLayoutHint.className = 'settings-form__hint';
+    shopLayoutHint.textContent = 'Replaces the default shop shelves with the enhanced combined layout.';
+
+    const shopOrdersField = document.createElement('div');
+    shopOrdersField.className = 'settings-form__field';
+
+    const shopSidebarField = document.createElement('div');
+    shopSidebarField.className = 'settings-form__field';
+
+    const shopSidebarLabel = document.createElement('label');
+    shopSidebarLabel.className = 'settings-form__checkbox';
+    const shopSidebarToggle = document.createElement('input');
+    shopSidebarToggle.type = 'checkbox';
+    shopSidebarToggle.checked = SU.savedShopLayoutUseRail !== false;
+    shopSidebarToggle.disabled = SU.savedShopLayoutEnabled === false;
+    shopSidebarToggle.setAttribute('data-stardance-utils-setting', 'shop-sidebar-enabled');
+    const shopSidebarText = document.createElement('span');
+    shopSidebarText.textContent = 'Use right sidebar';
+    shopSidebarLabel.appendChild(shopSidebarToggle);
+    shopSidebarLabel.appendChild(shopSidebarText);
+
+    const shopSidebarHint = document.createElement('small');
+    shopSidebarHint.className = 'settings-form__hint';
+    shopSidebarHint.textContent = 'Turn this off to hide the shop sidebar and show goals inline above the New shelf.';
+
+    const shopOrdersLabel = document.createElement('label');
+    shopOrdersLabel.className = 'settings-form__checkbox';
+    const shopOrdersToggle = document.createElement('input');
+    shopOrdersToggle.type = 'checkbox';
+    shopOrdersToggle.checked = SU.savedShopOrdersButtonEnabled === false;
+    shopOrdersToggle.disabled = SU.savedShopLayoutEnabled === false || SU.savedShopLayoutUseRail === false;
+    shopOrdersToggle.setAttribute('data-stardance-utils-setting', 'shop-orders-button');
+    const shopOrdersText = document.createElement('span');
+    shopOrdersText.textContent = 'Keep Your Orders in sidebar';
+    shopOrdersLabel.appendChild(shopOrdersToggle);
+    shopOrdersLabel.appendChild(shopOrdersText);
+
+    const shopOrdersHint = document.createElement('small');
+    shopOrdersHint.className = 'settings-form__hint';
+    shopOrdersHint.textContent = 'Off by default. When disabled, Your Orders becomes a main-area button and Goals gets more room in the sidebar.';
+
     const closeDialog = () => {
       const dialog = panel.closest('dialog');
       if (dialog?.open) {
@@ -307,6 +390,46 @@
       }
     });
 
+    const refreshShopUi = () => {
+      if (window.location.pathname.startsWith('/shop')) {
+        window.location.reload();
+        return;
+      }
+
+      SU.updateUtilsPanel(panel.closest('dialog'));
+    };
+
+    shopLayoutToggle.addEventListener('change', async () => {
+      SU.savedShopLayoutEnabled = shopLayoutToggle.checked;
+      await SU.setStoredSetting({
+        [SU.SHOP_LAYOUT_ENABLED_KEY]: SU.savedShopLayoutEnabled,
+        [SU.SHOP_LAYOUT_RAIL_KEY]: SU.savedShopLayoutUseRail,
+        [SU.SHOP_ORDERS_BUTTON_KEY]: SU.savedShopOrdersButtonEnabled
+      });
+      refreshShopUi();
+    });
+
+    shopSidebarToggle.addEventListener('change', async () => {
+      SU.savedShopLayoutUseRail = shopSidebarToggle.checked;
+      if (SU.savedShopLayoutUseRail === false) {
+        SU.savedShopOrdersButtonEnabled = true;
+        shopOrdersToggle.checked = false;
+      }
+
+      shopOrdersToggle.disabled = SU.savedShopLayoutEnabled === false || SU.savedShopLayoutUseRail === false;
+      await SU.setStoredSetting({
+        [SU.SHOP_LAYOUT_RAIL_KEY]: SU.savedShopLayoutUseRail,
+        [SU.SHOP_ORDERS_BUTTON_KEY]: SU.savedShopOrdersButtonEnabled
+      });
+      refreshShopUi();
+    });
+
+    shopOrdersToggle.addEventListener('change', async () => {
+      SU.savedShopOrdersButtonEnabled = !shopOrdersToggle.checked;
+      await SU.setStoredSetting({ [SU.SHOP_ORDERS_BUTTON_KEY]: SU.savedShopOrdersButtonEnabled });
+      refreshShopUi();
+    });
+
     actions.appendChild(saveButton);
     actions.appendChild(resetButton);
     themeActions.appendChild(themeSaveButton);
@@ -349,6 +472,18 @@
     sidebarAccordion.appendChild(sidebarSummary);
     sidebarAccordion.appendChild(sidebarBody);
     field.appendChild(sidebarAccordion);
+    shopLayoutField.appendChild(shopLayoutLabel);
+    shopLayoutField.appendChild(shopLayoutHint);
+    shopSidebarField.appendChild(shopSidebarLabel);
+    shopSidebarField.appendChild(shopSidebarHint);
+    shopOrdersField.appendChild(shopOrdersLabel);
+    shopOrdersField.appendChild(shopOrdersHint);
+    shopBody.appendChild(shopLayoutField);
+    shopBody.appendChild(shopSidebarField);
+    shopBody.appendChild(shopOrdersField);
+    shopAccordion.appendChild(shopSummary);
+    shopAccordion.appendChild(shopBody);
+    field.appendChild(shopAccordion);
     panel.appendChild(field);
 
     return panel;

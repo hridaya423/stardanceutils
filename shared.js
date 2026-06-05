@@ -27,6 +27,10 @@
     CUSTOM_FONT_PAIRINGS_KEY: 'customSidebarFontPairings',
     SIDEBAR_ORDER_KEY: 'sidebarTabOrder',
     PROJECT_PINNED_IDS_KEY: 'pinnedProjectIds',
+    SHOP_GOALS_KEY: 'shopGoals',
+    SHOP_LAYOUT_ENABLED_KEY: 'shopLayoutEnabled',
+    SHOP_LAYOUT_RAIL_KEY: 'shopLayoutUseRail',
+    SHOP_ORDERS_BUTTON_KEY: 'shopOrdersButtonEnabled',
     FONT_DATALIST_ID: 'stardance-utils-font-suggestions',
     DEFAULT_FONT_PAIRING: 'outfit-instrument',
     DEFAULT_THEME: 'default',
@@ -68,7 +72,10 @@
     SU.TRY_MODE_PENDING_KEY,
     SU.CUSTOM_FONT_PAIRINGS_KEY,
     SU.SIDEBAR_ORDER_KEY,
-    SU.PROJECT_PINNED_IDS_KEY
+    SU.PROJECT_PINNED_IDS_KEY,
+    SU.SHOP_LAYOUT_ENABLED_KEY,
+    SU.SHOP_LAYOUT_RAIL_KEY,
+    SU.SHOP_ORDERS_BUTTON_KEY
   ]);
 
   SU.savedFontPairing = SU.DEFAULT_FONT_PAIRING;
@@ -78,6 +85,10 @@
   SU.customFontPairings = [];
   SU.savedSidebarOrder = [];
   SU.savedPinnedProjectIds = [];
+  SU.savedShopGoals = {};
+  SU.savedShopLayoutEnabled = true;
+  SU.savedShopLayoutUseRail = true;
+  SU.savedShopOrdersButtonEnabled = true;
   SU.googleFontCatalog = null;
   SU.googleFontCatalogPromise = null;
   SU.draggedSidebarItemId = null;

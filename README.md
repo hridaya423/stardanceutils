@@ -16,6 +16,10 @@ A utility extension for Stardance.
   - Inline devlog editing.
 - Profile page improvements:
   - Pin projects from the Projects tab.
+- Shop improvements:
+  - Wishlisted shop items are mirrored into local goals with item metadata.
+  - Unified sortable `All items` catalog while keeping the `New` shelf.
+  - Better shop layout.
 - Devlog writing tools:
   - Drafts for devlogs.
   - Native browser speech-to-text.
@@ -65,6 +69,7 @@ A utility extension for Stardance.
   - `themes.js`
   - `sidebar.js`
   - `ai-check.js`
+  - `shop.js`
   - `projects.js`
   - `settings.js`
   - `content.js`

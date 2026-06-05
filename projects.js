@@ -1432,7 +1432,7 @@
 
     list.setAttribute('data-stardance-utils-project-pins', 'true');
     SU.applyProfileProjectPins();
-  };s
+  };
 
   SU.enhanceProjectShowPage = () => {
     const projectMain = document.querySelector('.app-layout__main');
