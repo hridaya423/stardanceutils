@@ -201,7 +201,9 @@
     }
 
     if (pairingName) {
-      pairingName.textContent = SU.getAllPairingsMap()[SU.getEffectivePairing()].label;
+      pairingName.textContent = SU.isStardanceDefaultPairing(SU.getEffectivePairing())
+        ? 'Stardance defaults'
+        : SU.getAllPairingsMap()[SU.getEffectivePairing()].label;
     }
   };
 

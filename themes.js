@@ -171,6 +171,8 @@
     return { ...SU.FONT_PAIRINGS, ...customEntries };
   };
 
+  SU.isStardanceDefaultPairing = (pairingKey) => pairingKey === SU.STARDANCE_DEFAULT_FONT_PAIRING;
+
   SU.getValidTheme = (themeId) => (SU.THEMES[themeId] ? themeId : SU.DEFAULT_THEME);
 
   SU.getEffectiveTheme = () => SU.getValidTheme(SU.previewTheme ?? SU.savedTheme);
@@ -190,11 +192,15 @@
     });
   };
 
-  SU.getValidPairing = (pairingKey) => (SU.getAllPairingsMap()[pairingKey] ? pairingKey : SU.DEFAULT_FONT_PAIRING);
+  SU.getValidPairing = (pairingKey) => (
+    SU.isStardanceDefaultPairing(pairingKey) || SU.getAllPairingsMap()[pairingKey]
+      ? pairingKey
+      : SU.DEFAULT_FONT_PAIRING
+  );
 
   SU.getEffectivePairing = () => SU.getValidPairing(SU.previewFontPairing ?? SU.savedFontPairing);
 
-  SU.getPairingKeys = () => Object.keys(SU.getAllPairingsMap());
+  SU.getPairingKeys = () => [SU.STARDANCE_DEFAULT_FONT_PAIRING, ...Object.keys(SU.getAllPairingsMap())];
 
   SU.renderPairingOptions = (select, selectedValue) => {
     if (!select) {
@@ -206,6 +212,13 @@
 
     const curatedGroup = document.createElement('optgroup');
     curatedGroup.label = 'Curated pairings';
+
+    const stardanceOption = document.createElement('option');
+    stardanceOption.value = SU.STARDANCE_DEFAULT_FONT_PAIRING;
+    stardanceOption.textContent = 'Stardance defaults';
+    stardanceOption.selected = SU.STARDANCE_DEFAULT_FONT_PAIRING === selectedValue;
+    curatedGroup.appendChild(stardanceOption);
+
     Object.entries(SU.FONT_PAIRINGS).forEach(([value, pairing]) => {
       const option = document.createElement('option');
       option.value = value;
@@ -285,13 +298,24 @@
   SU.stepPreviewPairing = (step) => {
     const pairingKeys = SU.getPairingKeys();
     const currentIndex = pairingKeys.indexOf(SU.getEffectivePairing());
-    const nextIndex = (currentIndex + step + pairingKeys.length) % pairingKeys.length;
+    const nextIndex = ((currentIndex === -1 ? 0 : currentIndex) + step + pairingKeys.length) % pairingKeys.length;
     SU.previewFontPairing = pairingKeys[nextIndex];
     SU.applyFontPairing(SU.previewFontPairing);
   };
 
   SU.applyFontPairing = (pairingKey) => {
-    const pairing = SU.getAllPairingsMap()[SU.getValidPairing(pairingKey)] ?? SU.FONT_PAIRINGS[SU.DEFAULT_FONT_PAIRING];
+    const nextPairingKey = SU.getValidPairing(pairingKey);
+    const root = document.documentElement;
+
+    if (SU.isStardanceDefaultPairing(nextPairingKey)) {
+      root.classList.remove(SU.FONT_CLASS);
+      root.style.removeProperty('--stardance-utils-font-regular');
+      root.style.removeProperty('--stardance-utils-font-active');
+      root.style.removeProperty('--stardance-utils-font-active-style');
+      return;
+    }
+
+    const pairing = SU.getAllPairingsMap()[nextPairingKey] ?? SU.FONT_PAIRINGS[SU.DEFAULT_FONT_PAIRING];
     SU.ensureFontFamilyLoaded(pairing.regularSource ? {
       name: pairing.regular,
       source: pairing.regularSource,
@@ -304,10 +328,10 @@
       slug: pairing.activeSlug,
       fallback: pairing.activeFallback
     } : null);
-    document.documentElement.classList.add(SU.FONT_CLASS);
-    document.documentElement.style.setProperty('--stardance-utils-font-regular', `'${pairing.regular}', ${pairing.regularFallback}`);
-    document.documentElement.style.setProperty('--stardance-utils-font-active', `'${pairing.active}', ${pairing.activeFallback}`);
-    document.documentElement.style.setProperty('--stardance-utils-font-active-style', pairing.activeItalic);
+    root.classList.add(SU.FONT_CLASS);
+    root.style.setProperty('--stardance-utils-font-regular', `'${pairing.regular}', ${pairing.regularFallback}`);
+    root.style.setProperty('--stardance-utils-font-active', `'${pairing.active}', ${pairing.activeFallback}`);
+    root.style.setProperty('--stardance-utils-font-active-style', pairing.activeItalic);
   };
 
   SU.saveCurrentPairing = async () => {

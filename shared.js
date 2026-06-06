@@ -32,6 +32,7 @@
     SHOP_LAYOUT_RAIL_KEY: 'shopLayoutUseRail',
     SHOP_ORDERS_BUTTON_KEY: 'shopOrdersButtonEnabled',
     FONT_DATALIST_ID: 'stardance-utils-font-suggestions',
+    STARDANCE_DEFAULT_FONT_PAIRING: 'stardance-defaults',
     DEFAULT_FONT_PAIRING: 'outfit-instrument',
     DEFAULT_THEME: 'default',
     TRY_MODE_FALLBACK_PATH: '/home',
