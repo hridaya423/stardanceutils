@@ -200,10 +200,15 @@ export default function Galaxy({
   const smoothMousePos = useRef({ x: 0.5, y: 0.5 });
   const targetMouseActive = useRef(0.0);
   const smoothMouseActive = useRef(0.0);
+  const boundsRef = useRef({ left: 0, top: 0, width: 0, height: 0 });
 
   useEffect(() => {
     if (!ctnDom.current) return;
     const ctn = ctnDom.current;
+    let rafId = 0;
+    let isInView = true;
+    let isPageVisible = document.visibilityState !== 'hidden';
+
     const renderer = new Renderer({
       alpha: transparent,
       premultipliedAlpha: false
@@ -221,8 +226,9 @@ export default function Galaxy({
     let program;
 
     function resize() {
-      const scale = 1;
-      renderer.setSize(ctn.offsetWidth * scale, ctn.offsetHeight * scale);
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.25);
+      boundsRef.current = ctn.getBoundingClientRect();
+      renderer.setSize(ctn.offsetWidth * pixelRatio, ctn.offsetHeight * pixelRatio);
       if (program) {
         program.uniforms.uResolution.value = new Color(
           gl.canvas.width,
@@ -233,6 +239,9 @@ export default function Galaxy({
     }
     window.addEventListener('resize', resize, false);
     resize();
+
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(ctn);
 
     const geometry = new Triangle(gl);
     program = new Program(gl, {
@@ -265,10 +274,15 @@ export default function Galaxy({
     });
 
     const mesh = new Mesh(gl, { geometry, program });
-    let animateId;
 
     function update(t) {
-      animateId = requestAnimationFrame(update);
+      if (!isInView || !isPageVisible) {
+        rafId = 0;
+        return;
+      }
+
+      rafId = requestAnimationFrame(update);
+
       if (!disableAnimation) {
         program.uniforms.uTime.value = t * 0.001;
         program.uniforms.uStarSpeed.value = (t * 0.001 * starSpeed) / 10.0;
@@ -286,40 +300,84 @@ export default function Galaxy({
 
       renderer.render({ scene: mesh });
     }
-    animateId = requestAnimationFrame(update);
+
+    function startLoop() {
+      if (!rafId && isInView && isPageVisible) {
+        rafId = requestAnimationFrame(update);
+      }
+    }
+
+    function stopLoop() {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      }
+    }
+
+    startLoop();
     ctn.appendChild(gl.canvas);
 
-    function handleMouseMove(e) {
-      const rect = ctn.getBoundingClientRect();
+    function handlePointerMove(e) {
+      const rect = boundsRef.current;
+      if (!rect.width || !rect.height) return;
       const insideX = e.clientX >= rect.left && e.clientX <= rect.right;
       const insideY = e.clientY >= rect.top && e.clientY <= rect.bottom;
-
       if (!insideX || !insideY) {
         targetMouseActive.current = 0.0;
+        smoothMouseActive.current = 0.0;
         return;
       }
-
       const x = (e.clientX - rect.left) / rect.width;
       const y = 1.0 - (e.clientY - rect.top) / rect.height;
       targetMousePos.current = { x, y };
       targetMouseActive.current = 1.0;
     }
 
-    function handleMouseLeave() {
+    function handlePointerLeave() {
       targetMouseActive.current = 0.0;
+      smoothMouseActive.current = 0.0;
     }
 
+    function handleVisibilityChange() {
+      isPageVisible = document.visibilityState !== 'hidden';
+      if (isPageVisible) {
+        startLoop();
+      } else {
+        stopLoop();
+      }
+    }
+
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        isInView = entry?.isIntersecting ?? false;
+        if (isInView) {
+          startLoop();
+        } else {
+          stopLoop();
+          targetMouseActive.current = 0.0;
+          smoothMouseActive.current = 0.0;
+        }
+      },
+      { threshold: 0, rootMargin: '200px 0px' }
+    );
+    intersectionObserver.observe(ctn);
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     if (mouseInteraction) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('blur', handleMouseLeave);
+      window.addEventListener('pointermove', handlePointerMove, { passive: true });
+      window.addEventListener('blur', handlePointerLeave);
     }
 
     return () => {
-      cancelAnimationFrame(animateId);
+      stopLoop();
       window.removeEventListener('resize', resize);
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (mouseInteraction) {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('blur', handleMouseLeave);
+        window.removeEventListener('pointermove', handlePointerMove);
+        window.removeEventListener('blur', handlePointerLeave);
       }
       ctn.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();

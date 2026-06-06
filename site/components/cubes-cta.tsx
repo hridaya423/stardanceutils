@@ -1,22 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Cubes from "@/components/Cubes";
 
 export function CubesCta() {
+  const ref = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const [active, setActive] = useState(false);
+  const [isCoarse, setIsCoarse] = useState(false);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(id);
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce || !ref.current) return;
+
+    setIsCoarse(window.matchMedia("(pointer: coarse), (max-width: 768px)").matches);
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const visible = entry?.isIntersecting ?? false;
+        setActive(visible);
+        if (visible) {
+          setMounted(true);
+        }
+      },
+      { threshold: 0, rootMargin: "280px 0px" },
+    );
+
+    observer.observe(ref.current);
+    return () => observer.disconnect();
   }, []);
 
   return (
-    <div className="cubes-stage">
+    <div ref={ref} className="cubes-stage">
       {mounted && (
         <Cubes
-          gridSize={20}
+          gridSize={isCoarse ? 14 : 20}
           cubeSize={undefined}
           maxAngle={20}
           radius={2}
@@ -25,9 +43,9 @@ export function CubesCta() {
           shadow={false}
           rippleColor="#87eefc"
           rippleSpeed={1.5}
-          autoAnimate
+          autoAnimate={active}
           rippleOnClick
-          cellGap={6}
+          cellGap={isCoarse ? 5 : 6}
         />
       )}
     </div>

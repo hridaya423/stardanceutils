@@ -4,8 +4,6 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lenis from "lenis";
-import Galaxy from "@/components/Galaxy";
 import type { Feature } from "@/lib/features";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -71,7 +69,7 @@ function FeaturePanel({ feature, index }: { feature: Feature; index: number }) {
       : "object-cover";
 
   return (
-    <div className="tech-card relative w-full max-w-6xl overflow-hidden rounded-[12px] p-7 md:p-12">
+    <div className="tech-card relative w-full max-w-7xl overflow-hidden rounded-[12px] p-8 md:p-14">
       <div className={`relative grid gap-8 md:items-center md:gap-12 ${layout.frame}`}>
         <div className={`order-2 ${layout.copyOrder}`}>
           <div className="mb-7 flex items-center gap-3">
@@ -124,14 +122,6 @@ export function HorizontalFeatures({ features }: Props) {
     const flat = new URLSearchParams(window.location.search).has("flat");
     if (reduceMotion || flat || !sectionRef.current || !trackRef.current || !firstSceneRef.current) return;
 
-    const lenis = new Lenis({ duration: 1.2, smoothWheel: true });
-    lenis.on("scroll", ScrollTrigger.update);
-    const raf = (time: number) => {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    };
-    const frameId = requestAnimationFrame(raf);
-
     const track = trackRef.current;
     const firstScene = firstSceneRef.current;
     const getScrollAmount = () => -(track.scrollWidth - window.innerWidth);
@@ -171,8 +161,6 @@ export function HorizontalFeatures({ features }: Props) {
     return () => {
       ctx.revert();
       ScrollTrigger.getAll().forEach((t) => t.kill());
-      lenis.destroy();
-      cancelAnimationFrame(frameId);
     };
   }, []);
 
@@ -184,22 +172,6 @@ export function HorizontalFeatures({ features }: Props) {
       ref={sectionRef}
       className="relative flex min-h-[100dvh] items-center overflow-hidden"
     >
-      <div className="horizontal-galaxy" aria-hidden="true">
-        <Galaxy
-          starSpeed={0.5}
-          density={1}
-          hueShift={140}
-          speed={1}
-          glowIntensity={0.3}
-          saturation={0}
-          mouseInteraction
-          mouseRepulsion
-          repulsionStrength={2}
-          twinkleIntensity={0.3}
-          rotationSpeed={0.1}
-          transparent
-        />
-      </div>
       <div className="horizontal-features-veil" aria-hidden="true" />
 
       {firstFeature && (

@@ -301,6 +301,10 @@ button {
   animation-direction: reverse;
 }
 
+.marquee-scope[data-in-view="false"] .marquee-track {
+  animation-play-state: paused;
+}
+
 .marquee:hover .marquee-track {
   animation-play-state: paused;
 }

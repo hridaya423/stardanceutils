@@ -1,6 +1,7 @@
 import { closeSync, openSync, readSync, readdirSync } from "node:fs";
 import path from "node:path";
 import Image from "next/image";
+import { ViewportPresence } from "@/components/viewport-presence";
 
 type Shot = { src: string; product: string; ratio: number };
 
@@ -113,10 +114,10 @@ export function FeedbackCarousels({ sources = REVIEW_SOURCES, rows: rowCount = 4
   const rows = intoRows(collectShots(sources), rowCount);
   const durations = ["78s", "96s", "86s", "104s"];
   return (
-    <div className="flex flex-col gap-3">
+    <ViewportPresence className="marquee-scope flex flex-col gap-3" rootMargin="240px 0px">
       {rows.map((items, index) => (
         <Row key={index} items={items} dur={durations[index % durations.length]} reverse={index % 2 === 1} />
       ))}
-    </div>
+    </ViewportPresence>
   );
 }

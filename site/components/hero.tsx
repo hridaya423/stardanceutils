@@ -29,7 +29,7 @@ export function Hero({ links }: { links: Links }) {
   }, []);
 
   return (
-    <section className="relative isolate flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 pb-24 pt-28">
+    <section className="relative isolate flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-6 pb-12 pt-24 md:pb-16 md:pt-24">
       <div className="hero-galaxy" aria-hidden="true">
         <Galaxy
           starSpeed={0.5}
