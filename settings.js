@@ -70,6 +70,7 @@
 
     const appearanceAccordion = document.createElement('details');
     appearanceAccordion.className = 'stardance-utils-accordion';
+    appearanceAccordion.setAttribute('data-stardance-utils-utils-section', 'appearance');
 
     const appearanceSummary = document.createElement('summary');
     appearanceSummary.className = 'stardance-utils-accordion-summary';
@@ -101,16 +102,18 @@
 
     const themeSaveButton = document.createElement('button');
     themeSaveButton.type = 'button';
-    themeSaveButton.className = 'modal__actions-close modal__actions-close--primary stardance-utils-action-button stardance-utils-action-button--primary';
+    themeSaveButton.className = 'stardance-utils-onboarding-btn stardance-utils-onboarding-btn--primary stardance-utils-theme-save-button stardance-utils-theme-action-button';
+    themeSaveButton.setAttribute('data-stardance-utils-onboarding-theme-save', 'true');
     themeSaveButton.textContent = 'Save';
 
     const themeResetButton = document.createElement('button');
     themeResetButton.type = 'button';
-    themeResetButton.className = 'modal__actions-close stardance-utils-action-button stardance-utils-action-button--secondary';
+    themeResetButton.className = 'modal__actions-close stardance-utils-action-button stardance-utils-action-button--secondary stardance-utils-theme-action-button';
     themeResetButton.textContent = 'Reset';
 
     const sidebarAccordion = document.createElement('details');
     sidebarAccordion.className = 'stardance-utils-accordion';
+    sidebarAccordion.setAttribute('data-stardance-utils-utils-section', 'sidebar');
 
     const sidebarSummary = document.createElement('summary');
     sidebarSummary.className = 'stardance-utils-accordion-summary';
@@ -210,6 +213,7 @@
 
     const shopAccordion = document.createElement('details');
     shopAccordion.className = 'stardance-utils-accordion';
+    shopAccordion.setAttribute('data-stardance-utils-utils-section', 'shop');
 
     const shopSummary = document.createElement('summary');
     shopSummary.className = 'stardance-utils-accordion-summary';
@@ -273,6 +277,14 @@
     const shopOrdersHint = document.createElement('small');
     shopOrdersHint.className = 'settings-form__hint';
     shopOrdersHint.textContent = 'Off by default. When disabled, Your Orders becomes a main-area button and Goals gets more room in the sidebar.';
+
+    const onboardingField = document.createElement('div');
+    onboardingField.className = 'settings-form__field';
+
+    const onboardingReplayButton = document.createElement('button');
+    onboardingReplayButton.type = 'button';
+    onboardingReplayButton.className = 'stardance-utils-onboarding-btn stardance-utils-onboarding-btn--primary stardance-utils-replay-tutorial-button';
+    onboardingReplayButton.textContent = 'Replay tutorial';
 
     const closeDialog = () => {
       const dialog = panel.closest('dialog');
@@ -357,7 +369,6 @@
 
     themeSaveButton.addEventListener('click', async () => {
       await SU.saveCurrentTheme();
-      closeDialog();
     });
 
     resetButton.addEventListener('click', () => {
@@ -430,6 +441,13 @@
       refreshShopUi();
     });
 
+    onboardingReplayButton.addEventListener('click', () => {
+      closeDialog();
+      window.setTimeout(() => {
+        SU.startOnboarding(true);
+      }, 50);
+    });
+
     actions.appendChild(saveButton);
     actions.appendChild(resetButton);
     themeActions.appendChild(themeSaveButton);
@@ -484,7 +502,9 @@
     shopAccordion.appendChild(shopSummary);
     shopAccordion.appendChild(shopBody);
     field.appendChild(shopAccordion);
+    onboardingField.appendChild(onboardingReplayButton);
     panel.appendChild(field);
+    panel.appendChild(onboardingField);
 
     return panel;
   };

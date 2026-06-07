@@ -31,6 +31,10 @@
     SHOP_LAYOUT_ENABLED_KEY: 'shopLayoutEnabled',
     SHOP_LAYOUT_RAIL_KEY: 'shopLayoutUseRail',
     SHOP_ORDERS_BUTTON_KEY: 'shopOrdersButtonEnabled',
+    ONBOARDING_KEY: 'onboardingState',
+    ONBOARDING_VERSION: 1,
+    ONBOARDING_ROOT_ID: 'stardance-utils-onboarding',
+    ONBOARDING_ACTIVE_CLASS: 'stardance-utils-onboarding-active',
     FONT_DATALIST_ID: 'stardance-utils-font-suggestions',
     STARDANCE_DEFAULT_FONT_PAIRING: 'stardance-defaults',
     DEFAULT_FONT_PAIRING: 'outfit-instrument',
@@ -76,7 +80,8 @@
     SU.PROJECT_PINNED_IDS_KEY,
     SU.SHOP_LAYOUT_ENABLED_KEY,
     SU.SHOP_LAYOUT_RAIL_KEY,
-    SU.SHOP_ORDERS_BUTTON_KEY
+    SU.SHOP_ORDERS_BUTTON_KEY,
+    SU.ONBOARDING_KEY
   ]);
 
   SU.savedFontPairing = SU.DEFAULT_FONT_PAIRING;
@@ -90,6 +95,7 @@
   SU.savedShopLayoutEnabled = true;
   SU.savedShopLayoutUseRail = true;
   SU.savedShopOrdersButtonEnabled = true;
+  SU.onboardingState = null;
   SU.googleFontCatalog = null;
   SU.googleFontCatalogPromise = null;
   SU.draggedSidebarItemId = null;
@@ -126,6 +132,84 @@
     } catch {
       // Ignore localStorage access failures.
     }
+  };
+
+  SU.getOnboardingState = () => {
+    const state = SU.readLocalSetting(SU.ONBOARDING_KEY);
+    if (!state || typeof state !== 'object') {
+      return {
+        version: SU.ONBOARDING_VERSION,
+        started: false,
+        completed: false,
+        dismissed: false,
+        stepId: null,
+        context: {},
+        lastUpdatedAt: 0
+      };
+    }
+
+    return {
+      version: Number.isFinite(state.version) ? state.version : SU.ONBOARDING_VERSION,
+      started: state.started === true,
+      completed: state.completed === true,
+      dismissed: state.dismissed === true,
+      stepId: typeof state.stepId === 'string' ? state.stepId : null,
+      context: state.context && typeof state.context === 'object' ? state.context : {},
+      lastUpdatedAt: Number.isFinite(state.lastUpdatedAt) ? state.lastUpdatedAt : 0
+    };
+  };
+
+  SU.setOnboardingState = (partial = {}) => {
+    const current = SU.getOnboardingState();
+    const next = {
+      ...current,
+      ...partial,
+      context: {
+        ...current.context,
+        ...(partial.context && typeof partial.context === 'object' ? partial.context : {})
+      },
+      version: SU.ONBOARDING_VERSION,
+      lastUpdatedAt: Date.now()
+    };
+
+    SU.onboardingState = next;
+    SU.writeLocalSetting(SU.ONBOARDING_KEY, next);
+    return next;
+  };
+
+  SU.resetOnboardingState = () => {
+    SU.clearLocalSetting(SU.ONBOARDING_KEY);
+    SU.onboardingState = {
+      version: SU.ONBOARDING_VERSION,
+      started: false,
+      completed: false,
+      dismissed: false,
+      stepId: null,
+      context: {},
+      lastUpdatedAt: 0
+    };
+    return SU.onboardingState;
+  };
+
+  SU.completeOnboarding = () => SU.setOnboardingState({
+    started: true,
+    completed: true,
+    dismissed: false,
+    stepId: null,
+    context: {}
+  });
+
+  SU.dismissOnboarding = () => SU.setOnboardingState({
+    started: true,
+    completed: false,
+    dismissed: true,
+    stepId: null,
+    context: {}
+  });
+
+  SU.shouldAutoStartOnboarding = () => {
+    const state = SU.getOnboardingState();
+    return !state.completed && !state.dismissed && !state.started && state.lastUpdatedAt === 0;
   };
 
   SU.getExtensionStoredSetting = (key) => {

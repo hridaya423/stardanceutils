@@ -166,7 +166,10 @@
     doneButton.type = 'button';
     doneButton.className = 'stardance-utils-reorder-done';
     doneButton.textContent = 'Done';
-    doneButton.addEventListener('click', () => SU.disableSidebarReorderMode());
+    doneButton.addEventListener('click', () => {
+      document.dispatchEvent(new CustomEvent('stardance-utils:sidebar-reorder-done'));
+      SU.disableSidebarReorderMode();
+    });
 
     banner.appendChild(text);
     banner.appendChild(doneButton);

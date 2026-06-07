@@ -38,6 +38,7 @@
                 "shop.js",
                 "projects.js",
                 "settings.js",
+                "onboarding.js",
                 "content.js"
             ],
             "run_at": "document_idle"

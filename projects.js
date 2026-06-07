@@ -631,6 +631,19 @@
     return `stardance-utils:devlog-draft:${action}`;
   };
 
+  SU.persistDevlogDraftValue = (form, value) => {
+    const draftKey = SU.getDevlogDraftKey(form);
+    try {
+      if ((value || '').trim()) {
+        window.localStorage.setItem(draftKey, value);
+      } else {
+        window.localStorage.removeItem(draftKey);
+      }
+    } catch {
+      // Ignore localStorage access failures.
+    }
+  };
+
   SU.bindDevlogDraftPersistence = (composerSection) => {
     if (!composerSection || composerSection.getAttribute(SU.DEVLOG_DRAFT_ATTR) === 'true') {
       return;
@@ -683,16 +696,7 @@
 
     let saveTimer = null;
     const persistDraft = () => {
-      const value = textarea.value || '';
-      try {
-        if (value.trim()) {
-          window.localStorage.setItem(draftKey, value);
-        } else {
-          window.localStorage.removeItem(draftKey);
-        }
-      } catch {
-        // Ignore localStorage access failures.
-      }
+      SU.persistDevlogDraftValue(form, textarea.value || '');
     };
 
     textarea.addEventListener('input', () => {
@@ -1054,8 +1058,6 @@
       return;
     }
 
-    composerSection.setAttribute(SU.DEVLOG_SPEECH_ATTR, 'true');
-
     const submitGroup = composerSection.querySelector('.feed-composer__submit-group');
     if (!submitGroup) {
       return;
@@ -1084,6 +1086,8 @@
     } else {
       submitGroup.appendChild(speechWrap);
     }
+
+    composerSection.setAttribute(SU.DEVLOG_SPEECH_ATTR, 'true');
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {

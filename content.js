@@ -58,6 +58,7 @@
     runEnhancement('profile project enhancements', SU.enhanceProfileProjectsPage);
     runEnhancement('shop enhancements', SU.enhanceShopPage);
     runEnhancement('feed AI enhancements', SU.enhanceFeedAiVerification);
+    runEnhancement('onboarding', SU.maybeStartOnboarding);
 
     const dialog = document.getElementById('settings-modal');
     if (dialog) {
