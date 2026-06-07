@@ -1,0 +1,166 @@
+name: Publish Stores
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_chrome:
+        description: Publish to Chrome Web Store
+        required: true
+        default: true
+        type: boolean
+      publish_firefox:
+        description: Publish to Firefox Add-ons
+        required: true
+        default: true
+        type: boolean
+      firefox_release_notes:
+        description: Optional Firefox release notes (en-US)
+        required: false
+        default: ''
+        type: string
+      firefox_approval_notes:
+        description: Optional reviewer notes for Firefox
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      manifest_version: ${{ steps.preflight.outputs.manifest_version }}
+      publish_version: ${{ steps.preflight.outputs.publish_version }}
+      publish_chrome: ${{ steps.preflight.outputs.publish_chrome }}
+      publish_firefox: ${{ steps.preflight.outputs.publish_firefox }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - id: chrome-auth
+        if: ${{ inputs.publish_chrome }}
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: access_token
+          workload_identity_provider: ${{ vars.CHROME_GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.CHROME_GCP_SERVICE_ACCOUNT }}
+
+      - id: preflight
+        env:
+          PUBLISH_CHROME: ${{ inputs.publish_chrome && 'true' || 'false' }}
+          PUBLISH_FIREFOX: ${{ inputs.publish_firefox && 'true' || 'false' }}
+          CHROME_ACCESS_TOKEN: ${{ steps.chrome-auth.outputs.access_token }}
+          CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
+          CHROME_EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
+          AMO_API_KEY: ${{ secrets.AMO_API_KEY }}
+          AMO_API_SECRET: ${{ secrets.AMO_API_SECRET }}
+          FIREFOX_ADDON_REF: ${{ vars.FIREFOX_ADDON_REF }}
+        run: node scripts/store-publish.js preflight
+
+  build:
+    needs: preflight
+    if: ${{ needs.preflight.outputs.publish_chrome == 'true' || needs.preflight.outputs.publish_firefox == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build selected store packages
+        env:
+          MANIFEST_VERSION: ${{ needs.preflight.outputs.manifest_version }}
+          PUBLISH_VERSION: ${{ needs.preflight.outputs.publish_version }}
+          PUBLISH_CHROME: ${{ needs.preflight.outputs.publish_chrome }}
+          PUBLISH_FIREFOX: ${{ needs.preflight.outputs.publish_firefox }}
+        run: |
+          mkdir -p build/store/chrome/themes build/store/firefox/themes
+
+          if [ "$PUBLISH_CHROME" = "true" ]; then
+            cp manifest.json shared.js themes.js sidebar.js ai-check.js shop.js projects.js settings.js content.js background.js onboarding.js openai-verify.js styles.css build/store/chrome/
+            cp icon*.png build/store/chrome/ 2>/dev/null || true
+            cp themes/*.css build/store/chrome/themes/
+            node scripts/store-publish.js stamp-manifest-version build/store/chrome/manifest.json "$PUBLISH_VERSION"
+            (cd build/store/chrome && zip -r "../../../stardance-utils-chrome-v${PUBLISH_VERSION}.zip" .)
+          fi
+
+          if [ "$PUBLISH_FIREFOX" = "true" ]; then
+            cp manifest_firefox.json build/store/firefox/manifest.json
+            cp shared.js themes.js sidebar.js ai-check.js shop.js projects.js settings.js content.js background.js onboarding.js openai-verify.js styles.css build/store/firefox/
+            cp icon*.png build/store/firefox/ 2>/dev/null || true
+            cp themes/*.css build/store/firefox/themes/
+            node scripts/store-publish.js stamp-manifest-version build/store/firefox/manifest.json "$PUBLISH_VERSION"
+            (cd build/store/firefox && zip -r "../../../stardance-utils-firefox-v${PUBLISH_VERSION}.xpi" .)
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: store-packages-v${{ needs.preflight.outputs.publish_version }}
+          path: stardance-utils-*-v${{ needs.preflight.outputs.publish_version }}.*
+          if-no-files-found: error
+
+  publish-chrome:
+    needs: [preflight, build]
+    if: ${{ needs.preflight.outputs.publish_chrome == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: store-packages-v${{ needs.preflight.outputs.publish_version }}
+          path: .
+
+      - id: chrome-auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: access_token
+          workload_identity_provider: ${{ vars.CHROME_GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.CHROME_GCP_SERVICE_ACCOUNT }}
+
+      - name: Submit Chrome update
+        env:
+          PUBLISH_VERSION: ${{ needs.preflight.outputs.publish_version }}
+          CHROME_ACCESS_TOKEN: ${{ steps.chrome-auth.outputs.access_token }}
+          CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
+          CHROME_EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
+          CHROME_PACKAGE_PATH: stardance-utils-chrome-v${{ needs.preflight.outputs.publish_version }}.zip
+        run: node scripts/store-publish.js publish-chrome
+
+  publish-firefox:
+    needs: [preflight, build]
+    if: ${{ needs.preflight.outputs.publish_firefox == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: store-packages-v${{ needs.preflight.outputs.publish_version }}
+          path: .
+
+      - name: Submit Firefox update
+        env:
+          PUBLISH_VERSION: ${{ needs.preflight.outputs.publish_version }}
+          AMO_API_KEY: ${{ secrets.AMO_API_KEY }}
+          AMO_API_SECRET: ${{ secrets.AMO_API_SECRET }}
+          FIREFOX_ADDON_REF: ${{ vars.FIREFOX_ADDON_REF }}
+          FIREFOX_PACKAGE_PATH: stardance-utils-firefox-v${{ needs.preflight.outputs.publish_version }}.xpi
+          FIREFOX_RELEASE_NOTES: ${{ inputs.firefox_release_notes }}
+          FIREFOX_APPROVAL_NOTES: ${{ inputs.firefox_approval_notes }}
+        run: node scripts/store-publish.js publish-firefox
