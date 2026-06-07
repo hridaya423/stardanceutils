@@ -41,6 +41,8 @@ jobs:
       source_commit: ${{ steps.preflight.outputs.source_commit }}
       publish_chrome: ${{ steps.preflight.outputs.publish_chrome }}
       publish_firefox: ${{ steps.preflight.outputs.publish_firefox }}
+      chrome_blocked_pending: ${{ steps.preflight.outputs.chrome_blocked_pending }}
+      firefox_blocked_pending: ${{ steps.preflight.outputs.firefox_blocked_pending }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -177,3 +179,16 @@ jobs:
           FIREFOX_RELEASE_NOTES: ${{ github.event_name == 'workflow_dispatch' && inputs.firefox_release_notes || '' }}
           FIREFOX_APPROVAL_NOTES: ${{ github.event_name == 'workflow_dispatch' && inputs.firefox_approval_notes || '' }}
         run: node scripts/store-publish.js publish-firefox
+
+  pending-summary:
+    needs: preflight
+    if: ${{ needs.preflight.outputs.chrome_blocked_pending == 'true' || needs.preflight.outputs.firefox_blocked_pending == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report pending store reviews
+        run: |
+          echo "Store publishing is partially blocked by pending review." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Chrome blocked by pending review: ${{ needs.preflight.outputs.chrome_blocked_pending }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Firefox blocked by pending review: ${{ needs.preflight.outputs.firefox_blocked_pending }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Re-run the workflow later after the blocked store finishes review." >> "$GITHUB_STEP_SUMMARY"

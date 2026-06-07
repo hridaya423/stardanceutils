@@ -271,8 +271,10 @@ async function runPreflight() {
 
   let chromeLiveVersion = '';
   let chromeSubmittedVersion = '';
+  let chromeBlockedPending = false;
   let firefoxLiveVersion = '';
   let firefoxPendingVersion = '';
+  let firefoxBlockedPending = false;
   let publishChrome = false;
   let publishFirefox = false;
   let sourceCommit = '';
@@ -292,9 +294,8 @@ async function runPreflight() {
       if (submittedComparison === 0) {
         publishChrome = false;
       } else {
-        throw new Error(
-          `Chrome already has a different submitted version pending review (${chromeSubmittedVersion}); resolve or cancel it before publishing target ${publishVersion}`
-        );
+        chromeBlockedPending = true;
+        publishChrome = false;
       }
     } else if (!chromeLiveVersion) {
       publishChrome = true;
@@ -334,9 +335,8 @@ async function runPreflight() {
         `Publish target ${publishVersion} is older than existing Firefox version ${highestListedVersion.version}`
       );
     } else if (firefoxPendingVersion) {
-      throw new Error(
-        `Firefox already has a different listed version pending review (${firefoxPendingVersion}); resolve it before publishing target ${publishVersion}`
-      );
+      firefoxBlockedPending = true;
+      publishFirefox = false;
     } else if (!firefoxLiveVersion) {
       publishFirefox = true;
     } else {
@@ -356,6 +356,8 @@ async function runPreflight() {
   setOutput('publish_version', publishVersion);
   setOutput('publish_chrome', String(publishChrome));
   setOutput('publish_firefox', String(publishFirefox));
+  setOutput('chrome_blocked_pending', String(chromeBlockedPending));
+  setOutput('firefox_blocked_pending', String(firefoxBlockedPending));
   setOutput('source_commit', sourceCommit || 'none');
   setOutput('chrome_live_version', chromeLiveVersion || 'none');
   setOutput('chrome_submitted_version', chromeSubmittedVersion || 'none');
@@ -370,8 +372,10 @@ async function runPreflight() {
     `- Publish source commit: \`${sourceCommit || 'none'}\``,
     `- Chrome live version: \`${chromeLiveVersion || 'none'}\``,
     `- Chrome submitted version: \`${chromeSubmittedVersion || 'none'}\``,
+    `- Chrome blocked by pending review: \`${chromeBlockedPending}\``,
     `- Firefox live version: \`${firefoxLiveVersion || 'none'}\``,
     `- Firefox pending version: \`${firefoxPendingVersion || 'none'}\``,
+    `- Firefox blocked by pending review: \`${firefoxBlockedPending}\``,
     `- Publish Chrome: \`${publishChrome}\``,
     `- Publish Firefox: \`${publishFirefox}\``
   ]);
