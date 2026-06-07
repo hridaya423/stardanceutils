@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { execFileSync } = require('child_process');
 
 const ROOT = process.cwd();
 const DEFAULT_AMO_BASE_URL = 'https://addons.mozilla.org/api/v5';
@@ -136,6 +137,38 @@ function stampManifestVersion(filePath, version) {
   fs.writeFileSync(absolutePath, `${JSON.stringify(manifest, null, 4)}\n`);
 }
 
+function git(args) {
+  return execFileSync('git', args, {
+    cwd: ROOT,
+    encoding: 'utf8'
+  }).trim();
+}
+
+function getManifestVersionAtRef(ref, manifestPath) {
+  const content = git(['show', `${ref}:${manifestPath}`]);
+  return JSON.parse(content).version;
+}
+
+function resolveSourceCommitForVersion(version) {
+  const commits = git(['rev-list', 'HEAD'])
+    .split('\n')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  for (const commit of commits) {
+    try {
+      const chromeVersion = getManifestVersionAtRef(commit, 'manifest.json');
+      const firefoxVersion = getManifestVersionAtRef(commit, 'manifest_firefox.json');
+      if (chromeVersion === version && firefoxVersion === version) {
+        return commit;
+      }
+    } catch {
+    }
+  }
+
+  throw new Error(`Could not find a commit in git history where both manifests were version ${version}`);
+}
+
 function getChromePublishedVersion(statusPayload) {
   return statusPayload?.publishedItemRevisionStatus?.distributionChannels?.[0]?.crxVersion || '';
 }
@@ -242,6 +275,7 @@ async function runPreflight() {
   let firefoxPendingVersion = '';
   let publishChrome = false;
   let publishFirefox = false;
+  let sourceCommit = '';
 
   if (publishChromeRequested) {
     const chromeStatus = await fetchChromeStatus();
@@ -314,10 +348,15 @@ async function runPreflight() {
     }
   }
 
+  if (publishChrome || publishFirefox) {
+    sourceCommit = resolveSourceCommitForVersion(publishVersion);
+  }
+
   setOutput('manifest_version', version);
   setOutput('publish_version', publishVersion);
   setOutput('publish_chrome', String(publishChrome));
   setOutput('publish_firefox', String(publishFirefox));
+  setOutput('source_commit', sourceCommit || 'none');
   setOutput('chrome_live_version', chromeLiveVersion || 'none');
   setOutput('chrome_submitted_version', chromeSubmittedVersion || 'none');
   setOutput('firefox_live_version', firefoxLiveVersion || 'none');
@@ -328,6 +367,7 @@ async function runPreflight() {
     '',
     `- Local manifest version: \`${version}\``,
     `- Publish target version: \`${publishVersion}\``,
+    `- Publish source commit: \`${sourceCommit || 'none'}\``,
     `- Chrome live version: \`${chromeLiveVersion || 'none'}\``,
     `- Chrome submitted version: \`${chromeSubmittedVersion || 'none'}\``,
     `- Firefox live version: \`${firefoxLiveVersion || 'none'}\``,
@@ -495,6 +535,12 @@ async function main() {
         throw new Error('Usage: node scripts/store-publish.js stamp-manifest-version <filePath> <version>');
       }
       stampManifestVersion(targetFilePath, targetVersion);
+      return;
+    case 'resolve-source-commit':
+      if (!targetVersion) {
+        throw new Error('Usage: node scripts/store-publish.js resolve-source-commit <version>');
+      }
+      setOutput('source_commit', resolveSourceCommitForVersion(targetVersion));
       return;
     case 'publish-chrome':
       await runPublishChrome();

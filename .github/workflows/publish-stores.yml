@@ -1,6 +1,11 @@
 name: Publish Stores
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - manifest.json
+      - manifest_firefox.json
   workflow_dispatch:
     inputs:
       publish_chrome:
@@ -33,27 +38,31 @@ jobs:
     outputs:
       manifest_version: ${{ steps.preflight.outputs.manifest_version }}
       publish_version: ${{ steps.preflight.outputs.publish_version }}
+      source_commit: ${{ steps.preflight.outputs.source_commit }}
       publish_chrome: ${{ steps.preflight.outputs.publish_chrome }}
       publish_firefox: ${{ steps.preflight.outputs.publish_firefox }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - id: chrome-auth
-        if: ${{ inputs.publish_chrome }}
-        uses: google-github-actions/auth@v2
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish_chrome }}
+        uses: google-github-actions/auth@v3
         with:
           token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
           workload_identity_provider: ${{ vars.CHROME_GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.CHROME_GCP_SERVICE_ACCOUNT }}
 
       - id: preflight
         env:
-          PUBLISH_CHROME: ${{ inputs.publish_chrome && 'true' || 'false' }}
-          PUBLISH_FIREFOX: ${{ inputs.publish_firefox && 'true' || 'false' }}
+          PUBLISH_CHROME: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_chrome && 'true' || 'false') || 'true' }}
+          PUBLISH_FIREFOX: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_firefox && 'true' || 'false') || 'true' }}
           CHROME_ACCESS_TOKEN: ${{ steps.chrome-auth.outputs.access_token }}
           CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
           CHROME_EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
@@ -68,29 +77,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Build selected store packages
         env:
-          MANIFEST_VERSION: ${{ needs.preflight.outputs.manifest_version }}
+          SOURCE_COMMIT: ${{ needs.preflight.outputs.source_commit }}
           PUBLISH_VERSION: ${{ needs.preflight.outputs.publish_version }}
           PUBLISH_CHROME: ${{ needs.preflight.outputs.publish_chrome }}
           PUBLISH_FIREFOX: ${{ needs.preflight.outputs.publish_firefox }}
         run: |
-          mkdir -p build/store/chrome/themes build/store/firefox/themes
+          mkdir -p build/source build/store/chrome/themes build/store/firefox/themes
+          git archive "$SOURCE_COMMIT" | tar -x -C build/source
 
           if [ "$PUBLISH_CHROME" = "true" ]; then
-            cp manifest.json shared.js themes.js sidebar.js ai-check.js shop.js projects.js settings.js content.js background.js onboarding.js openai-verify.js styles.css build/store/chrome/
-            cp icon*.png build/store/chrome/ 2>/dev/null || true
-            cp themes/*.css build/store/chrome/themes/
+            cp build/source/manifest.json build/source/shared.js build/source/themes.js build/source/sidebar.js build/source/ai-check.js build/source/shop.js build/source/projects.js build/source/settings.js build/source/content.js build/source/background.js build/source/onboarding.js build/source/openai-verify.js build/source/styles.css build/store/chrome/
+            cp build/source/icon*.png build/store/chrome/ 2>/dev/null || true
+            cp build/source/themes/*.css build/store/chrome/themes/
             node scripts/store-publish.js stamp-manifest-version build/store/chrome/manifest.json "$PUBLISH_VERSION"
             (cd build/store/chrome && zip -r "../../../stardance-utils-chrome-v${PUBLISH_VERSION}.zip" .)
           fi
 
           if [ "$PUBLISH_FIREFOX" = "true" ]; then
-            cp manifest_firefox.json build/store/firefox/manifest.json
-            cp shared.js themes.js sidebar.js ai-check.js shop.js projects.js settings.js content.js background.js onboarding.js openai-verify.js styles.css build/store/firefox/
-            cp icon*.png build/store/firefox/ 2>/dev/null || true
-            cp themes/*.css build/store/firefox/themes/
+            cp build/source/manifest_firefox.json build/store/firefox/manifest.json
+            cp build/source/shared.js build/source/themes.js build/source/sidebar.js build/source/ai-check.js build/source/shop.js build/source/projects.js build/source/settings.js build/source/content.js build/source/background.js build/source/onboarding.js build/source/openai-verify.js build/source/styles.css build/store/firefox/
+            cp build/source/icon*.png build/store/firefox/ 2>/dev/null || true
+            cp build/source/themes/*.css build/store/firefox/themes/
             node scripts/store-publish.js stamp-manifest-version build/store/firefox/manifest.json "$PUBLISH_VERSION"
             (cd build/store/firefox && zip -r "../../../stardance-utils-firefox-v${PUBLISH_VERSION}.xpi" .)
           fi
@@ -121,9 +133,10 @@ jobs:
           path: .
 
       - id: chrome-auth
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
           workload_identity_provider: ${{ vars.CHROME_GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.CHROME_GCP_SERVICE_ACCOUNT }}
 
@@ -161,6 +174,6 @@ jobs:
           AMO_API_SECRET: ${{ secrets.AMO_API_SECRET }}
           FIREFOX_ADDON_REF: ${{ vars.FIREFOX_ADDON_REF }}
           FIREFOX_PACKAGE_PATH: stardance-utils-firefox-v${{ needs.preflight.outputs.publish_version }}.xpi
-          FIREFOX_RELEASE_NOTES: ${{ inputs.firefox_release_notes }}
-          FIREFOX_APPROVAL_NOTES: ${{ inputs.firefox_approval_notes }}
+          FIREFOX_RELEASE_NOTES: ${{ github.event_name == 'workflow_dispatch' && inputs.firefox_release_notes || '' }}
+          FIREFOX_APPROVAL_NOTES: ${{ github.event_name == 'workflow_dispatch' && inputs.firefox_approval_notes || '' }}
         run: node scripts/store-publish.js publish-firefox
