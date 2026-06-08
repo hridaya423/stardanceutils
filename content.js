@@ -107,6 +107,9 @@
         const element = node;
         return element.id === 'settings-modal'
           || element.id === 'primary-nav'
+          || element.classList?.contains('feed-post-card')
+          || element.classList?.contains('feed-post-card__media')
+          || element.classList?.contains('feed-post-card__media-viewport')
           || element.classList?.contains('discover-rail')
           || element.classList?.contains('shop-hub')
           || element.classList?.contains('shop-category')
@@ -115,7 +118,7 @@
           || element.classList?.contains('project-show__actions')
           || element.classList?.contains('project-show__feed')
           || element.classList?.contains('composer-modal')
-          || Boolean(element.querySelector?.('#settings-modal, #primary-nav, .discover-rail, .shop-hub, .shop-category, .profile-tab-content, .project-list, .project-show__actions, .project-show__feed, .composer-modal'));
+          || Boolean(element.querySelector?.('#settings-modal, #primary-nav, .feed-post-card, .feed-post-card__media, .feed-post-card__media-viewport, .discover-rail, .shop-hub, .shop-category, .profile-tab-content, .project-list, .project-show__actions, .project-show__feed, .composer-modal'));
       });
     });
 
