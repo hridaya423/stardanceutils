@@ -1,5 +1,12 @@
 (() => {
   const SU = globalThis.StardanceUtils;
+  const FEED_IMAGE_ZOOM_BUTTON_ATTR = 'data-stardance-utils-image-zoom-button';
+  const FEED_IMAGE_ZOOM_DIALOG_ID = 'stardance-utils-image-zoom-dialog';
+  const FEED_AI_BUTTON_ICON = `
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <path d="M8 17.75h8m3.5-5.5h.75a1.5 1.5 0 0 1 1.5 1.5v2a1.5 1.5 0 0 1-1.5 1.5h-.75m-15-5h-.75a1.5 1.5 0 0 0-1.5 1.5v2a1.5 1.5 0 0 0 1.5 1.5h.75M12 8V6m1.5-1.5A1.5 1.5 0 0 1 12 6a1.5 1.5 0 0 1-1.5-1.5A1.5 1.5 0 0 1 12 3a1.5 1.5 0 0 1 1.5 1.5m2.75 8.75a1.5 1.5 0 0 1-1.5 1.5a1.5 1.5 0 0 1-1.5-1.5a1.5 1.5 0 0 1 1.5-1.5a1.5 1.5 0 0 1 1.5 1.5m-5.5 0a1.5 1.5 0 0 1-1.5 1.5a1.5 1.5 0 0 1-1.5-1.5a1.5 1.5 0 0 1 1.5-1.5a1.5 1.5 0 0 1 1.5 1.5M8.25 8.5h7.5a3.74 3.74 0 0 1 3.75 3.75v5A3.74 3.74 0 0 1 15.75 21h-7.5a3.74 3.74 0 0 1-3.75-3.75v-5A3.74 3.74 0 0 1 8.25 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  `;
 
   SU.logAiDebug = (message, data) => {
     if (data === undefined) {
@@ -98,27 +105,120 @@
     });
   };
 
-  SU.ensureFeedAiButton = (card) => {
-    let wrap = card.querySelector(`[${SU.FEED_AI_BUTTON_WRAP_ATTR}]`);
-    if (wrap) {
-      return wrap.querySelector(`[${SU.FEED_AI_BUTTON_ATTR}]`);
-    }
-
+  SU.ensureFeedMediaControls = (card) => {
     const media = card.querySelector('.feed-post-card__media') || card.querySelector('.feed-post-card__media-viewport') || card;
     media.classList.add('stardance-utils-ai-media-host');
 
+    let wrap = media.querySelector(`[${SU.FEED_AI_BUTTON_WRAP_ATTR}]`);
+    if (wrap) {
+      return wrap;
+    }
+
     wrap = document.createElement('div');
-    wrap.className = 'stardance-utils-ai-button-wrap';
+    wrap.className = 'stardance-utils-feed-media-controls';
     wrap.setAttribute(SU.FEED_AI_BUTTON_WRAP_ATTR, 'true');
+
+    media.appendChild(wrap);
+    return wrap;
+  };
+
+  SU.ensureFeedAiButton = (card) => {
+    const wrap = SU.ensureFeedMediaControls(card);
+    const existingButton = wrap.querySelector(`[${SU.FEED_AI_BUTTON_ATTR}]`);
+    if (existingButton) {
+      return existingButton;
+    }
 
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'stardance-utils-ai-button';
     button.setAttribute(SU.FEED_AI_BUTTON_ATTR, 'true');
-    button.textContent = 'Check AI';
+    button.setAttribute('aria-label', 'Check image with AI');
+    button.innerHTML = FEED_AI_BUTTON_ICON;
 
     wrap.appendChild(button);
-    media.appendChild(wrap);
+    return button;
+  };
+
+  SU.ensureFeedImageZoomDialog = () => {
+    let dialog = document.getElementById(FEED_IMAGE_ZOOM_DIALOG_ID);
+    if (dialog) {
+      return dialog;
+    }
+
+    dialog = document.createElement('dialog');
+    dialog.id = FEED_IMAGE_ZOOM_DIALOG_ID;
+    dialog.className = 'stardance-utils-image-zoom-dialog';
+    dialog.innerHTML = `
+      <div class="stardance-utils-image-zoom-shell">
+        <button type="button" class="stardance-utils-image-zoom-close" aria-label="Close image preview">×</button>
+        <img class="stardance-utils-image-zoom-image" alt="">
+      </div>
+    `;
+
+    dialog.addEventListener('click', (event) => {
+      if (event.target === dialog) {
+        dialog.close();
+      }
+    });
+
+    dialog.querySelector('.stardance-utils-image-zoom-close')?.addEventListener('click', () => {
+      dialog.close();
+    });
+
+    document.body.appendChild(dialog);
+    return dialog;
+  };
+
+  SU.openFeedImageZoom = (image) => {
+    const sourceUrl = image?.currentSrc || image?.getAttribute('src');
+    if (!sourceUrl) {
+      return;
+    }
+
+    const dialog = SU.ensureFeedImageZoomDialog();
+    const modalImage = dialog.querySelector('.stardance-utils-image-zoom-image');
+    if (!modalImage) {
+      return;
+    }
+
+    modalImage.src = sourceUrl;
+    modalImage.alt = image?.getAttribute('alt') || '';
+    if (!dialog.open) {
+      dialog.showModal();
+    }
+  };
+
+  SU.ensureFeedImageZoomButton = (card) => {
+    const image = card.querySelector('.feed-post-card__image');
+    if (!image) {
+      return null;
+    }
+
+    const wrap = SU.ensureFeedMediaControls(card);
+    const existingButton = wrap.querySelector(`[${FEED_IMAGE_ZOOM_BUTTON_ATTR}]`);
+    if (existingButton) {
+      return existingButton;
+    }
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'stardance-utils-image-zoom-button';
+    button.setAttribute(FEED_IMAGE_ZOOM_BUTTON_ATTR, 'true');
+    button.setAttribute('aria-label', 'Open image larger');
+    button.innerHTML = `
+      <svg viewBox="0 0 16 16" aria-hidden="true" fill="none">
+        <path d="M10 6.5a3.5 3.5 0 1 1-7 0a3.5 3.5 0 0 1 7 0Zm-.691 3.516a4.5 4.5 0 1 1 .707-.707l2.838 2.837a.5.5 0 0 1-.708.708L9.31 10.016ZM4.25 6.5a.5.5 0 0 1 .5-.5H6V4.75a.5.5 0 0 1 1 0V6h1.25a.5.5 0 0 1 0 1H7v1.25a.5.5 0 0 1-1 0V7H4.75a.5.5 0 0 1-.5-.5Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"/>
+      </svg>
+    `;
+
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      SU.openFeedImageZoom(image);
+    });
+
+    wrap.appendChild(button);
     return button;
   };
 
@@ -130,7 +230,7 @@
 
     const timeoutId = window.setTimeout(() => {
       button.className = 'stardance-utils-ai-button';
-      button.textContent = 'Check AI';
+      button.innerHTML = FEED_AI_BUTTON_ICON;
       button.title = '';
       SU.aiButtonResetTimers.delete(button);
     }, SU.AI_BUTTON_RESET_MS);
@@ -151,14 +251,12 @@
       postId: card.id || null
     });
 
-    button.title = result.detail;
-    if (source === 'manual') {
-      button.textContent = result.label;
+      button.title = result.detail;
+      if (source === 'manual') {
       button.className = `stardance-utils-ai-button stardance-utils-ai-button--${result.status}`;
       SU.scheduleAiButtonReset(button);
     } else {
       button.className = 'stardance-utils-ai-button';
-      button.textContent = 'Re-check AI';
     }
   };
 
@@ -188,7 +286,6 @@
     if (source === 'manual' && button) {
       button.disabled = true;
       button.className = 'stardance-utils-ai-button';
-      button.textContent = 'Checking...';
     }
 
     try {
@@ -231,6 +328,8 @@
       button?.addEventListener('click', () => {
         void SU.verifyFeedCard(card, 'deep', 'manual');
       });
+
+      SU.ensureFeedImageZoomButton(card);
     });
   };
 })();

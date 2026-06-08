@@ -2461,31 +2461,102 @@ html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item:hover .s
   position: relative;
 }
 
-.stardance-utils-ai-button-wrap {
+.stardance-utils-feed-media-controls {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
   position: absolute;
   right: 0.85rem;
   top: 0.85rem;
   z-index: 3;
 }
 
+.stardance-utils-image-zoom-button,
 .stardance-utils-ai-button {
+  align-items: center;
   appearance: none;
   background: var(--stardance-utils-surface-1);
   border: 1px solid var(--stardance-utils-border);
   border-radius: 999px;
   color: var(--stardance-utils-text-muted);
   cursor: pointer;
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 700;
-  line-height: 1;
-  min-height: 1.7rem;
-  padding: 0.22rem 0.6rem;
+  display: inline-flex;
+  height: 1.9rem;
+  justify-content: center;
+  padding: 0;
+  width: 1.9rem;
 }
 
+.stardance-utils-image-zoom-button svg,
+.stardance-utils-ai-button svg {
+  height: 0.95rem;
+  width: 0.95rem;
+}
+
+.stardance-utils-image-zoom-button:hover,
+.stardance-utils-image-zoom-button:focus-visible,
 .stardance-utils-ai-button:hover,
 .stardance-utils-ai-button:focus-visible {
   color: var(--stardance-utils-text);
+  border-color: var(--stardance-utils-border-strong);
+  outline: none;
+}
+
+.stardance-utils-image-zoom-dialog {
+  background: rgba(5, 6, 14, 0.82);
+  border: 0;
+  height: 100dvh;
+  max-height: none;
+  max-width: none;
+  padding: 0;
+  width: 100dvw;
+}
+
+.stardance-utils-image-zoom-dialog::backdrop {
+  background: rgba(5, 6, 14, 0.82);
+  backdrop-filter: blur(5px);
+}
+
+.stardance-utils-image-zoom-shell {
+  align-items: center;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  width: 100%;
+}
+
+.stardance-utils-image-zoom-image {
+  border-radius: 1rem;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+  max-height: calc(100dvh - 4rem);
+  max-width: calc(100dvw - 4rem);
+  object-fit: contain;
+}
+
+.stardance-utils-image-zoom-close {
+  align-items: center;
+  appearance: none;
+  background: var(--stardance-utils-surface-1);
+  border: 1px solid var(--stardance-utils-border);
+  border-radius: 999px;
+  color: var(--stardance-utils-text);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 1.5rem;
+  height: 2.3rem;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  width: 2.3rem;
+}
+
+.stardance-utils-image-zoom-close:hover,
+.stardance-utils-image-zoom-close:focus-visible {
   border-color: var(--stardance-utils-border-strong);
   outline: none;
 }
