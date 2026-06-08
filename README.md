@@ -30,6 +30,7 @@ A utility extension for Stardance.
   - Adds a `Check AI` action to feed cards.
   - Sends image checks through OpenAI Verify.
   - Gemini check to be added.
+- Syncs supported extension settings through the signed-in browser account where supported by Chrome or Firefox.
 
 ## Installation
 
@@ -61,18 +62,3 @@ A utility extension for Stardance.
 4. Click "This Firefox"
 5. Click "Load Temporary Add-on"
 6. Select the `manifest.json` from the firefox release
-
-## Development Notes
-
-- Main Stardance content script is split across:
-  - `shared.js`
-  - `themes.js`
-  - `sidebar.js`
-  - `ai-check.js`
-  - `shop.js`
-  - `projects.js`
-  - `settings.js`
-  - `content.js`
-- OpenAI Verify automation lives in:
-  - `background.js`
-  - `openai-verify.js`

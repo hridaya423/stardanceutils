@@ -30,6 +30,7 @@
       SU.CUSTOM_FONT_PAIRINGS_KEY,
       SU.SIDEBAR_ORDER_KEY,
       SU.PROJECT_PINNED_IDS_KEY,
+      SU.SHOP_GOALS_KEY,
       SU.SHOP_LAYOUT_ENABLED_KEY,
       SU.SHOP_LAYOUT_RAIL_KEY,
       SU.SHOP_ORDERS_BUTTON_KEY
@@ -37,6 +38,7 @@
     SU.customFontPairings = Array.isArray(storedValues?.[SU.CUSTOM_FONT_PAIRINGS_KEY]) ? storedValues[SU.CUSTOM_FONT_PAIRINGS_KEY] : [];
     SU.savedSidebarOrder = SU.normalizeSidebarOrder(storedValues?.[SU.SIDEBAR_ORDER_KEY]);
     SU.savedPinnedProjectIds = SU.normalizePinnedProjectIds?.(storedValues?.[SU.PROJECT_PINNED_IDS_KEY]) ?? [];
+    SU.savedShopGoals = SU.normalizeShopGoals?.(storedValues?.[SU.SHOP_GOALS_KEY]) ?? {};
     SU.savedShopLayoutEnabled = storedValues?.[SU.SHOP_LAYOUT_ENABLED_KEY] !== false;
     SU.savedShopLayoutUseRail = storedValues?.[SU.SHOP_LAYOUT_RAIL_KEY] !== false;
     SU.savedShopOrdersButtonEnabled = storedValues?.[SU.SHOP_ORDERS_BUTTON_KEY] !== false;
@@ -125,6 +127,30 @@
   if (document.body) {
     observer.observe(document.body, { childList: true, subtree: true });
   }
+
+  const resyncKeys = new Set([
+    SU.THEME_KEY,
+    SU.FONT_PAIRING_KEY,
+    SU.TRY_MODE_PENDING_KEY,
+    SU.CUSTOM_FONT_PAIRINGS_KEY,
+    SU.SIDEBAR_ORDER_KEY,
+    SU.PROJECT_PINNED_IDS_KEY,
+    SU.SHOP_GOALS_KEY,
+    SU.SHOP_LAYOUT_ENABLED_KEY,
+    SU.SHOP_LAYOUT_RAIL_KEY,
+    SU.SHOP_ORDERS_BUTTON_KEY
+  ]);
+
+  SU.extensionStorageEvents?.addListener((changes, areaName) => {
+    if (areaName !== 'sync' && areaName !== 'local') {
+      return;
+    }
+
+    const shouldResync = Object.keys(changes).some((key) => resyncKeys.has(key) || SU.isShopGoalsShardKey?.(key));
+    if (shouldResync) {
+      scheduleSync();
+    }
+  });
 
   window.addEventListener('turbo:load', scheduleSync);
   window.addEventListener('turbo:render', scheduleSync);

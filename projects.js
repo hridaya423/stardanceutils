@@ -633,15 +633,7 @@
 
   SU.persistDevlogDraftValue = (form, value) => {
     const draftKey = SU.getDevlogDraftKey(form);
-    try {
-      if ((value || '').trim()) {
-        window.localStorage.setItem(draftKey, value);
-      } else {
-        window.localStorage.removeItem(draftKey);
-      }
-    } catch {
-      // Ignore localStorage access failures.
-    }
+    return SU.setLocalOnlyStoredValue(draftKey, (value || '').trim() ? value : '', draftKey).catch(() => undefined);
   };
 
   SU.bindDevlogDraftPersistence = (composerSection) => {
@@ -682,21 +674,18 @@
       discardButton.hidden = !textarea.value.trim();
     };
 
-    try {
-      const savedDraft = window.localStorage.getItem(draftKey);
+    void SU.getLocalOnlyStoredValue(draftKey, draftKey).then((savedDraft) => {
       if (savedDraft && !textarea.value.trim()) {
         textarea.value = savedDraft;
         textarea.dispatchEvent(new Event('input', { bubbles: true }));
       }
-    } catch {
-      // Ignore localStorage access failures.
-    }
+    }).catch(() => undefined);
 
     syncDraftControls();
 
     let saveTimer = null;
     const persistDraft = () => {
-      SU.persistDevlogDraftValue(form, textarea.value || '');
+      void SU.persistDevlogDraftValue(form, textarea.value || '');
     };
 
     textarea.addEventListener('input', () => {
@@ -710,11 +699,7 @@
     discardButton.addEventListener('click', () => {
       textarea.value = '';
       textarea.dispatchEvent(new Event('input', { bubbles: true }));
-      try {
-        window.localStorage.removeItem(draftKey);
-      } catch {
-        // Ignore localStorage access failures.
-      }
+      void SU.removeLocalOnlyStoredValue(draftKey, draftKey).catch(() => undefined);
       syncDraftControls();
       textarea.focus();
     });
@@ -726,11 +711,7 @@
         return;
       }
 
-      try {
-        window.localStorage.removeItem(draftKey);
-      } catch {
-        // Ignore localStorage access failures.
-      }
+      void SU.removeLocalOnlyStoredValue(draftKey, draftKey).catch(() => undefined);
     });
   };
 

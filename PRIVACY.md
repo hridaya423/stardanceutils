@@ -6,13 +6,18 @@
 
 Stardance Utils does not run its own backend and does not sell or share your data.
 
-The extension stores Utils settings and draft text locally in your browser using site localStorage to support user-facing features.
+The extension stores Utils settings and draft text in browser extension storage to support user-facing features.
 
-Stored locally may include:
+On browsers that support extension sync and where the user has browser account sync enabled, some extension preferences may sync through the browser vendor's sync system across that user's browsers.
+
+Stored in extension storage may include:
 - Selected site theme
 - Selected sidebar font pairing
 - Custom font pairings
 - Sidebar tab order
+- Pinned project IDs
+- Shop goal records
+- Shop layout preferences
 - Devlog draft text for autosave/restore
 - Temporary extension UI state
 
