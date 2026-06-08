@@ -1,0 +1,61 @@
+{
+    "manifest_version": 3,
+    "name": "Stardance Utils",
+    "version": "0.0.6",
+    "description": "A utility extension for Stardance, with multiple useful features to enhance the experience",
+    "permissions": [
+        "storage"
+    ],
+    "host_permissions": [
+        "https://stardance.hackclub.com/*",
+        "https://openai.com/*"
+    ],
+    "icons": {
+        "32": "icon32.png",
+        "64": "icon64.png",
+        "128": "icon128.png"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://stardance.hackclub.com/*"
+            ],
+            "css": [
+                "styles.css",
+                "themes/kanagawa.css",
+                "themes/nord.css",
+                "themes/tokyo-night.css",
+                "themes/catppuccin-mocha.css",
+                "themes/catppuccin-frappe.css",
+                "themes/catppuccin-macchiato.css",
+                "themes/catppuccin-latte.css"
+            ],
+            "js": [
+                "shared.js",
+                "themes.js",
+                "sidebar.js",
+                "ai-check.js",
+                "shop.js",
+                "projects.js",
+                "settings.js",
+                "onboarding.js",
+                "content.js"
+            ],
+            "run_at": "document_idle"
+        },
+        {
+            "matches": [
+                "https://openai.com/research/verify*",
+                "https://openai.com/*/research/verify*",
+                "https://openai.com/*-*/research/verify*"
+            ],
+            "js": [
+                "openai-verify.js"
+            ],
+            "run_at": "document_idle"
+        }
+    ],
+    "background": {
+        "service_worker": "background.js"
+    }
+}

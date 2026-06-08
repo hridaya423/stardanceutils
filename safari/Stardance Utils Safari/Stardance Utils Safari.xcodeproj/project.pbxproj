@@ -1,0 +1,667 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CCB8BD512FD71AB500298971 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCB8BD502FD71AB500298971 /* AppDelegate.swift */; };
+		CCB8BD552FD71AB500298971 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD532FD71AB500298971 /* Main.html */; };
+		CCB8BD572FD71AB500298971 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD562FD71AB500298971 /* Icon.png */; };
+		CCB8BD592FD71AB500298971 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD582FD71AB500298971 /* Style.css */; };
+		CCB8BD5B2FD71AB500298971 /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD5A2FD71AB500298971 /* Script.js */; };
+		CCB8BD5D2FD71AB500298971 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCB8BD5C2FD71AB500298971 /* ViewController.swift */; };
+		CCB8BD602FD71AB500298971 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD5E2FD71AB500298971 /* Main.storyboard */; };
+		CCB8BD622FD71AB600298971 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD612FD71AB600298971 /* Assets.xcassets */; };
+		CCB8BD692FD71AB600298971 /* Stardance Utils Safari Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CCB8BD682FD71AB600298971 /* Stardance Utils Safari Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CCB8BD6E2FD71AB600298971 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCB8BD6D2FD71AB600298971 /* SafariWebExtensionHandler.swift */; };
+		CCB8BD8B2FD71AB600298971 /* onboarding.js in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD7A2FD71AB600298971 /* onboarding.js */; };
+		CCB8BD8C2FD71AB600298971 /* styles.css in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD7B2FD71AB600298971 /* styles.css */; };
+		CCB8BD8D2FD71AB600298971 /* openai-verify.js in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD7C2FD71AB600298971 /* openai-verify.js */; };
+		CCB8BD8E2FD71AB600298971 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD7D2FD71AB600298971 /* background.js */; };
+		CCB8BD8F2FD71AB600298971 /* sidebar.js in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD7E2FD71AB600298971 /* sidebar.js */; };
+		CCB8BD902FD71AB600298971 /* ai-check.js in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD7F2FD71AB600298971 /* ai-check.js */; };
+		CCB8BD912FD71AB600298971 /* themes.js in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD802FD71AB600298971 /* themes.js */; };
+		CCB8BD922FD71AB600298971 /* icon128.png in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD812FD71AB600298971 /* icon128.png */; };
+		CCB8BD932FD71AB600298971 /* icon64.png in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD822FD71AB600298971 /* icon64.png */; };
+		CCB8BD942FD71AB600298971 /* projects.js in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD832FD71AB600298971 /* projects.js */; };
+		CCB8BD952FD71AB600298971 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD842FD71AB600298971 /* manifest.json */; };
+		CCB8BD962FD71AB600298971 /* shop.js in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD852FD71AB600298971 /* shop.js */; };
+		CCB8BD972FD71AB600298971 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD862FD71AB600298971 /* content.js */; };
+		CCB8BD982FD71AB600298971 /* shared.js in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD872FD71AB600298971 /* shared.js */; };
+		CCB8BD992FD71AB600298971 /* themes in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD882FD71AB600298971 /* themes */; };
+		CCB8BD9A2FD71AB600298971 /* settings.js in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD892FD71AB600298971 /* settings.js */; };
+		CCB8BD9B2FD71AB600298971 /* icon32.png in Resources */ = {isa = PBXBuildFile; fileRef = CCB8BD8A2FD71AB600298971 /* icon32.png */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CCB8BD6A2FD71AB600298971 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CCB8BD452FD71AB500298971 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CCB8BD672FD71AB600298971;
+			remoteInfo = "Stardance Utils Safari Extension";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CCB8BD752FD71AB600298971 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				CCB8BD692FD71AB600298971 /* Stardance Utils Safari Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		CCB8BD4D2FD71AB500298971 /* Stardance Utils Safari.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Stardance Utils Safari.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CCB8BD502FD71AB500298971 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		CCB8BD542FD71AB500298971 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
+		CCB8BD562FD71AB500298971 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		CCB8BD582FD71AB500298971 /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
+		CCB8BD5A2FD71AB500298971 /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
+		CCB8BD5C2FD71AB500298971 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		CCB8BD5F2FD71AB500298971 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		CCB8BD612FD71AB600298971 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		CCB8BD632FD71AB600298971 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CCB8BD682FD71AB600298971 /* Stardance Utils Safari Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Stardance Utils Safari Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CCB8BD6D2FD71AB600298971 /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		CCB8BD6F2FD71AB600298971 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CCB8BD7A2FD71AB600298971 /* onboarding.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = onboarding.js; path = Resources/onboarding.js; sourceTree = "<group>"; };
+		CCB8BD7B2FD71AB600298971 /* styles.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = styles.css; path = Resources/styles.css; sourceTree = "<group>"; };
+		CCB8BD7C2FD71AB600298971 /* openai-verify.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "openai-verify.js"; path = "Resources/openai-verify.js"; sourceTree = "<group>"; };
+		CCB8BD7D2FD71AB600298971 /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = Resources/background.js; sourceTree = "<group>"; };
+		CCB8BD7E2FD71AB600298971 /* sidebar.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = sidebar.js; path = Resources/sidebar.js; sourceTree = "<group>"; };
+		CCB8BD7F2FD71AB600298971 /* ai-check.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "ai-check.js"; path = "Resources/ai-check.js"; sourceTree = "<group>"; };
+		CCB8BD802FD71AB600298971 /* themes.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = themes.js; path = Resources/themes.js; sourceTree = "<group>"; };
+		CCB8BD812FD71AB600298971 /* icon128.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon128.png; path = Resources/icon128.png; sourceTree = "<group>"; };
+		CCB8BD822FD71AB600298971 /* icon64.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon64.png; path = Resources/icon64.png; sourceTree = "<group>"; };
+		CCB8BD832FD71AB600298971 /* projects.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = projects.js; path = Resources/projects.js; sourceTree = "<group>"; };
+		CCB8BD842FD71AB600298971 /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = Resources/manifest.json; sourceTree = "<group>"; };
+		CCB8BD852FD71AB600298971 /* shop.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = shop.js; path = Resources/shop.js; sourceTree = "<group>"; };
+		CCB8BD862FD71AB600298971 /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = Resources/content.js; sourceTree = "<group>"; };
+		CCB8BD872FD71AB600298971 /* shared.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = shared.js; path = Resources/shared.js; sourceTree = "<group>"; };
+		CCB8BD882FD71AB600298971 /* themes */ = {isa = PBXFileReference; lastKnownFileType = folder; name = themes; path = Resources/themes; sourceTree = "<group>"; };
+		CCB8BD892FD71AB600298971 /* settings.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = settings.js; path = Resources/settings.js; sourceTree = "<group>"; };
+		CCB8BD8A2FD71AB600298971 /* icon32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon32.png; path = Resources/icon32.png; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CCB8BD4A2FD71AB500298971 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CCB8BD652FD71AB600298971 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		CCB8BD442FD71AB500298971 = {
+			isa = PBXGroup;
+			children = (
+				CCB8BD4F2FD71AB500298971 /* Stardance Utils Safari */,
+				CCB8BD6C2FD71AB600298971 /* Stardance Utils Safari Extension */,
+				CCB8BD4E2FD71AB500298971 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CCB8BD4E2FD71AB500298971 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CCB8BD4D2FD71AB500298971 /* Stardance Utils Safari.app */,
+				CCB8BD682FD71AB600298971 /* Stardance Utils Safari Extension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CCB8BD4F2FD71AB500298971 /* Stardance Utils Safari */ = {
+			isa = PBXGroup;
+			children = (
+				CCB8BD502FD71AB500298971 /* AppDelegate.swift */,
+				CCB8BD5C2FD71AB500298971 /* ViewController.swift */,
+				CCB8BD5E2FD71AB500298971 /* Main.storyboard */,
+				CCB8BD612FD71AB600298971 /* Assets.xcassets */,
+				CCB8BD632FD71AB600298971 /* Info.plist */,
+				CCB8BD522FD71AB500298971 /* Resources */,
+			);
+			path = "Stardance Utils Safari";
+			sourceTree = "<group>";
+		};
+		CCB8BD522FD71AB500298971 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				CCB8BD532FD71AB500298971 /* Main.html */,
+				CCB8BD562FD71AB500298971 /* Icon.png */,
+				CCB8BD582FD71AB500298971 /* Style.css */,
+				CCB8BD5A2FD71AB500298971 /* Script.js */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		CCB8BD6C2FD71AB600298971 /* Stardance Utils Safari Extension */ = {
+			isa = PBXGroup;
+			children = (
+				CCB8BD792FD71AB600298971 /* Resources */,
+				CCB8BD6D2FD71AB600298971 /* SafariWebExtensionHandler.swift */,
+				CCB8BD6F2FD71AB600298971 /* Info.plist */,
+			);
+			path = "Stardance Utils Safari Extension";
+			sourceTree = "<group>";
+		};
+		CCB8BD792FD71AB600298971 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				CCB8BD7A2FD71AB600298971 /* onboarding.js */,
+				CCB8BD7B2FD71AB600298971 /* styles.css */,
+				CCB8BD7C2FD71AB600298971 /* openai-verify.js */,
+				CCB8BD7D2FD71AB600298971 /* background.js */,
+				CCB8BD7E2FD71AB600298971 /* sidebar.js */,
+				CCB8BD7F2FD71AB600298971 /* ai-check.js */,
+				CCB8BD802FD71AB600298971 /* themes.js */,
+				CCB8BD812FD71AB600298971 /* icon128.png */,
+				CCB8BD822FD71AB600298971 /* icon64.png */,
+				CCB8BD832FD71AB600298971 /* projects.js */,
+				CCB8BD842FD71AB600298971 /* manifest.json */,
+				CCB8BD852FD71AB600298971 /* shop.js */,
+				CCB8BD862FD71AB600298971 /* content.js */,
+				CCB8BD872FD71AB600298971 /* shared.js */,
+				CCB8BD882FD71AB600298971 /* themes */,
+				CCB8BD892FD71AB600298971 /* settings.js */,
+				CCB8BD8A2FD71AB600298971 /* icon32.png */,
+			);
+			name = Resources;
+			path = "Stardance Utils Safari Extension";
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CCB8BD4C2FD71AB500298971 /* Stardance Utils Safari */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CCB8BD762FD71AB600298971 /* Build configuration list for PBXNativeTarget "Stardance Utils Safari" */;
+			buildPhases = (
+				CCB8BD492FD71AB500298971 /* Sources */,
+				CCB8BD4A2FD71AB500298971 /* Frameworks */,
+				CCB8BD4B2FD71AB500298971 /* Resources */,
+				CCB8BD752FD71AB600298971 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CCB8BD6B2FD71AB600298971 /* PBXTargetDependency */,
+			);
+			name = "Stardance Utils Safari";
+			packageProductDependencies = (
+			);
+			productName = "Stardance Utils Safari";
+			productReference = CCB8BD4D2FD71AB500298971 /* Stardance Utils Safari.app */;
+			productType = "com.apple.product-type.application";
+		};
+		CCB8BD672FD71AB600298971 /* Stardance Utils Safari Extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CCB8BD722FD71AB600298971 /* Build configuration list for PBXNativeTarget "Stardance Utils Safari Extension" */;
+			buildPhases = (
+				CCB8BD642FD71AB600298971 /* Sources */,
+				CCB8BD652FD71AB600298971 /* Frameworks */,
+				CCB8BD662FD71AB600298971 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Stardance Utils Safari Extension";
+			packageProductDependencies = (
+			);
+			productName = "Stardance Utils Safari Extension";
+			productReference = CCB8BD682FD71AB600298971 /* Stardance Utils Safari Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CCB8BD452FD71AB500298971 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					CCB8BD4C2FD71AB500298971 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					CCB8BD672FD71AB600298971 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+				};
+			};
+			buildConfigurationList = CCB8BD482FD71AB500298971 /* Build configuration list for PBXProject "Stardance Utils Safari" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = CCB8BD442FD71AB500298971;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = CCB8BD4E2FD71AB500298971 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CCB8BD4C2FD71AB500298971 /* Stardance Utils Safari */,
+				CCB8BD672FD71AB600298971 /* Stardance Utils Safari Extension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CCB8BD4B2FD71AB500298971 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CCB8BD572FD71AB500298971 /* Icon.png in Resources */,
+				CCB8BD602FD71AB500298971 /* Main.storyboard in Resources */,
+				CCB8BD5B2FD71AB500298971 /* Script.js in Resources */,
+				CCB8BD552FD71AB500298971 /* Main.html in Resources */,
+				CCB8BD622FD71AB600298971 /* Assets.xcassets in Resources */,
+				CCB8BD592FD71AB500298971 /* Style.css in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CCB8BD662FD71AB600298971 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CCB8BD962FD71AB600298971 /* shop.js in Resources */,
+				CCB8BD942FD71AB600298971 /* projects.js in Resources */,
+				CCB8BD8E2FD71AB600298971 /* background.js in Resources */,
+				CCB8BD8B2FD71AB600298971 /* onboarding.js in Resources */,
+				CCB8BD972FD71AB600298971 /* content.js in Resources */,
+				CCB8BD992FD71AB600298971 /* themes in Resources */,
+				CCB8BD932FD71AB600298971 /* icon64.png in Resources */,
+				CCB8BD9B2FD71AB600298971 /* icon32.png in Resources */,
+				CCB8BD9A2FD71AB600298971 /* settings.js in Resources */,
+				CCB8BD922FD71AB600298971 /* icon128.png in Resources */,
+				CCB8BD952FD71AB600298971 /* manifest.json in Resources */,
+				CCB8BD8D2FD71AB600298971 /* openai-verify.js in Resources */,
+				CCB8BD982FD71AB600298971 /* shared.js in Resources */,
+				CCB8BD902FD71AB600298971 /* ai-check.js in Resources */,
+				CCB8BD8C2FD71AB600298971 /* styles.css in Resources */,
+				CCB8BD912FD71AB600298971 /* themes.js in Resources */,
+				CCB8BD8F2FD71AB600298971 /* sidebar.js in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CCB8BD492FD71AB500298971 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CCB8BD5D2FD71AB500298971 /* ViewController.swift in Sources */,
+				CCB8BD512FD71AB500298971 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CCB8BD642FD71AB600298971 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CCB8BD6E2FD71AB600298971 /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CCB8BD6B2FD71AB600298971 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CCB8BD672FD71AB600298971 /* Stardance Utils Safari Extension */;
+			targetProxy = CCB8BD6A2FD71AB600298971 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		CCB8BD532FD71AB500298971 /* Main.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CCB8BD542FD71AB500298971 /* Base */,
+			);
+			name = Main.html;
+			sourceTree = "<group>";
+		};
+		CCB8BD5E2FD71AB500298971 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CCB8BD5F2FD71AB500298971 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		CCB8BD702FD71AB600298971 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		CCB8BD712FD71AB600298971 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		CCB8BD732FD71AB600298971 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DV6NC6KRYL;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Stardance Utils Safari Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Stardance Utils Safari Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 0.0.6;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.hridyaagrawal.stardanceutils.extension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		CCB8BD742FD71AB600298971 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DV6NC6KRYL;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Stardance Utils Safari Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Stardance Utils Safari Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 0.0.6;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.hridyaagrawal.stardanceutils.extension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		CCB8BD772FD71AB600298971 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DV6NC6KRYL;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Stardance Utils Safari/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Stardance Utils Safari";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.0.6;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.hridyaagrawal.stardanceutils;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		CCB8BD782FD71AB600298971 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = DV6NC6KRYL;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Stardance Utils Safari/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Stardance Utils Safari";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.0.6;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.hridyaagrawal.stardanceutils;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CCB8BD482FD71AB500298971 /* Build configuration list for PBXProject "Stardance Utils Safari" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CCB8BD702FD71AB600298971 /* Debug */,
+				CCB8BD712FD71AB600298971 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CCB8BD722FD71AB600298971 /* Build configuration list for PBXNativeTarget "Stardance Utils Safari Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CCB8BD732FD71AB600298971 /* Debug */,
+				CCB8BD742FD71AB600298971 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CCB8BD762FD71AB600298971 /* Build configuration list for PBXNativeTarget "Stardance Utils Safari" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CCB8BD772FD71AB600298971 /* Debug */,
+				CCB8BD782FD71AB600298971 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CCB8BD452FD71AB500298971 /* Project object */;
+}

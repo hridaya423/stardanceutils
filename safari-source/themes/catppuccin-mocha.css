@@ -1,0 +1,515 @@
+html.stardance-utils-theme-catppuccin-mocha {
+  color-scheme: dark;
+
+  --ctp-rosewater: #f5e0dc;
+  --ctp-flamingo: #f2cdcd;
+  --ctp-pink: #f5c2e7;
+  --ctp-mauve: #cba6f7;
+  --ctp-red: #f38ba8;
+  --ctp-maroon: #eba0ac;
+  --ctp-peach: #fab387;
+  --ctp-yellow: #f9e2af;
+  --ctp-green: #a6e3a1;
+  --ctp-teal: #94e2d5;
+  --ctp-sky: #89dceb;
+  --ctp-sapphire: #74c7ec;
+  --ctp-blue: #89b4fa;
+  --ctp-lavender: #b4befe;
+  --ctp-text: #cdd6f4;
+  --ctp-subtext-1: #bac2de;
+  --ctp-subtext-0: #a6adc8;
+  --ctp-overlay-2: #9399b2;
+  --ctp-overlay-1: #7f849c;
+  --ctp-overlay-0: #6c7086;
+  --ctp-surface-2: #585b70;
+  --ctp-surface-1: #45475a;
+  --ctp-surface-0: #313244;
+  --ctp-base: #1e1e2e;
+  --ctp-mantle: #181825;
+  --ctp-crust: #11111b;
+  --ctp-accent-primary: var(--ctp-mauve);
+  --ctp-accent-secondary: var(--ctp-lavender);
+  --ctp-accent-tertiary: var(--ctp-blue);
+  --ctp-accent-soft: rgba(203, 166, 247, 0.16);
+  --ctp-accent-soft-strong: rgba(203, 166, 247, 0.24);
+  --ctp-accent-contrast: var(--ctp-crust);
+
+  --color-admin: var(--ctp-peach);
+  --color-backdrop: rgba(17, 17, 27, 0.74);
+  --color-bg: var(--ctp-base);
+  --color-bg-2: var(--ctp-mantle);
+  --color-blue-300: var(--ctp-sky);
+  --color-blue-400: var(--ctp-sapphire);
+  --color-blue-500: var(--ctp-blue);
+  --color-blue-600: var(--ctp-lavender);
+  --color-body-text: var(--ctp-text);
+  --color-border-input: rgba(147, 153, 178, 0.52);
+  --color-border-input-focus: rgba(180, 190, 254, 0.92);
+  --color-brand-blue: var(--ctp-blue);
+  --color-brand-cream: var(--ctp-rosewater);
+  --color-brand-highlight: var(--ctp-accent-secondary);
+  --color-brand-highlight-faint: var(--ctp-accent-soft);
+  --color-brand-highlight-secondary: var(--ctp-accent-tertiary);
+  --color-brand-highlight-soft: var(--ctp-accent-soft-strong);
+  --color-brand-ivory: var(--ctp-text);
+  --color-brand-lilac: var(--ctp-mauve);
+  --color-brand-lilac-soft: rgba(203, 166, 247, 0.18);
+  --color-brand-mint: var(--ctp-teal);
+  --color-brand-mint-soft: rgba(148, 226, 213, 0.18);
+  --color-brand-off-white: var(--ctp-text);
+  --color-brand-orange: var(--ctp-peach);
+  --color-brand-orange-soft: rgba(250, 179, 135, 0.18);
+  --color-brand-peach: var(--ctp-peach);
+  --color-brand-salmon: var(--ctp-red);
+  --color-brand-salmon-soft: rgba(243, 139, 168, 0.18);
+  --color-brand-yellow: var(--ctp-yellow);
+  --color-brand-yellow-soft: rgba(249, 226, 175, 0.18);
+  --color-brown-300: var(--ctp-yellow);
+  --color-brown-400: var(--ctp-peach);
+  --color-brown-500: var(--ctp-maroon);
+  --color-brown-600: var(--ctp-red);
+  --color-brown-700: var(--ctp-flamingo);
+  --color-brown-hover: rgba(250, 179, 135, 0.18);
+  --color-brown-hover-focus: rgba(250, 179, 135, 0.28);
+  --color-dev: var(--ctp-green);
+  --color-green-300: var(--ctp-green);
+  --color-green-400: var(--ctp-green);
+  --color-green-450: var(--ctp-teal);
+  --color-green-500: var(--ctp-teal);
+  --color-lime-400: var(--ctp-green);
+  --color-overlay-light: rgba(205, 214, 244, 0.1);
+  --color-overlay-light-soft: rgba(205, 214, 244, 0.05);
+  --color-pink-400: var(--ctp-pink);
+  --color-red-300: var(--ctp-flamingo);
+  --color-red-400: var(--ctp-maroon);
+  --color-red-450: var(--ctp-red);
+  --color-red-500: var(--ctp-red);
+  --color-set-1-bg: var(--ctp-crust);
+  --color-set-2-bg: var(--ctp-mantle);
+  --color-set-3-bg: var(--ctp-base);
+  --color-set-4-bg: var(--ctp-surface-0);
+  --color-shadow-deep: rgba(17, 17, 27, 0.48);
+  --color-space-accent: var(--ctp-accent-secondary);
+  --color-space-accent-soft: var(--ctp-accent-soft);
+  --color-space-bg: var(--ctp-base);
+  --color-space-bg-2: var(--ctp-mantle);
+  --color-space-border: var(--ctp-surface-2);
+  --color-space-card: rgba(49, 50, 68, 0.92);
+  --color-space-surface: var(--ctp-surface-1);
+  --color-space-surface-faint: rgba(69, 71, 90, 0.18);
+  --color-space-surface-soft: rgba(69, 71, 90, 0.52);
+  --color-space-surface-strong: rgba(88, 91, 112, 0.82);
+  --color-space-text: var(--ctp-text);
+  --color-space-text-muted: rgba(186, 194, 222, 0.78);
+  --color-tan-300: var(--ctp-yellow);
+  --color-tan-400: var(--ctp-peach);
+  --color-teal-400: var(--ctp-teal);
+  --color-text-body: var(--ctp-text);
+  --color-text-header: var(--ctp-text);
+  --color-text-muted: var(--ctp-subtext-0);
+  --color-yellow-200: var(--ctp-yellow);
+  --shadow: 0 0 2px 1px rgba(17, 17, 27, 0.32);
+  --shadow-inset: inset 0 0 2px 1px rgba(17, 17, 27, 0.32);
+
+  --stardance-utils-text: var(--ctp-text);
+  --stardance-utils-text-muted: var(--ctp-subtext-0);
+  --stardance-utils-text-soft: var(--ctp-subtext-1);
+  --stardance-utils-border-subtle: rgba(88, 91, 112, 0.48);
+  --stardance-utils-border: rgba(108, 112, 134, 0.62);
+  --stardance-utils-border-strong: rgba(127, 132, 156, 0.78);
+  --stardance-utils-border-stronger: rgba(180, 190, 254, 0.64);
+  --stardance-utils-border-accent: rgba(180, 190, 254, 0.42);
+  --stardance-utils-surface-0: rgba(17, 17, 27, 0.98);
+  --stardance-utils-surface-1: rgba(24, 24, 37, 0.96);
+  --stardance-utils-surface-2: rgba(30, 30, 46, 0.96);
+  --stardance-utils-surface-3: rgba(49, 50, 68, 0.9);
+  --stardance-utils-surface-4: rgba(69, 71, 90, 0.78);
+  --stardance-utils-surface-5: rgba(88, 91, 112, 0.3);
+  --stardance-utils-surface-6: rgba(127, 132, 156, 0.2);
+  --stardance-utils-surface-7: rgba(147, 153, 178, 0.18);
+  --stardance-utils-surface-8: rgba(180, 190, 254, 0.14);
+  --stardance-utils-surface-9: rgba(180, 190, 254, 0.22);
+  --stardance-utils-input-bg: rgba(24, 24, 37, 0.98);
+  --stardance-utils-panel-start: rgba(24, 24, 37, 0.98);
+  --stardance-utils-panel-end: rgba(17, 17, 27, 0.98);
+  --stardance-utils-overlay-bg: rgba(17, 17, 27, 0.94);
+  --stardance-utils-overlay-bg-hover: rgba(24, 24, 37, 0.98);
+  --stardance-utils-hero-ship-bg: rgba(49, 50, 68, 0.88);
+  --stardance-utils-hero-ship-bg-hover: rgba(69, 71, 90, 0.92);
+  --stardance-utils-focus-line: var(--ctp-accent-secondary);
+  --stardance-utils-accent: var(--ctp-accent-primary);
+  --stardance-utils-danger: var(--ctp-red);
+  --stardance-utils-danger-soft: rgba(243, 139, 168, 0.18);
+  --stardance-utils-danger-border: rgba(243, 139, 168, 0.34);
+  --stardance-utils-warn: var(--ctp-yellow);
+  --stardance-utils-shadow: 0 18px 40px rgba(17, 17, 27, 0.45);
+  --stardance-utils-hero-shadow: 0 12px 28px rgba(17, 17, 27, 0.34);
+}
+
+html.stardance-utils-theme-custom body.signed-in {
+  background: var(--ctp-base);
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom.stardance-utils-home-page .app-layout,
+html.stardance-utils-theme-custom.stardance-utils-home-page .app-layout__main,
+html.stardance-utils-theme-custom.stardance-utils-home-page .app-layout__main.feed-home,
+html.stardance-utils-theme-custom.stardance-utils-home-page .feed-home,
+html.stardance-utils-theme-custom.stardance-utils-home-page .feed-home__frame,
+html.stardance-utils-theme-custom.stardance-utils-home-page #home_feed,
+html.stardance-utils-theme-custom.stardance-utils-home-page [id^="home_feed_page_"] {
+  background: transparent !important;
+}
+
+html.stardance-utils-theme-custom #settings-modal {
+  background: linear-gradient(180deg, var(--ctp-mantle), var(--ctp-crust));
+  border: 1px solid var(--ctp-surface-1);
+  box-shadow: 0 24px 60px rgba(17, 17, 27, 0.5);
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom #settings-modal::backdrop {
+  background: rgba(17, 17, 27, 0.72);
+}
+
+html.stardance-utils-theme-custom #settings-modal .modal__title {
+  color: var(--ctp-accent-secondary);
+}
+
+html.stardance-utils-theme-custom ::selection {
+  background: rgba(147, 153, 178, 0.28);
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom .bio-link,
+html.stardance-utils-theme-custom .bio-mention,
+html.stardance-utils-theme-custom .discover-rail__link,
+html.stardance-utils-theme-custom .feed-post-card__body a,
+html.stardance-utils-theme-custom .feed-post-card__project,
+html.stardance-utils-theme-custom .profile-project-card__author,
+html.stardance-utils-theme-custom .profile__handle-input,
+html.stardance-utils-theme-custom .profile__idv-alert-link {
+  color: var(--ctp-accent-tertiary);
+}
+
+html.stardance-utils-theme-custom .profile__handle-input {
+  text-decoration-color: color-mix(in srgb, var(--ctp-accent-tertiary) 60%, transparent);
+}
+
+html.stardance-utils-theme-custom .sidebar__nav-link--active,
+html.stardance-utils-theme-custom .sidebar__nav-link--active .sidebar__nav-label,
+html.stardance-utils-theme-custom .sidebar__nav-link:hover .sidebar__nav-label,
+html.stardance-utils-theme-custom .sidebar__nav-link:hover .sidebar__nav-icon-wrapper,
+html.stardance-utils-theme-custom .sidebar__nav-link--active .sidebar__nav-icon-wrapper {
+  color: var(--ctp-accent-secondary);
+}
+
+html.stardance-utils-theme-custom .sidebar__nav-link--active {
+  background: linear-gradient(90deg, var(--ctp-accent-soft), transparent 72%);
+}
+
+html.stardance-utils-theme-custom .feed-composer__chip,
+html.stardance-utils-theme-custom .profile-tabs__tab,
+html.stardance-utils-theme-custom .profile__action-btn,
+html.stardance-utils-theme-custom .action-btn,
+html.stardance-utils-theme-custom .ship-modal__btn {
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+html.stardance-utils-theme-custom .feed-composer__chip {
+  border-color: var(--ctp-overlay-0);
+  color: var(--ctp-subtext-1);
+}
+
+html.stardance-utils-theme-custom .feed-composer__chip:hover,
+html.stardance-utils-theme-custom .feed-composer__chip:focus-visible {
+  border-color: var(--ctp-accent-primary);
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom .feed-composer__chip--active {
+  background: var(--ctp-accent-soft);
+  border-color: var(--ctp-accent-primary);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ctp-accent-primary) 22%, transparent);
+  color: var(--ctp-accent-secondary);
+}
+
+html.stardance-utils-theme-custom #settings-modal,
+html.stardance-utils-theme-custom .feed-composer,
+html.stardance-utils-theme-custom .feed-post-card,
+html.stardance-utils-theme-custom .feed-post-card__menu,
+html.stardance-utils-theme-custom .feed-post-card__repost-panel,
+html.stardance-utils-theme-custom .discover-rail__card,
+html.stardance-utils-theme-custom .profile__card,
+html.stardance-utils-theme-custom .profile-project-card,
+html.stardance-utils-theme-custom .profile-placeholder,
+html.stardance-utils-theme-custom .ship-modal__panel,
+html.stardance-utils-theme-custom .ship-modal__mission,
+html.stardance-utils-theme-custom .sidebar__user-card {
+  background: var(--ctp-mantle);
+  border-color: var(--ctp-surface-2);
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom .feed-post-card,
+html.stardance-utils-theme-custom .profile-project-card,
+html.stardance-utils-theme-custom .discover-rail__card,
+html.stardance-utils-theme-custom .ship-modal__panel {
+  background: var(--ctp-surface-0);
+  box-shadow: 0 10px 24px rgba(17, 17, 27, 0.2);
+}
+
+html.stardance-utils-theme-custom .feed-composer,
+html.stardance-utils-theme-custom .feed-post-card,
+html.stardance-utils-theme-custom .profile-project-card,
+html.stardance-utils-theme-custom .discover-rail__card {
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ctp-accent-secondary) 12%, transparent), 0 10px 24px rgba(17, 17, 27, 0.2);
+}
+
+html.stardance-utils-theme-custom .profile__banner,
+html.stardance-utils-theme-custom .profile__bio-suggest,
+html.stardance-utils-theme-custom .composer-modal,
+html.stardance-utils-theme-custom .ship-modal,
+html.stardance-utils-theme-custom .followers-modal {
+  background: var(--ctp-crust);
+}
+
+html.stardance-utils-theme-custom .profile__card {
+  background: linear-gradient(180deg, var(--ctp-mantle), var(--ctp-crust));
+  border: 1px solid var(--ctp-surface-1);
+  box-shadow: 0 16px 36px rgba(17, 17, 27, 0.26);
+}
+
+html.stardance-utils-theme-custom .profile__banner {
+  border-bottom: 1px solid rgba(108, 112, 134, 0.55);
+}
+
+html.stardance-utils-theme-custom .profile-project-card__banner,
+html.stardance-utils-theme-custom .profile__banner-upload,
+html.stardance-utils-theme-custom .profile__back,
+html.stardance-utils-theme-custom .project-show__banner .action-btn,
+html.stardance-utils-theme-custom .project-show__actions .action-btn,
+html.stardance-utils-theme-custom .action-btn,
+html.stardance-utils-theme-custom .ship-modal__btn,
+html.stardance-utils-theme-custom .profile__action-btn,
+html.stardance-utils-theme-custom .profile-tabs__tab {
+  background: var(--ctp-surface-0);
+  border-color: var(--ctp-surface-2);
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom .profile__back {
+  background: rgba(69, 71, 90, 0.9);
+  border: 1px solid rgba(127, 132, 156, 0.36);
+  box-shadow: 0 10px 24px rgba(17, 17, 27, 0.24);
+}
+
+html.stardance-utils-theme-custom .profile__banner-upload {
+  background: rgba(88, 91, 112, 0.88);
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom .action-btn--primary,
+html.stardance-utils-theme-custom .profile__action-btn--primary,
+html.stardance-utils-theme-custom .ship-modal__btn--primary {
+  background: var(--ctp-accent-primary);
+  border-color: var(--ctp-accent-primary);
+  color: var(--ctp-accent-contrast);
+}
+
+html.stardance-utils-theme-custom .action-btn--primary:hover,
+html.stardance-utils-theme-custom .profile__action-btn--primary:hover,
+html.stardance-utils-theme-custom .ship-modal__btn--primary:hover {
+  background: var(--ctp-accent-secondary);
+  border-color: var(--ctp-accent-secondary);
+  color: var(--ctp-accent-contrast);
+}
+
+html.stardance-utils-theme-custom .profile__action-btn--following,
+html.stardance-utils-theme-custom .action-btn--secondary,
+html.stardance-utils-theme-custom .ship-modal__btn--secondary {
+  background: var(--ctp-surface-0);
+  border-color: var(--ctp-overlay-0);
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom .profile__action-btn,
+html.stardance-utils-theme-custom .action-btn,
+html.stardance-utils-theme-custom .ship-modal__btn {
+  box-shadow: none;
+}
+
+html.stardance-utils-theme-custom .profile-tabs__tab,
+html.stardance-utils-theme-custom .profile__joined,
+html.stardance-utils-theme-custom .profile__follow-count,
+html.stardance-utils-theme-custom .profile-tab-content__empty,
+html.stardance-utils-theme-custom .ship-modal__subtitle,
+html.stardance-utils-theme-custom .ship-modal__mission-guide,
+html.stardance-utils-theme-custom .discover-rail__card-body {
+  color: var(--ctp-subtext-1);
+}
+
+html.stardance-utils-theme-custom .profile__joined,
+html.stardance-utils-theme-custom .feed-post-card__time,
+html.stardance-utils-theme-custom .feed-post-card__byline,
+html.stardance-utils-theme-custom .feed-post-card__duration,
+html.stardance-utils-theme-custom .feed-post-card__actions {
+  color: var(--ctp-subtext-0);
+}
+
+html.stardance-utils-theme-custom .profile__follow-count {
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom .profile__follow-count strong,
+html.stardance-utils-theme-custom .profile__stat-num,
+html.stardance-utils-theme-custom .feed-shelf__title {
+  color: var(--ctp-accent-secondary);
+}
+
+html.stardance-utils-theme-custom .profile-tabs__tab--active,
+html.stardance-utils-theme-custom .profile-tabs__tab:hover:not(.profile-tabs__tab--active) {
+  background: color-mix(in srgb, var(--ctp-accent-primary) 14%, var(--ctp-surface-1));
+  border-color: color-mix(in srgb, var(--ctp-accent-primary) 46%, var(--ctp-overlay-1));
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom .profile-tabs__tab--active {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ctp-accent-secondary) 32%, transparent), 0 10px 20px rgba(17, 17, 27, 0.14);
+}
+
+html.stardance-utils-theme-custom .profile-tabs__tab:hover:not(.profile-tabs__tab--active) {
+  background: var(--ctp-surface-0);
+}
+
+html.stardance-utils-theme-custom .profile__handle,
+html.stardance-utils-theme-custom .profile-project-card__title,
+html.stardance-utils-theme-custom .discover-rail__heading,
+html.stardance-utils-theme-custom .ship-modal,
+html.stardance-utils-theme-custom .ship-modal__mission,
+html.stardance-utils-theme-custom .ship-modal__panel,
+html.stardance-utils-theme-custom .profile__handle-edit {
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom .profile__bio-input,
+html.stardance-utils-theme-custom .profile__handle-input,
+html.stardance-utils-theme-custom .feed-composer__textarea,
+html.stardance-utils-theme-custom .ship-modal__textarea,
+html.stardance-utils-theme-custom .settings-form__input {
+  background: var(--ctp-mantle);
+  border-color: var(--ctp-surface-2);
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom .profile__bio-input:focus,
+html.stardance-utils-theme-custom .feed-composer__textarea:focus,
+html.stardance-utils-theme-custom .ship-modal__textarea:focus,
+html.stardance-utils-theme-custom .settings-form__input:focus {
+  border-color: var(--ctp-lavender);
+}
+
+html.stardance-utils-theme-custom .profile__bio-input::placeholder,
+html.stardance-utils-theme-custom .feed-composer__textarea::placeholder,
+html.stardance-utils-theme-custom .ship-modal__textarea::placeholder,
+html.stardance-utils-theme-custom .settings-form__input::placeholder {
+  color: var(--ctp-overlay-1);
+}
+
+html.stardance-utils-theme-custom .profile__bio-suggest {
+  border: 1px solid var(--ctp-surface-2);
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom .profile__bio-suggest-item,
+html.stardance-utils-theme-custom .profile__bio-suggest-item--active,
+html.stardance-utils-theme-custom .profile__bio-suggest-item:hover,
+html.stardance-utils-theme-custom .feed-post-card__menu-item:hover,
+html.stardance-utils-theme-custom .feed-post-card__menu-item:focus-visible {
+  background: rgba(180, 190, 254, 0.12);
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom .feed-post-card__menu-item {
+  color: var(--ctp-subtext-1);
+}
+
+html.stardance-utils-theme-custom .profile-project-card__meta-icon,
+html.stardance-utils-theme-custom .feed-post-card__action-icon,
+html.stardance-utils-theme-custom .profile__back-icon {
+  color: currentColor;
+}
+
+html.stardance-utils-theme-custom .profile-project-card__mission-badge {
+  background: var(--ctp-mauve);
+  color: var(--ctp-crust);
+}
+
+html.stardance-utils-theme-custom .feed-post-card__action--active,
+html.stardance-utils-theme-custom .feed-post-card .like-button__btn--liked,
+html.stardance-utils-theme-custom .sidebar__user-settings,
+html.stardance-utils-theme-custom .sidebar__user-logout {
+  color: var(--ctp-accent-secondary);
+}
+
+html.stardance-utils-theme-custom .feed-post-card__action:hover,
+html.stardance-utils-theme-custom .feed-post-card__action:focus-visible,
+html.stardance-utils-theme-custom .like-button__btn:hover,
+html.stardance-utils-theme-custom .like-button__btn:focus-visible,
+html.stardance-utils-theme-custom .feed-post-card__more:hover,
+html.stardance-utils-theme-custom .feed-post-card__more:focus-visible {
+  color: var(--ctp-accent-primary);
+}
+
+html.stardance-utils-theme-custom .profile__idv-alert--danger,
+html.stardance-utils-theme-custom .feed-composer__info-text--warn {
+  color: var(--ctp-red);
+}
+
+html.stardance-utils-theme-custom .profile__idv-alert--success {
+  color: var(--ctp-green);
+}
+
+html.stardance-utils-theme-custom .profile__idv-alert--warning {
+  color: var(--ctp-yellow);
+}
+
+html.stardance-utils-theme-custom #settings-modal[data-stardance-utils-enhanced='true'] .stardance-utils-tab {
+  color: var(--ctp-subtext-0);
+}
+
+html.stardance-utils-theme-custom #settings-modal[data-stardance-utils-enhanced='true'] .stardance-utils-tab--active,
+html.stardance-utils-theme-custom #settings-modal[data-stardance-utils-enhanced='true'] .stardance-utils-tab:hover {
+  color: var(--ctp-accent-secondary);
+}
+
+html.stardance-utils-theme-custom #settings-modal[data-stardance-utils-enhanced='true'] .stardance-utils-tabs {
+  border-bottom-color: rgba(108, 112, 134, 0.56);
+}
+
+html.stardance-utils-theme-custom #settings-modal[data-stardance-utils-enhanced='true'] .stardance-utils-accordion-summary {
+  color: var(--ctp-subtext-1);
+}
+
+html.stardance-utils-theme-custom #settings-modal[data-stardance-utils-enhanced='true'] .stardance-utils-accordion[open] > .stardance-utils-accordion-summary {
+  color: var(--ctp-accent-secondary);
+}
+
+html.stardance-utils-theme-custom #settings-modal[data-stardance-utils-enhanced='true'] .stardance-utils-accordion-summary::after {
+  color: var(--ctp-overlay-1);
+}
+
+html.stardance-utils-theme-custom #settings-modal[data-stardance-utils-enhanced='true'] .stardance-utils-action-button--primary {
+  background: var(--ctp-accent-soft);
+  border-color: color-mix(in srgb, var(--ctp-accent-primary) 42%, transparent);
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom #settings-modal[data-stardance-utils-enhanced='true'] .stardance-utils-action-button--primary:hover {
+  background: var(--ctp-accent-soft-strong);
+  border-color: color-mix(in srgb, var(--ctp-accent-primary) 56%, transparent);
+}
+
+html.stardance-utils-theme-custom #settings-modal[data-stardance-utils-enhanced='true'] .settings-form__hint {
+  color: var(--ctp-subtext-0);
+}
