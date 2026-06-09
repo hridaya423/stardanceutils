@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import gsap from 'gsap';
 import './Cubes.css';
 
@@ -29,6 +29,7 @@ const Cubes = ({
   const simRAFRef = useRef(null);
   const cubeDataRef = useRef([]);
   const activeKeysRef = useRef(new Set());
+  const nextActiveRef = useRef(new Set());
 
   const colGap = typeof cellGap === 'number' ? `${cellGap}px` : cellGap?.col !== undefined ? `${cellGap.col}px` : '5%';
   const rowGap = typeof cellGap === 'number' ? `${cellGap}px` : cellGap?.row !== undefined ? `${cellGap.row}px` : '5%';
@@ -67,7 +68,9 @@ const Cubes = ({
       const cubeData = cubeDataRef.current;
       if (!cubeData.length) return;
 
-      const nextActive = new Set();
+      const nextActive = nextActiveRef.current;
+      nextActive.clear();
+
       const rowStart = Math.max(0, Math.floor(rowCenter - radius - 1));
       const rowEnd = Math.min(gridSize - 1, Math.ceil(rowCenter + radius + 1));
       const colStart = Math.max(0, Math.floor(colCenter - radius - 1));
@@ -75,30 +78,35 @@ const Cubes = ({
 
       for (let r = rowStart; r <= rowEnd; r += 1) {
         for (let c = colStart; c <= colEnd; c += 1) {
-          const entry = cubeData[r * gridSize + c];
+          const idx = r * gridSize + c;
+          const entry = cubeData[idx];
           if (!entry) continue;
           const dist = Math.hypot(r - rowCenter, c - colCenter);
           if (dist <= radius) {
             const pct = 1 - dist / radius;
             const angle = pct * maxAngle;
-            const key = `${r}-${c}`;
-            nextActive.add(key);
+            nextActive.add(idx);
             activateCube(entry, angle);
           }
         }
       }
 
-      activeKeysRef.current.forEach(key => {
-        if (!nextActive.has(key)) {
-          const [r, c] = key.split('-').map(Number);
-          const entry = cubeData[r * gridSize + c];
-          if (entry) deactivateCube(entry);
+      const toDeactivate = [];
+      activeKeysRef.current.forEach(idx => {
+        if (!nextActive.has(idx)) {
+          const entry = cubeData[idx];
+          if (entry) toDeactivate.push(entry.el);
         }
       });
+      if (toDeactivate.length) {
+        gsap.to(toDeactivate, { duration: leaveDur, ease: 'power3.out', overwrite: true, rotateX: 0, rotateY: 0 });
+      }
 
+      const prev = activeKeysRef.current;
       activeKeysRef.current = nextActive;
+      nextActiveRef.current = prev;
     },
-    [radius, maxAngle, gridSize, activateCube, deactivateCube]
+    [radius, maxAngle, gridSize, leaveDur, activateCube]
   );
 
   const onPointerMove = useCallback(
@@ -124,13 +132,16 @@ const Cubes = ({
 
   const resetAll = useCallback(() => {
     const cubeData = cubeDataRef.current;
-    activeKeysRef.current.forEach(key => {
-      const [r, c] = key.split('-').map(Number);
-      const entry = cubeData[r * gridSize + c];
-      if (entry) deactivateCube(entry);
+    const toDeactivate = [];
+    activeKeysRef.current.forEach(idx => {
+      const entry = cubeData[idx];
+      if (entry) toDeactivate.push(entry.el);
     });
+    if (toDeactivate.length) {
+      gsap.to(toDeactivate, { duration: leaveDur, ease: 'power3.out', overwrite: true, rotateX: 0, rotateY: 0 });
+    }
     activeKeysRef.current.clear();
-  }, [deactivateCube, gridSize]);
+  }, [leaveDur]);
 
   const onTouchMove = useCallback(
     e => {
@@ -291,13 +302,13 @@ const Cubes = ({
   }, [onPointerMove, resetAll, onClick, onTouchMove, onTouchStart, onTouchEnd]);
 
   const cells = Array.from({ length: gridSize });
-  const sceneStyle = {
+  const sceneStyle = useMemo(() => ({
     gridTemplateColumns: cubeSize ? `repeat(${gridSize}, ${cubeSize}px)` : `repeat(${gridSize}, 1fr)`,
     gridTemplateRows: cubeSize ? `repeat(${gridSize}, ${cubeSize}px)` : `repeat(${gridSize}, 1fr)`,
     columnGap: colGap,
     rowGap: rowGap
-  };
-  const wrapperStyle = {
+  }), [gridSize, cubeSize, colGap, rowGap]);
+  const wrapperStyle = useMemo(() => ({
     '--cube-face-border': borderStyle,
     '--cube-face-bg': faceColor,
     '--cube-face-shadow': shadow === true ? '0 0 6px rgba(0,0,0,.5)' : shadow || 'none',
@@ -307,7 +318,7 @@ const Cubes = ({
           height: `${gridSize * cubeSize}px`
         }
       : {})
-  };
+  }), [borderStyle, faceColor, shadow, cubeSize, gridSize]);
 
   return (
     <div className="default-animation" style={wrapperStyle}>

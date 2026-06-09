@@ -92,6 +92,8 @@ vec3 StarLayer(vec2 uv) {
   for (int y = -1; y <= 1; y++) {
     for (int x = -1; x <= 1; x++) {
       vec2 offset = vec2(float(x), float(y));
+      vec2 preDelta = gv - offset;
+      if (dot(preDelta, preDelta) > 2.96) continue;
       vec2 si = id + vec2(float(x), float(y));
       float seed = Hash21(si);
       float size = fract(seed * 345.32);
@@ -202,6 +204,11 @@ export default function Galaxy({
   const smoothMouseActive = useRef(0.0);
   const boundsRef = useRef({ left: 0, top: 0, width: 0, height: 0 });
 
+  const focalX = focal[0] ?? 0.5;
+  const focalY = focal[1] ?? 0.5;
+  const rotX = rotation[0] ?? 1.0;
+  const rotY = rotation[1] ?? 0.0;
+
   useEffect(() => {
     if (!ctnDom.current) return;
     const ctn = ctnDom.current;
@@ -237,11 +244,9 @@ export default function Galaxy({
         );
       }
     }
-    window.addEventListener('resize', resize, false);
-    resize();
-
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(ctn);
+    resize();
 
     const geometry = new Triangle(gl);
     program = new Program(gl, {
@@ -252,8 +257,8 @@ export default function Galaxy({
         uResolution: {
           value: new Color(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height)
         },
-        uFocal: { value: new Float32Array(focal) },
-        uRotation: { value: new Float32Array(rotation) },
+        uFocal: { value: new Float32Array([focalX, focalY]) },
+        uRotation: { value: new Float32Array([rotX, rotY]) },
         uStarSpeed: { value: starSpeed },
         uDensity: { value: density },
         uHueShift: { value: hueShift },
@@ -275,6 +280,8 @@ export default function Galaxy({
 
     const mesh = new Mesh(gl, { geometry, program });
 
+    const lerpFactor = 0.05;
+
     function update(t) {
       if (!isInView || !isPageVisible) {
         rafId = 0;
@@ -283,20 +290,27 @@ export default function Galaxy({
 
       rafId = requestAnimationFrame(update);
 
+      let dirty = !disableAnimation;
+
+      const mxDiff = targetMousePos.current.x - smoothMousePos.current.x;
+      const myDiff = targetMousePos.current.y - smoothMousePos.current.y;
+      const maDiff = targetMouseActive.current - smoothMouseActive.current;
+      if (Math.abs(mxDiff) > 0.0001 || Math.abs(myDiff) > 0.0001 || Math.abs(maDiff) > 0.0001) {
+        smoothMousePos.current.x += mxDiff * lerpFactor;
+        smoothMousePos.current.y += myDiff * lerpFactor;
+        smoothMouseActive.current += maDiff * lerpFactor;
+        program.uniforms.uMouse.value[0] = smoothMousePos.current.x;
+        program.uniforms.uMouse.value[1] = smoothMousePos.current.y;
+        program.uniforms.uMouseActiveFactor.value = smoothMouseActive.current;
+        dirty = true;
+      }
+
+      if (!dirty) return;
+
       if (!disableAnimation) {
         program.uniforms.uTime.value = t * 0.001;
         program.uniforms.uStarSpeed.value = (t * 0.001 * starSpeed) / 10.0;
       }
-
-      const lerpFactor = 0.05;
-      smoothMousePos.current.x += (targetMousePos.current.x - smoothMousePos.current.x) * lerpFactor;
-      smoothMousePos.current.y += (targetMousePos.current.y - smoothMousePos.current.y) * lerpFactor;
-
-      smoothMouseActive.current += (targetMouseActive.current - smoothMouseActive.current) * lerpFactor;
-
-      program.uniforms.uMouse.value[0] = smoothMousePos.current.x;
-      program.uniforms.uMouse.value[1] = smoothMousePos.current.y;
-      program.uniforms.uMouseActiveFactor.value = smoothMouseActive.current;
 
       renderer.render({ scene: mesh });
     }
@@ -371,7 +385,6 @@ export default function Galaxy({
 
     return () => {
       stopLoop();
-      window.removeEventListener('resize', resize);
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -383,8 +396,10 @@ export default function Galaxy({
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
   }, [
-    focal,
-    rotation,
+    focalX,
+    focalY,
+    rotX,
+    rotY,
     starSpeed,
     density,
     hueShift,

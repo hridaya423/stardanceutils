@@ -31,6 +31,7 @@
     SHOP_GOALS_SYNC_META_KEY: 'shopGoals:meta',
     SHOP_GOALS_SYNC_CHUNK_PREFIX: 'shopGoals:chunk:',
     SHOP_GOALS_LOCAL_FALLBACK_KEY: 'shopGoals:localFallback',
+    SHOP_GOALS_SUPPRESSED_KEY: 'shopGoals:suppressedUntil',
     SHOP_LAYOUT_ENABLED_KEY: 'shopLayoutEnabled',
     SHOP_LAYOUT_RAIL_KEY: 'shopLayoutUseRail',
     SHOP_ORDERS_BUTTON_KEY: 'shopOrdersButtonEnabled',
@@ -440,6 +441,23 @@
   };
 
   SU.getShopGoalsLocalFallbackFlag = () => SU.getExtensionStoredSetting(SU.SHOP_GOALS_LOCAL_FALLBACK_KEY, 'local');
+
+  SU.getShopGoalsSuppressedUntil = async () => {
+    const raw = await SU.getExtensionStoredSetting(SU.SHOP_GOALS_SUPPRESSED_KEY, 'local');
+    if (!raw || typeof raw !== 'object') {
+      return {};
+    }
+    const now = Date.now();
+    const pruned = Object.fromEntries(Object.entries(raw).filter(([, expiry]) => expiry > now));
+    if (Object.keys(pruned).length !== Object.keys(raw).length) {
+      void SU.setExtensionStoredSetting({ [SU.SHOP_GOALS_SUPPRESSED_KEY]: pruned }, 'local');
+    }
+    return pruned;
+  };
+
+  SU.setShopGoalsSuppressedUntil = (map) => (
+    SU.setExtensionStoredSetting({ [SU.SHOP_GOALS_SUPPRESSED_KEY]: map }, 'local')
+  );
 
   SU.setShopGoalsLocalFallbackFlag = (enabled) => {
     if (enabled) {

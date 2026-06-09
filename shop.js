@@ -194,6 +194,13 @@
       updatedAt: Date.now()
     };
     void SU.persistShopGoals();
+    void (async () => {
+      const map = (await SU.getShopGoalsSuppressedUntil?.()) ?? {};
+      if (map[normalized.id]) {
+        delete map[normalized.id];
+        await SU.setShopGoalsSuppressedUntil?.(map);
+      }
+    })();
   };
 
   SU.upsertShopGoalFromSourceRecord = (record) => {
@@ -253,7 +260,6 @@
     }
 
     star.click();
-    SU.scheduleShopGoalSyncForItem(shopId, 120);
     return true;
   };
 
@@ -264,6 +270,11 @@
 
     delete SU.savedShopGoals[shopId];
     void SU.persistShopGoals();
+    void (async () => {
+      const map = (await SU.getShopGoalsSuppressedUntil?.()) ?? {};
+      map[shopId] = Date.now() + 30_000;
+      await SU.setShopGoalsSuppressedUntil?.(map);
+    })();
   };
 
   SU.getSortedShopGoals = () => Object.values(SU.savedShopGoals || {})
@@ -1234,7 +1245,6 @@
           SU.removeShopGoal(shopId);
           SU.setSourceShopCardWishlisted(shopId, false);
           SU.renderShopGoalsRail();
-          SU.scheduleShopGoalSyncForItem(shopId, 160);
           return;
         } else if (action === 'increment') {
           SU.setShopGoalQuantity(shopId, 1);
@@ -1367,12 +1377,18 @@
     });
   };
 
-  SU.hydrateShopGoalsFromPage = () => {
+  SU.hydrateShopGoalsFromPage = async () => {
+    const suppressedUntil = (await SU.getShopGoalsSuppressedUntil?.()) ?? {};
+    const now = Date.now();
     let changed = false;
 
     document.querySelectorAll('.shop-item-card.shop-item-card--wishlisted, .shop-item-card[data-shop-wishlist-wishlisted-value="true"]').forEach((card) => {
       const record = SU.collectShopItemData(card);
       if (!record) {
+        return;
+      }
+
+      if (suppressedUntil[record.id] > now) {
         return;
       }
 
