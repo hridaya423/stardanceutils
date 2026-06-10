@@ -905,6 +905,12 @@
       })
       .then((html) => new DOMParser().parseFromString(html, 'text/html').querySelector('.shop-category'));
 
+    request.catch(() => {
+      if (SU.shopCategoryMarkupCache.get(path) === request) {
+        SU.shopCategoryMarkupCache.delete(path);
+      }
+    });
+
     SU.shopCategoryMarkupCache.set(path, request);
     return request;
   };
@@ -1421,7 +1427,7 @@
 
     SU.refreshShopGoalRecordsFromPage();
     SU.ensureShopEventBindings();
-    SU.hydrateShopGoalsFromPage();
+    await SU.hydrateShopGoalsFromPage();
     SU.renderShopGoalsRail();
 
     if (SU.isShopHubPage()) {

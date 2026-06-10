@@ -35,7 +35,7 @@
     }
 
     if (shopOrdersToggle) {
-      shopOrdersToggle.checked = SU.savedShopOrdersButtonEnabled === false;
+      shopOrdersToggle.checked = SU.savedShopOrdersButtonEnabled !== false;
       shopOrdersToggle.disabled = SU.savedShopLayoutEnabled === false || SU.savedShopLayoutUseRail === false;
     }
   };
@@ -424,7 +424,7 @@
       SU.savedShopLayoutUseRail = shopSidebarToggle.checked;
       if (SU.savedShopLayoutUseRail === false) {
         SU.savedShopOrdersButtonEnabled = true;
-        shopOrdersToggle.checked = false;
+        shopOrdersToggle.checked = true;
       }
 
       shopOrdersToggle.disabled = SU.savedShopLayoutEnabled === false || SU.savedShopLayoutUseRail === false;
@@ -436,7 +436,7 @@
     });
 
     shopOrdersToggle.addEventListener('change', async () => {
-      SU.savedShopOrdersButtonEnabled = !shopOrdersToggle.checked;
+      SU.savedShopOrdersButtonEnabled = shopOrdersToggle.checked;
       await SU.setStoredSetting({ [SU.SHOP_ORDERS_BUTTON_KEY]: SU.savedShopOrdersButtonEnabled });
       refreshShopUi();
     });
