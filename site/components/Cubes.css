@@ -20,6 +20,7 @@
   row-gap: var(--row-gap);
   perspective: var(--cube-perspective);
   grid-auto-rows: 1fr;
+  contain: layout style paint;
 }
 
 .cube {

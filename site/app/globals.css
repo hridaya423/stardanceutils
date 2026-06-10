@@ -13,7 +13,7 @@
   --accent: #d19fe8;
   --accent-cool: #87eefc;
 
-  --display-family: "Satoshi", "Manrope", system-ui, sans-serif;
+  --display-family: var(--font-satoshi), "Satoshi", "Manrope", system-ui, sans-serif;
 
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
@@ -51,6 +51,7 @@ body::before {
   z-index: -2;
   background: radial-gradient(ellipse 120% 80% at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.6) 100%);
   pointer-events: none;
+  transform: translateZ(0);
 }
 
 body::after {
@@ -60,6 +61,7 @@ body::after {
   z-index: -1;
   opacity: 0.03;
   pointer-events: none;
+  transform: translateZ(0);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -287,6 +289,7 @@ button {
 
 .marquee {
   overflow: hidden;
+  contain: content;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
 }
@@ -299,6 +302,10 @@ button {
 
 .marquee-track.reverse {
   animation-direction: reverse;
+}
+
+.marquee-scope[data-in-view="true"] .marquee-track {
+  will-change: transform;
 }
 
 .marquee-scope[data-in-view="false"] .marquee-track {

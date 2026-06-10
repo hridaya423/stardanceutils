@@ -9,8 +9,6 @@ const Cubes = ({
   cubeSize,
   maxAngle = 45,
   radius = 3,
-  easing = 'power3.out',
-  duration = { enter: 0.3, leave: 0.6 },
   cellGap,
   borderStyle = '1px solid #fff',
   faceColor = '#120F17',
@@ -21,150 +19,139 @@ const Cubes = ({
   rippleSpeed = 2
 }) => {
   const sceneRef = useRef(null);
-  const rafRef = useRef(null);
+  const rafRef = useRef(0);
   const idleTimerRef = useRef(null);
   const userActiveRef = useRef(false);
+  const autoAnimateRef = useRef(autoAnimate);
   const simPosRef = useRef({ x: 0, y: 0 });
   const simTargetRef = useRef({ x: 0, y: 0 });
-  const simRAFRef = useRef(null);
   const cubeDataRef = useRef([]);
-  const activeKeysRef = useRef(new Set());
-  const nextActiveRef = useRef(new Set());
+  const boundsRef = useRef({ left: 0, top: 0, width: 0, height: 0 });
+  const pointerRef = useRef({ row: 0, col: 0, dirty: false });
 
   const colGap = typeof cellGap === 'number' ? `${cellGap}px` : cellGap?.col !== undefined ? `${cellGap.col}px` : '5%';
   const rowGap = typeof cellGap === 'number' ? `${cellGap}px` : cellGap?.row !== undefined ? `${cellGap.row}px` : '5%';
 
-  const enterDur = duration.enter;
-  const leaveDur = duration.leave;
+  const configRef = useRef({ gridSize, radius, maxAngle });
 
-  const activateCube = useCallback(
-    (cubeData, angle) => {
-      gsap.to(cubeData.el, {
-        duration: enterDur,
-        ease: easing,
-        overwrite: true,
-        rotateX: -angle,
-        rotateY: angle
-      });
-    },
-    [enterDur, easing]
-  );
+  useEffect(() => {
+    autoAnimateRef.current = autoAnimate;
+    configRef.current = { gridSize, radius, maxAngle };
+  }, [autoAnimate, gridSize, radius, maxAngle]);
 
-  const deactivateCube = useCallback(
-    cubeData => {
-      gsap.to(cubeData.el, {
-        duration: leaveDur,
-        ease: 'power3.out',
-        overwrite: true,
-        rotateX: 0,
-        rotateY: 0
-      });
-    },
-    [leaveDur]
-  );
+  // Single RAF loop: advances the idle sim, retargets cubes, and lerps each
+  // cube's angle via a cached quickSetter — no per-frame tween allocation.
+  const startLoop = useCallback(() => {
+    if (rafRef.current) return;
 
-  const tiltAt = useCallback(
-    (rowCenter, colCenter) => {
+    const tick = () => {
       const cubeData = cubeDataRef.current;
-      if (!cubeData.length) return;
+      if (!cubeData.length) {
+        rafRef.current = 0;
+        return;
+      }
+      const { gridSize: grid, radius: rad, maxAngle: maxAng } = configRef.current;
 
-      const nextActive = nextActiveRef.current;
-      nextActive.clear();
+      const simActive = autoAnimateRef.current && !userActiveRef.current;
+      if (simActive) {
+        const pos = simPosRef.current;
+        const tgt = simTargetRef.current;
+        pos.x += (tgt.x - pos.x) * 0.02;
+        pos.y += (tgt.y - pos.y) * 0.02;
+        if (Math.hypot(pos.x - tgt.x, pos.y - tgt.y) < 0.1) {
+          simTargetRef.current = { x: Math.random() * grid, y: Math.random() * grid };
+        }
+        pointerRef.current.row = pos.y;
+        pointerRef.current.col = pos.x;
+        pointerRef.current.dirty = true;
+      }
 
-      const rowStart = Math.max(0, Math.floor(rowCenter - radius - 1));
-      const rowEnd = Math.min(gridSize - 1, Math.ceil(rowCenter + radius + 1));
-      const colStart = Math.max(0, Math.floor(colCenter - radius - 1));
-      const colEnd = Math.min(gridSize - 1, Math.ceil(colCenter + radius + 1));
-
-      for (let r = rowStart; r <= rowEnd; r += 1) {
-        for (let c = colStart; c <= colEnd; c += 1) {
-          const idx = r * gridSize + c;
-          const entry = cubeData[idx];
-          if (!entry) continue;
-          const dist = Math.hypot(r - rowCenter, c - colCenter);
-          if (dist <= radius) {
-            const pct = 1 - dist / radius;
-            const angle = pct * maxAngle;
-            nextActive.add(idx);
-            activateCube(entry, angle);
-          }
+      if (pointerRef.current.dirty) {
+        pointerRef.current.dirty = false;
+        const { row: rowCenter, col: colCenter } = pointerRef.current;
+        for (let i = 0; i < cubeData.length; i += 1) {
+          const entry = cubeData[i];
+          const dist = Math.hypot(entry.row - rowCenter, entry.col - colCenter);
+          entry.tgt = dist <= rad ? (1 - dist / rad) * maxAng : 0;
         }
       }
 
-      const toDeactivate = [];
-      activeKeysRef.current.forEach(idx => {
-        if (!nextActive.has(idx)) {
-          const entry = cubeData[idx];
-          if (entry) toDeactivate.push(entry.el);
+      let anyMoving = false;
+      for (let i = 0; i < cubeData.length; i += 1) {
+        const entry = cubeData[i];
+        const delta = entry.tgt - entry.cur;
+        if (delta === 0) continue;
+        if (Math.abs(delta) < 0.1) {
+          entry.cur = entry.tgt;
+        } else {
+          entry.cur += delta * (entry.tgt > entry.cur ? 0.22 : 0.1);
+          anyMoving = true;
         }
-      });
-      if (toDeactivate.length) {
-        gsap.to(toDeactivate, { duration: leaveDur, ease: 'power3.out', overwrite: true, rotateX: 0, rotateY: 0 });
+        entry.setX(-entry.cur);
+        entry.setY(entry.cur);
       }
 
-      const prev = activeKeysRef.current;
-      activeKeysRef.current = nextActive;
-      nextActiveRef.current = prev;
+      if (anyMoving || simActive) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        rafRef.current = 0;
+      }
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+  }, []);
+
+  const updateBounds = useCallback(() => {
+    if (sceneRef.current) {
+      boundsRef.current = sceneRef.current.getBoundingClientRect();
+    }
+  }, []);
+
+  const pointAt = useCallback(
+    (clientX, clientY) => {
+      const rect = boundsRef.current;
+      if (!rect.width || !rect.height) return;
+      pointerRef.current.col = ((clientX - rect.left) / rect.width) * gridSize;
+      pointerRef.current.row = ((clientY - rect.top) / rect.height) * gridSize;
+      pointerRef.current.dirty = true;
+      startLoop();
     },
-    [radius, maxAngle, gridSize, leaveDur, activateCube]
+    [gridSize, startLoop]
   );
+
+  const markUserActive = useCallback(() => {
+    userActiveRef.current = true;
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+      userActiveRef.current = false;
+      startLoop();
+    }, 3000);
+  }, [startLoop]);
 
   const onPointerMove = useCallback(
     e => {
-      userActiveRef.current = true;
-      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-
-      const rect = sceneRef.current.getBoundingClientRect();
-      const cellW = rect.width / gridSize;
-      const cellH = rect.height / gridSize;
-      const colCenter = (e.clientX - rect.left) / cellW;
-      const rowCenter = (e.clientY - rect.top) / cellH;
-
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => tiltAt(rowCenter, colCenter));
-
-      idleTimerRef.current = setTimeout(() => {
-        userActiveRef.current = false;
-      }, 3000);
+      updateBounds();
+      markUserActive();
+      pointAt(e.clientX, e.clientY);
     },
-    [gridSize, tiltAt]
+    [updateBounds, markUserActive, pointAt]
   );
 
   const resetAll = useCallback(() => {
     const cubeData = cubeDataRef.current;
-    const toDeactivate = [];
-    activeKeysRef.current.forEach(idx => {
-      const entry = cubeData[idx];
-      if (entry) toDeactivate.push(entry.el);
-    });
-    if (toDeactivate.length) {
-      gsap.to(toDeactivate, { duration: leaveDur, ease: 'power3.out', overwrite: true, rotateX: 0, rotateY: 0 });
-    }
-    activeKeysRef.current.clear();
-  }, [leaveDur]);
+    for (let i = 0; i < cubeData.length; i += 1) cubeData[i].tgt = 0;
+    startLoop();
+  }, [startLoop]);
 
   const onTouchMove = useCallback(
     e => {
       e.preventDefault();
-      userActiveRef.current = true;
-      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-
-      const rect = sceneRef.current.getBoundingClientRect();
-      const cellW = rect.width / gridSize;
-      const cellH = rect.height / gridSize;
-
+      updateBounds();
+      markUserActive();
       const touch = e.touches[0];
-      const colCenter = (touch.clientX - rect.left) / cellW;
-      const rowCenter = (touch.clientY - rect.top) / cellH;
-
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => tiltAt(rowCenter, colCenter));
-
-      idleTimerRef.current = setTimeout(() => {
-        userActiveRef.current = false;
-      }, 3000);
+      pointAt(touch.clientX, touch.clientY);
     },
-    [gridSize, tiltAt]
+    [updateBounds, markUserActive, pointAt]
   );
 
   const onTouchStart = useCallback(() => {
@@ -172,7 +159,6 @@ const Cubes = ({
   }, []);
 
   const onTouchEnd = useCallback(() => {
-    if (!sceneRef.current) return;
     resetAll();
   }, [resetAll]);
 
@@ -231,39 +217,11 @@ const Cubes = ({
   );
 
   useEffect(() => {
-    if (!autoAnimate || !sceneRef.current) return;
-    simPosRef.current = {
-      x: Math.random() * gridSize,
-      y: Math.random() * gridSize
-    };
-    simTargetRef.current = {
-      x: Math.random() * gridSize,
-      y: Math.random() * gridSize
-    };
-    const speed = 0.02;
-    const loop = () => {
-      if (!userActiveRef.current) {
-        const pos = simPosRef.current;
-        const tgt = simTargetRef.current;
-        pos.x += (tgt.x - pos.x) * speed;
-        pos.y += (tgt.y - pos.y) * speed;
-        tiltAt(pos.y, pos.x);
-        if (Math.hypot(pos.x - tgt.x, pos.y - tgt.y) < 0.1) {
-          simTargetRef.current = {
-            x: Math.random() * gridSize,
-            y: Math.random() * gridSize
-          };
-        }
-      }
-      simRAFRef.current = requestAnimationFrame(loop);
-    };
-    simRAFRef.current = requestAnimationFrame(loop);
-    return () => {
-      if (simRAFRef.current != null) {
-        cancelAnimationFrame(simRAFRef.current);
-      }
-    };
-  }, [autoAnimate, gridSize, tiltAt]);
+    if (!autoAnimate) return;
+    simPosRef.current = { x: Math.random() * gridSize, y: Math.random() * gridSize };
+    simTargetRef.current = { x: Math.random() * gridSize, y: Math.random() * gridSize };
+    startLoop();
+  }, [autoAnimate, gridSize, startLoop]);
 
   useEffect(() => {
     const el = sceneRef.current;
@@ -273,11 +231,19 @@ const Cubes = ({
       el: cube,
       row: Number(cube.dataset.row),
       col: Number(cube.dataset.col),
-      faces: Array.from(cube.querySelectorAll('.cube-face'))
+      faces: Array.from(cube.querySelectorAll('.cube-face')),
+      cur: 0,
+      tgt: 0,
+      setX: gsap.quickSetter(cube, 'rotateX', 'deg'),
+      setY: gsap.quickSetter(cube, 'rotateY', 'deg')
     }));
 
-    el.addEventListener('pointermove', onPointerMove);
-    el.addEventListener('pointerleave', resetAll);
+    const resizeObserver = new ResizeObserver(updateBounds);
+    resizeObserver.observe(el);
+    updateBounds();
+
+    el.addEventListener('pointermove', onPointerMove, { passive: true });
+    el.addEventListener('pointerleave', resetAll, { passive: true });
     el.addEventListener('click', onClick);
 
     el.addEventListener('touchmove', onTouchMove, { passive: false });
@@ -285,6 +251,7 @@ const Cubes = ({
     el.addEventListener('touchend', onTouchEnd, { passive: true });
 
     return () => {
+      resizeObserver.disconnect();
       el.removeEventListener('pointermove', onPointerMove);
       el.removeEventListener('pointerleave', resetAll);
       el.removeEventListener('click', onClick);
@@ -294,12 +261,12 @@ const Cubes = ({
       el.removeEventListener('touchend', onTouchEnd);
 
       cubeDataRef.current = [];
-      activeKeysRef.current.clear();
 
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
-  }, [onPointerMove, resetAll, onClick, onTouchMove, onTouchStart, onTouchEnd]);
+  }, [updateBounds, onPointerMove, resetAll, onClick, onTouchMove, onTouchStart, onTouchEnd]);
 
   const cells = Array.from({ length: gridSize });
   const sceneStyle = useMemo(() => ({

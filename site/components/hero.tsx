@@ -17,17 +17,10 @@ export function Hero({ links }: { links: Links }) {
 
   useEffect(() => {
     const mediaReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-    const sync = () => {
-      setReduce(mediaReduce.matches);
-    };
-
+    const sync = () => setReduce(mediaReduce.matches);
     sync();
     mediaReduce.addEventListener("change", sync);
-
-    return () => {
-      mediaReduce.removeEventListener("change", sync);
-    };
+    return () => mediaReduce.removeEventListener("change", sync);
   }, []);
 
   return (

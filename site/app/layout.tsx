@@ -1,13 +1,20 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
+import localFont from "next/font/local";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { FontLoader } from "@/components/font-loader";
-
-const SATOSHI_HREF = "https://api.fontshare.com/v2/css?f[]=satoshi@500,700&display=swap";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
+const satoshi = localFont({
+  src: [
+    { path: "./fonts/Satoshi-Medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/Satoshi-Bold.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-satoshi",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Stardance Utils",
@@ -46,16 +53,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", GeistMono.variable, "font-sans", geist.variable)}
+      className={cn(
+        "h-full",
+        "antialiased",
+        GeistMono.variable,
+        "font-sans",
+        geist.variable,
+        satoshi.variable,
+      )}
     >
-      <head>
-        <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="" />
-        <noscript>
-          <link href={SATOSHI_HREF} rel="stylesheet" />
-        </noscript>
-      </head>
       <body className="min-h-full flex flex-col">
-        <FontLoader />
         {children}
       </body>
     </html>

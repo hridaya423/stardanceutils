@@ -17,9 +17,9 @@ const links = {
 };
 
 const follows = [
-  { src: "/follows/zach.png", name: "Zach", role: "Hack Club founder" },
-  { src: "/follows/neon.png", name: "Neon", role: "Stardance dev" },
-  { src: "/follows/tongyu.png", name: "Tongyu", role: "Stardance dev" },
+  { src: "/follows/zach.webp", name: "Zach", role: "Hack Club founder" },
+  { src: "/follows/neon.webp", name: "Neon", role: "Stardance dev" },
+  { src: "/follows/tongyu.webp", name: "Tongyu", role: "Stardance dev" },
 ];
 
 export default function Home() {

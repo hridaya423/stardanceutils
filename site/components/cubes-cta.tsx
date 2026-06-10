@@ -36,7 +36,7 @@ export function CubesCta() {
     <div ref={ref} className="cubes-stage">
       {mounted && (
         <Cubes
-          gridSize={isCoarse ? 14 : 20}
+          gridSize={isCoarse ? 12 : 14}
           cubeSize={undefined}
           maxAngle={20}
           radius={2}

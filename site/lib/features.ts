@@ -17,7 +17,7 @@ export const FEATURES: Feature[] = [
     long:
       "Seven themes, including Kanagawa, Nord, Tokyo Night, and Catppuccin variants. The whole interface updates together instead of leaving half the site unchanged.",
     tier: "primary",
-    image: "/featurepics/theme.png",
+    image: "/featurepics/theme.webp",
   },
   {
     id: "devlog-composer",
@@ -27,7 +27,7 @@ export const FEATURES: Feature[] = [
     long:
       "The editor stays on the project page, the post action is always nearby, and edits happen in place instead of inside a separate screen.",
     tier: "primary",
-    image: "/featurepics/betterprojectpage.png",
+    image: "/featurepics/betterprojectpage.webp",
   },
   {
     id: "typography",
@@ -46,7 +46,7 @@ export const FEATURES: Feature[] = [
     long:
       "Wishlisted items become goals with price, quantity, and progress tracking. The catalog is easier to sort, and the New shelf still stays where it belongs.",
     tier: "primary",
-    image: "/featurepics/goals.png",
+    image: "/featurepics/goals.webp",
   },
   {
     id: "markdown",

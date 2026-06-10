@@ -20,15 +20,35 @@ type FeedbackCarouselsProps = {
   rows?: number;
 };
 
-function pngRatio(file: string): number {
+function imageRatio(file: string): number {
   try {
     const fd = openSync(file, "r");
-    const buf = Buffer.alloc(24);
-    readSync(fd, buf, 0, 24, 0);
+    const buf = Buffer.alloc(32);
+    readSync(fd, buf, 0, 32, 0);
     closeSync(fd);
-    if (buf.toString("ascii", 1, 4) !== "PNG") return 1.4;
-    const w = buf.readUInt32BE(16);
-    const h = buf.readUInt32BE(20);
+
+    let w = 0;
+    let h = 0;
+    if (buf.toString("ascii", 1, 4) === "PNG") {
+      w = buf.readUInt32BE(16);
+      h = buf.readUInt32BE(20);
+    } else if (buf.toString("ascii", 0, 4) === "RIFF" && buf.toString("ascii", 8, 12) === "WEBP") {
+      const chunk = buf.toString("ascii", 12, 16);
+      if (chunk === "VP8 ") {
+        w = buf.readUInt16LE(26) & 0x3fff;
+        h = buf.readUInt16LE(28) & 0x3fff;
+      } else if (chunk === "VP8L") {
+        const b0 = buf[21];
+        const b1 = buf[22];
+        const b2 = buf[23];
+        const b3 = buf[24];
+        w = (((b1 & 0x3f) << 8) | b0) + 1;
+        h = (((b3 & 0x0f) << 10) | (b2 << 2) | (b1 >> 6)) + 1;
+      } else if (chunk === "VP8X") {
+        w = (buf[24] | (buf[25] << 8) | (buf[26] << 16)) + 1;
+        h = (buf[27] | (buf[28] << 8) | (buf[29] << 16)) + 1;
+      }
+    }
     if (!w || !h) return 1.4;
     return Math.min(Math.max(w / h, 0.6), 4.5);
   } catch {
@@ -46,7 +66,13 @@ function mulberry32(seed: number) {
   };
 }
 
+const shotsCache = new Map<string, Shot[]>();
+
 function collectShots(sources: readonly ReviewSource[]): Shot[] {
+  const cacheKey = sources.map((s) => s.dir).join(",");
+  const cached = shotsCache.get(cacheKey);
+  if (cached) return cached;
+
   const all: Shot[] = [];
   for (const { dir, product } of sources) {
     try {
@@ -55,7 +81,7 @@ function collectShots(sources: readonly ReviewSource[]): Shot[] {
         .filter((f) => /\.(png|jpe?g|webp)$/i.test(f))
         .sort();
       for (const f of files) {
-        all.push({ src: `/${dir}/${f}`, product, ratio: pngRatio(path.join(full, f)) });
+        all.push({ src: `/${dir}/${f}`, product, ratio: imageRatio(path.join(full, f)) });
       }
     } catch {
     }
@@ -66,12 +92,19 @@ function collectShots(sources: readonly ReviewSource[]): Shot[] {
     const j = Math.floor(rand() * (i + 1));
     [all[i], all[j]] = [all[j], all[i]];
   }
+  shotsCache.set(cacheKey, all);
   return all;
 }
 
+
+const MAX_PER_ROW = 14;
+
 function intoRows(shots: Shot[], rows: number): Shot[][] {
   const out: Shot[][] = Array.from({ length: rows }, () => []);
-  shots.forEach((shot, index) => out[index % rows].push(shot));
+  shots.forEach((shot, index) => {
+    const row = out[index % rows];
+    if (row.length < MAX_PER_ROW) row.push(shot);
+  });
   return out;
 }
 
@@ -92,6 +125,7 @@ function ShotFrame({ src, product, ratio }: Shot) {
         alt={`${product} review`}
         fill
         sizes={`(max-width: 768px) ${mobileWidth}px, ${desktopWidth}px`}
+        quality={65}
         className="object-cover"
       />
     </figure>

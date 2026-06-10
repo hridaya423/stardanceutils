@@ -100,6 +100,7 @@ function FeaturePanel({ feature, index }: { feature: Feature; index: number }) {
                 alt={`${feature.title} preview`}
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
+                quality={70}
                 className={imageClass}
                 priority={index === 0}
               />
@@ -138,6 +139,9 @@ export function HorizontalFeatures({ features }: Props) {
           pin: true,
           scrub: 1,
           invalidateOnRefresh: true,
+          onToggle: (self) => {
+            track.style.willChange = self.isActive ? "transform" : "";
+          },
         },
       })
         .to(firstScene, { autoAlpha: 0, y: -34, duration: 0.24, ease: "power2.out" })
@@ -153,6 +157,7 @@ export function HorizontalFeatures({ features }: Props) {
             opacity: 1,
             duration: 0.9,
             ease: "power3.out",
+            clearProps: "all",
             scrollTrigger: { trigger: el, start: "top 85%", once: true },
           },
         );
@@ -161,7 +166,6 @@ export function HorizontalFeatures({ features }: Props) {
 
     return () => {
       ctx.revert();
-      ScrollTrigger.getAll().forEach((t) => t.kill());
     };
   }, []);
 

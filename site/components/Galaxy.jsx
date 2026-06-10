@@ -40,7 +40,6 @@ uniform bool uTransparent;
 
 varying vec2 vUv;
 
-#define NUM_LAYER 4.0
 #define STAR_COLOR_CUTOFF 0.2
 #define MAT45 mat2(0.7071, -0.7071, 0.7071, 0.7071)
 #define PERIOD 3.0
@@ -244,14 +243,22 @@ export default function Galaxy({
         );
       }
     }
-    const resizeObserver = new ResizeObserver(resize);
+    let resizeTimer = 0;
+    const debouncedResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(resize, 100);
+    };
+    const resizeObserver = new ResizeObserver(debouncedResize);
     resizeObserver.observe(ctn);
     resize();
+
+    const lowPower = window.matchMedia('(pointer: coarse), (max-width: 768px)').matches;
+    const layerDefine = `#define NUM_LAYER ${lowPower ? '3.0' : '4.0'}\n`;
 
     const geometry = new Triangle(gl);
     program = new Program(gl, {
       vertex: vertexShader,
-      fragment: fragmentShader,
+      fragment: fragmentShader.replace('varying vec2 vUv;', `varying vec2 vUv;\n${layerDefine}`),
       uniforms: {
         uTime: { value: 0 },
         uResolution: {
@@ -331,7 +338,14 @@ export default function Galaxy({
     startLoop();
     ctn.appendChild(gl.canvas);
 
+    let lastBoundsRead = 0;
+
     function handlePointerMove(e) {
+      const now = performance.now();
+      if (now - lastBoundsRead > 250) {
+        lastBoundsRead = now;
+        boundsRef.current = ctn.getBoundingClientRect();
+      }
       const rect = boundsRef.current;
       if (!rect.width || !rect.height) return;
       const insideX = e.clientX >= rect.left && e.clientX <= rect.right;
@@ -385,6 +399,7 @@ export default function Galaxy({
 
     return () => {
       stopLoop();
+      clearTimeout(resizeTimer);
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
