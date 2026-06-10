@@ -117,7 +117,7 @@ function ShotFrame({ src, product, ratio }: Shot) {
       className="vouch group relative mx-2 h-[124px] shrink-0 rounded-[12px] md:h-[150px]"
       style={{ aspectRatio: String(ratio) }}
     >
-      <span className="pointer-events-none absolute left-2 top-2 z-10 rounded-full border border-white/10 bg-black/65 px-2 py-0.5 font-mono text-[0.56rem] uppercase tracking-wider text-white/70 backdrop-blur">
+      <span className="pointer-events-none absolute left-2 top-2 z-10 rounded-full border border-white/10 bg-black/75 px-2 py-0.5 font-mono text-[0.56rem] uppercase tracking-wider text-white/70">
         {tag}
       </span>
       <Image

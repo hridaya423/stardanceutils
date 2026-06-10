@@ -146,7 +146,7 @@ export function HorizontalFeatures({ features }: Props) {
       })
         .to(firstScene, { autoAlpha: 0, y: -34, duration: 0.24, ease: "power2.out" })
         .to(track, { autoAlpha: 1, duration: 0.08, ease: "none" }, 0.16)
-        .to(track, { x: getScrollAmount, duration: 0.76, ease: "none" }, 0.24);
+        .to(track, { x: getScrollAmount, duration: 0.76, ease: "none", force3D: true }, 0.24);
 
       gsap.utils.toArray<HTMLElement>("[data-reveal]").forEach((el) => {
         gsap.fromTo(

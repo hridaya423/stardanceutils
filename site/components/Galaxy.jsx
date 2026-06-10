@@ -2,6 +2,7 @@
 
 import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
 import { useEffect, useRef } from 'react';
+import { ensureActivityTracking, isLongIdle, isOnBattery } from '@/lib/activity-governor';
 import './Galaxy.css';
 
 const vertexShader = `
@@ -70,14 +71,15 @@ vec3 hsv2rgb(vec3 c) {
   return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
-float Star(vec2 uv, float flare) {
-  float d = length(uv);
+float Star(vec2 uv, float d, float flare) {
   float m = (0.05 * uGlowIntensity) / d;
-  float rays = smoothstep(0.0, 1.0, 1.0 - abs(uv.x * uv.y * 1000.0));
-  m += rays * flare * uGlowIntensity;
-  uv *= MAT45;
-  rays = smoothstep(0.0, 1.0, 1.0 - abs(uv.x * uv.y * 1000.0));
-  m += rays * 0.3 * flare * uGlowIntensity;
+  if (flare > 0.0) {
+    float rays = smoothstep(0.0, 1.0, 1.0 - abs(uv.x * uv.y * 1000.0));
+    m += rays * flare * uGlowIntensity;
+    uv *= MAT45;
+    rays = smoothstep(0.0, 1.0, 1.0 - abs(uv.x * uv.y * 1000.0));
+    m += rays * 0.3 * flare * uGlowIntensity;
+  }
   m *= smoothstep(1.0, 0.2, d);
   return m;
 }
@@ -93,33 +95,40 @@ vec3 StarLayer(vec2 uv) {
       vec2 offset = vec2(float(x), float(y));
       vec2 preDelta = gv - offset;
       if (dot(preDelta, preDelta) > 2.96) continue;
-      vec2 si = id + vec2(float(x), float(y));
+      vec2 si = id + offset;
       float seed = Hash21(si);
+
+      vec2 pad = vec2(tris(seed * 34.0 + uTime * uSpeed / 10.0), tris(seed * 38.0 + uTime * uSpeed / 30.0)) - 0.5;
+      vec2 sp = preDelta - pad;
+      float d2 = dot(sp, sp);
+      if (d2 >= 1.0) continue;
+
       float size = fract(seed * 345.32);
       float glossLocal = tri(uStarSpeed / (PERIOD * seed + 1.0));
       float flareSize = smoothstep(0.9, 1.0, size) * glossLocal;
 
       float red = smoothstep(STAR_COLOR_CUTOFF, 1.0, Hash21(si + 1.0)) + STAR_COLOR_CUTOFF;
       float blu = smoothstep(STAR_COLOR_CUTOFF, 1.0, Hash21(si + 3.0)) + STAR_COLOR_CUTOFF;
+#ifdef ZERO_SATURATION
+      vec3 base = vec3(max(red, blu));
+#else
       float grn = min(red, blu) * seed;
       vec3 base = vec3(red, grn, blu);
-      
+
       float hue = atan(base.g - base.r, base.b - base.r) / (2.0 * 3.14159) + 0.5;
       hue = fract(hue + uHueShift / 360.0);
       float sat = length(base - vec3(dot(base, vec3(0.299, 0.587, 0.114)))) * uSaturation;
       float val = max(max(base.r, base.g), base.b);
       base = hsv2rgb(vec3(hue, sat, val));
+#endif
 
-      vec2 pad = vec2(tris(seed * 34.0 + uTime * uSpeed / 10.0), tris(seed * 38.0 + uTime * uSpeed / 30.0)) - 0.5;
-
-      float star = Star(gv - offset - pad, flareSize);
-      vec3 color = base;
+      float star = Star(sp, sqrt(d2), flareSize);
 
       float twinkle = trisn(uTime * uSpeed + seed * 6.2831) * 0.5 + 1.0;
       twinkle = mix(1.0, twinkle, uTwinkleIntensity);
       star *= twinkle;
-      
-      col += star * size * color;
+
+      col += star * size * base;
     }
   }
 
@@ -130,22 +139,20 @@ void main() {
   vec2 focalPx = uFocal * uResolution.xy;
   vec2 uv = (vUv * uResolution.xy - focalPx) / uResolution.y;
 
-  vec2 mouseNorm = uMouse - vec2(0.5);
-  
-  if (uAutoCenterRepulsion > 0.0) {
-    vec2 centerUV = vec2(0.0, 0.0);
-    float centerDist = length(uv - centerUV);
-    vec2 repulsion = normalize(uv - centerUV) * (uAutoCenterRepulsion / (centerDist + 0.1));
-    uv += repulsion * 0.05;
-  } else if (uMouseRepulsion) {
-    vec2 mousePosUV = (uMouse * uResolution.xy - focalPx) / uResolution.y;
-    float mouseDist = length(uv - mousePosUV);
-    vec2 repulsion = normalize(uv - mousePosUV) * (uRepulsionStrength / (mouseDist + 0.1));
-    uv += repulsion * 0.05 * uMouseActiveFactor;
-  } else {
-    vec2 mouseOffset = mouseNorm * 0.1 * uMouseActiveFactor;
-    uv += mouseOffset;
-  }
+#ifdef AUTO_CENTER_REPULSION
+  vec2 centerUV = vec2(0.0, 0.0);
+  float centerDist = length(uv - centerUV);
+  vec2 repulsion = normalize(uv - centerUV) * (uAutoCenterRepulsion / (centerDist + 0.1));
+  uv += repulsion * 0.05;
+#elif defined(MOUSE_REPULSION)
+  vec2 mousePosUV = (uMouse * uResolution.xy - focalPx) / uResolution.y;
+  float mouseDist = length(uv - mousePosUV);
+  vec2 repulsion = normalize(uv - mousePosUV) * (uRepulsionStrength / (mouseDist + 0.1));
+  uv += repulsion * 0.05 * uMouseActiveFactor;
+#else
+  vec2 mouseOffset = (uMouse - vec2(0.5)) * 0.1 * uMouseActiveFactor;
+  uv += mouseOffset;
+#endif
 
   float autoRotAngle = uTime * uRotationSpeed;
   mat2 autoRot = mat2(cos(autoRotAngle), -sin(autoRotAngle), sin(autoRotAngle), cos(autoRotAngle));
@@ -164,14 +171,18 @@ void main() {
 
   col *= 1.75;
 
-  if (uTransparent) {
-    float alpha = length(col);
-    alpha = smoothstep(0.0, 0.12, alpha);
-    alpha = min(alpha, 1.0);
-    gl_FragColor = vec4(col, alpha);
-  } else {
-    gl_FragColor = vec4(col, 1.0);
-  }
+#ifdef TRANSPARENT_OUTPUT
+  float alpha = length(col);
+  alpha = smoothstep(0.0, 0.12, alpha);
+  alpha = min(alpha, 1.0);
+#ifdef BOTTOM_FADE
+  float fade = vUv.y > 0.28 ? mix(0.92, 0.96, (vUv.y - 0.28) / 0.72) : (vUv.y / 0.28) * 0.92;
+  alpha *= fade;
+#endif
+  gl_FragColor = vec4(col, alpha);
+#else
+  gl_FragColor = vec4(col, 1.0);
+#endif
 }
 `;
 
@@ -192,6 +203,7 @@ export default function Galaxy({
   rotationSpeed = 0.1,
   autoCenterRepulsion = 0,
   transparent = true,
+  bottomFade = false,
   className = undefined,
   style = undefined,
   ...rest
@@ -210,6 +222,7 @@ export default function Galaxy({
 
   useEffect(() => {
     if (!ctnDom.current) return;
+    ensureActivityTracking();
     const ctn = ctnDom.current;
     let rafId = 0;
     let isInView = true;
@@ -217,7 +230,8 @@ export default function Galaxy({
 
     const renderer = new Renderer({
       alpha: transparent,
-      premultipliedAlpha: false
+      premultipliedAlpha: false,
+      powerPreference: 'low-power'
     });
     const gl = renderer.gl;
 
@@ -230,9 +244,11 @@ export default function Galaxy({
     }
 
     let program;
+    let lowRes = false;
+    let lastResSwitch = 0;
 
     function resize() {
-      const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.25);
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, lowRes ? 1.0 : 1.25);
       boundsRef.current = ctn.getBoundingClientRect();
       renderer.setSize(ctn.offsetWidth * pixelRatio, ctn.offsetHeight * pixelRatio);
       if (program) {
@@ -253,12 +269,21 @@ export default function Galaxy({
     resize();
 
     const lowPower = window.matchMedia('(pointer: coarse), (max-width: 768px)').matches;
-    const layerDefine = `#define NUM_LAYER ${lowPower ? '3.0' : '4.0'}\n`;
+    const shaderDefines = [
+      `#define NUM_LAYER ${lowPower ? '3.0' : '4.0'}`,
+      saturation === 0 ? '#define ZERO_SATURATION' : '',
+      transparent ? '#define TRANSPARENT_OUTPUT' : '',
+      transparent && bottomFade ? '#define BOTTOM_FADE' : '',
+      mouseRepulsion ? '#define MOUSE_REPULSION' : '',
+      autoCenterRepulsion > 0 ? '#define AUTO_CENTER_REPULSION' : ''
+    ]
+      .filter(Boolean)
+      .join('\n');
 
     const geometry = new Triangle(gl);
     program = new Program(gl, {
       vertex: vertexShader,
-      fragment: fragmentShader.replace('varying vec2 vUv;', `varying vec2 vUv;\n${layerDefine}`),
+      fragment: fragmentShader.replace('varying vec2 vUv;', `varying vec2 vUv;\n${shaderDefines}`),
       uniforms: {
         uTime: { value: 0 },
         uResolution: {
@@ -288,6 +313,11 @@ export default function Galaxy({
     const mesh = new Mesh(gl, { geometry, program });
 
     const lerpFactor = 0.05;
+    let lastPointerMoveTime = -1e9;
+    const INTERACT_FPS = 60;
+    const IDLE_FPS = 30;
+    const LONG_IDLE_FPS = 24;
+    let lastRenderTime = 0;
 
     function update(t) {
       if (!isInView || !isPageVisible) {
@@ -297,18 +327,40 @@ export default function Galaxy({
 
       rafId = requestAnimationFrame(update);
 
+      const recentPointer = t - lastPointerMoveTime < 1000;
+      const settling = Math.abs(targetMouseActive.current - smoothMouseActive.current) > 0.01;
+      const interacting = recentPointer || settling;
+      const maxFps = interacting
+        ? INTERACT_FPS
+        : isLongIdle() || isOnBattery()
+          ? LONG_IDLE_FPS
+          : IDLE_FPS;
+      if (t - lastRenderTime < 1000 / maxFps - 0.5) return;
+      const dt = lastRenderTime ? t - lastRenderTime : 1000 / 60;
+      lastRenderTime = t;
+
       let dirty = !disableAnimation;
 
       const mxDiff = targetMousePos.current.x - smoothMousePos.current.x;
       const myDiff = targetMousePos.current.y - smoothMousePos.current.y;
       const maDiff = targetMouseActive.current - smoothMouseActive.current;
       if (Math.abs(mxDiff) > 0.0001 || Math.abs(myDiff) > 0.0001 || Math.abs(maDiff) > 0.0001) {
-        smoothMousePos.current.x += mxDiff * lerpFactor;
-        smoothMousePos.current.y += myDiff * lerpFactor;
-        smoothMouseActive.current += maDiff * lerpFactor;
+        const k = 1 - Math.pow(1 - lerpFactor, dt / (1000 / 60));
+        smoothMousePos.current.x += mxDiff * k;
+        smoothMousePos.current.y += myDiff * k;
+        smoothMouseActive.current += maDiff * k;
         program.uniforms.uMouse.value[0] = smoothMousePos.current.x;
         program.uniforms.uMouse.value[1] = smoothMousePos.current.y;
         program.uniforms.uMouseActiveFactor.value = smoothMouseActive.current;
+        dirty = true;
+      }
+
+      const wantLow = recentPointer && smoothMouseActive.current > 0.05;
+      const wantHigh = !interacting;
+      if ((lowRes ? wantHigh : wantLow) && t - lastResSwitch > 300) {
+        lowRes = !lowRes;
+        lastResSwitch = t;
+        resize();
         dirty = true;
       }
 
@@ -341,6 +393,7 @@ export default function Galaxy({
     let lastBoundsRead = 0;
 
     function handlePointerMove(e) {
+      if (!isInView || !isPageVisible) return;
       const now = performance.now();
       if (now - lastBoundsRead > 250) {
         lastBoundsRead = now;
@@ -359,6 +412,7 @@ export default function Galaxy({
       const y = 1.0 - (e.clientY - rect.top) / rect.height;
       targetMousePos.current = { x, y };
       targetMouseActive.current = 1.0;
+      lastPointerMoveTime = performance.now();
     }
 
     function handlePointerLeave() {
@@ -428,7 +482,8 @@ export default function Galaxy({
     rotationSpeed,
     repulsionStrength,
     autoCenterRepulsion,
-    transparent
+    transparent,
+    bottomFade
   ]);
 
   const classes = className ? `galaxy-container ${className}` : 'galaxy-container';

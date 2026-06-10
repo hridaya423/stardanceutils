@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import gsap from 'gsap';
+import { ensureActivityTracking, isLongIdle, isOnBattery } from '@/lib/activity-governor';
 import './Cubes.css';
 
 const Cubes = ({
@@ -20,14 +21,14 @@ const Cubes = ({
 }) => {
   const sceneRef = useRef(null);
   const rafRef = useRef(0);
-  const idleTimerRef = useRef(null);
-  const userActiveRef = useRef(false);
+  const lastInputRef = useRef(-Infinity);
   const autoAnimateRef = useRef(autoAnimate);
   const simPosRef = useRef({ x: 0, y: 0 });
   const simTargetRef = useRef({ x: 0, y: 0 });
   const cubeDataRef = useRef([]);
   const boundsRef = useRef({ left: 0, top: 0, width: 0, height: 0 });
   const pointerRef = useRef({ row: 0, col: 0, dirty: false });
+  const lastBoundsReadRef = useRef(0);
 
   const colGap = typeof cellGap === 'number' ? `${cellGap}px` : cellGap?.col !== undefined ? `${cellGap.col}px` : '5%';
   const rowGap = typeof cellGap === 'number' ? `${cellGap}px` : cellGap?.row !== undefined ? `${cellGap.row}px` : '5%';
@@ -39,12 +40,12 @@ const Cubes = ({
     configRef.current = { gridSize, radius, maxAngle };
   }, [autoAnimate, gridSize, radius, maxAngle]);
 
-  // Single RAF loop: advances the idle sim, retargets cubes, and lerps each
-  // cube's angle via a cached quickSetter — no per-frame tween allocation.
   const startLoop = useCallback(() => {
     if (rafRef.current) return;
 
-    const tick = () => {
+    let lastTick = 0;
+
+    const tick = t => {
       const cubeData = cubeDataRef.current;
       if (!cubeData.length) {
         rafRef.current = 0;
@@ -52,12 +53,22 @@ const Cubes = ({
       }
       const { gridSize: grid, radius: rad, maxAngle: maxAng } = configRef.current;
 
-      const simActive = autoAnimateRef.current && !userActiveRef.current;
+      const userActive = t - lastInputRef.current < 3000;
+      const maxHz = userActive ? 60 : isLongIdle() || isOnBattery() ? 20 : 30;
+      if (t - lastTick < 1000 / maxHz - 0.5) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+      const dtFrames = lastTick ? (t - lastTick) / (1000 / 60) : 1;
+      lastTick = t;
+
+      const simActive = autoAnimateRef.current && !userActive;
       if (simActive) {
         const pos = simPosRef.current;
         const tgt = simTargetRef.current;
-        pos.x += (tgt.x - pos.x) * 0.02;
-        pos.y += (tgt.y - pos.y) * 0.02;
+        const simK = 1 - Math.pow(1 - 0.02, dtFrames);
+        pos.x += (tgt.x - pos.x) * simK;
+        pos.y += (tgt.y - pos.y) * simK;
         if (Math.hypot(pos.x - tgt.x, pos.y - tgt.y) < 0.1) {
           simTargetRef.current = { x: Math.random() * grid, y: Math.random() * grid };
         }
@@ -76,6 +87,8 @@ const Cubes = ({
         }
       }
 
+      const riseK = 1 - Math.pow(1 - 0.22, dtFrames);
+      const fallK = 1 - Math.pow(1 - 0.1, dtFrames);
       let anyMoving = false;
       for (let i = 0; i < cubeData.length; i += 1) {
         const entry = cubeData[i];
@@ -84,14 +97,14 @@ const Cubes = ({
         if (Math.abs(delta) < 0.1) {
           entry.cur = entry.tgt;
         } else {
-          entry.cur += delta * (entry.tgt > entry.cur ? 0.22 : 0.1);
+          entry.cur += delta * (entry.tgt > entry.cur ? riseK : fallK);
           anyMoving = true;
         }
         entry.setX(-entry.cur);
         entry.setY(entry.cur);
       }
 
-      if (anyMoving || simActive) {
+      if (anyMoving || simActive || userActive) {
         rafRef.current = requestAnimationFrame(tick);
       } else {
         rafRef.current = 0;
@@ -104,8 +117,15 @@ const Cubes = ({
   const updateBounds = useCallback(() => {
     if (sceneRef.current) {
       boundsRef.current = sceneRef.current.getBoundingClientRect();
+      lastBoundsReadRef.current = performance.now();
     }
   }, []);
+
+  const updateBoundsThrottled = useCallback(() => {
+    if (performance.now() - lastBoundsReadRef.current > 250) {
+      updateBounds();
+    }
+  }, [updateBounds]);
 
   const pointAt = useCallback(
     (clientX, clientY) => {
@@ -120,21 +140,16 @@ const Cubes = ({
   );
 
   const markUserActive = useCallback(() => {
-    userActiveRef.current = true;
-    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = setTimeout(() => {
-      userActiveRef.current = false;
-      startLoop();
-    }, 3000);
-  }, [startLoop]);
+    lastInputRef.current = performance.now();
+  }, []);
 
   const onPointerMove = useCallback(
     e => {
-      updateBounds();
+      updateBoundsThrottled();
       markUserActive();
       pointAt(e.clientX, e.clientY);
     },
-    [updateBounds, markUserActive, pointAt]
+    [updateBoundsThrottled, markUserActive, pointAt]
   );
 
   const resetAll = useCallback(() => {
@@ -146,16 +161,16 @@ const Cubes = ({
   const onTouchMove = useCallback(
     e => {
       e.preventDefault();
-      updateBounds();
+      updateBoundsThrottled();
       markUserActive();
       const touch = e.touches[0];
       pointAt(touch.clientX, touch.clientY);
     },
-    [updateBounds, markUserActive, pointAt]
+    [updateBoundsThrottled, markUserActive, pointAt]
   );
 
   const onTouchStart = useCallback(() => {
-    userActiveRef.current = true;
+    lastInputRef.current = performance.now();
   }, []);
 
   const onTouchEnd = useCallback(() => {
@@ -226,6 +241,7 @@ const Cubes = ({
   useEffect(() => {
     const el = sceneRef.current;
     if (!el) return;
+    ensureActivityTracking();
 
     cubeDataRef.current = Array.from(el.querySelectorAll('.cube')).map(cube => ({
       el: cube,
@@ -264,7 +280,6 @@ const Cubes = ({
 
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = 0;
-      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     };
   }, [updateBounds, onPointerMove, resetAll, onClick, onTouchMove, onTouchStart, onTouchEnd]);
 

@@ -40,6 +40,7 @@ export function Hero({ links }: { links: Links }) {
           rotationSpeed={0.1}
           repulsionStrength={2}
           transparent
+          bottomFade
         />
       </div>
 
