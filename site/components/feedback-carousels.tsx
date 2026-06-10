@@ -77,6 +77,8 @@ function intoRows(shots: Shot[], rows: number): Shot[][] {
 
 function ShotFrame({ src, product, ratio }: Shot) {
   const tag = product.replace(/\s*Utils$/, "");
+  const mobileWidth = Math.round(ratio * 124);
+  const desktopWidth = Math.round(ratio * 150);
   return (
     <figure
       className="vouch group relative mx-2 h-[124px] shrink-0 rounded-[12px] md:h-[150px]"
@@ -89,7 +91,7 @@ function ShotFrame({ src, product, ratio }: Shot) {
         src={encodeURI(src)}
         alt={`${product} review`}
         fill
-        sizes="(max-width: 768px) 50vw, 25vw"
+        sizes={`(max-width: 768px) ${mobileWidth}px, ${desktopWidth}px`}
         className="object-cover"
       />
     </figure>

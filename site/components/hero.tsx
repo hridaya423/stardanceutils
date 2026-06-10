@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { ArrowRight, ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
-import Galaxy from "@/components/Galaxy";
+
+const Galaxy = dynamic(() => import("@/components/Galaxy"), { ssr: false });
 
 type Links = {
   chrome: string;

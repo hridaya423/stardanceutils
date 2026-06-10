@@ -101,6 +101,7 @@ function FeaturePanel({ feature, index }: { feature: Feature; index: number }) {
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className={imageClass}
+                priority={index === 0}
               />
             ) : (
               <FeatureMedia index={index} />

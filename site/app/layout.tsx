@@ -3,6 +3,9 @@ import { Geist } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { FontLoader } from "@/components/font-loader";
+
+const SATOSHI_HREF = "https://api.fontshare.com/v2/css?f[]=satoshi@500,700&display=swap";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -47,12 +50,14 @@ export default function RootLayout({
     >
       <head>
         <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="" />
-        <link
-          href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700,900&display=swap"
-          rel="stylesheet"
-        />
+        <noscript>
+          <link href={SATOSHI_HREF} rel="stylesheet" />
+        </noscript>
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <FontLoader />
+        {children}
+      </body>
     </html>
   );
 }

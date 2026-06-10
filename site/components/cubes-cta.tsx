@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Cubes from "@/components/Cubes";
+import dynamic from "next/dynamic";
+
+const Cubes = dynamic(() => import("@/components/Cubes"), { ssr: false });
 
 export function CubesCta() {
   const ref = useRef<HTMLDivElement>(null);

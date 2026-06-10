@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Galaxy from "@/components/Galaxy";
+import dynamic from "next/dynamic";
+
+const Galaxy = dynamic(() => import("@/components/Galaxy"), { ssr: false });
 
 export function WebglBackground() {
   const [ready, setReady] = useState(false);
