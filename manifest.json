@@ -39,6 +39,7 @@
                 "projects.js",
                 "settings.js",
                 "onboarding.js",
+                "command-palette.js",
                 "content.js"
             ],
             "run_at": "document_idle"

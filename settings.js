@@ -295,7 +295,7 @@
 
     const saveButton = document.createElement('button');
     saveButton.type = 'button';
-    saveButton.className = 'modal__actions-close modal__actions-close--primary stardance-utils-action-button stardance-utils-action-button--primary';
+    saveButton.className = 'stardance-utils-onboarding-btn stardance-utils-onboarding-btn--primary stardance-utils-theme-action-button';
     saveButton.textContent = 'Save';
 
     const resetButton = document.createElement('button');

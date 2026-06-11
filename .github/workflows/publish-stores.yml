@@ -93,7 +93,7 @@ jobs:
           git archive "$SOURCE_COMMIT" | tar -x -C build/source
 
           if [ "$PUBLISH_CHROME" = "true" ]; then
-            cp build/source/manifest.json build/source/shared.js build/source/themes.js build/source/sidebar.js build/source/ai-check.js build/source/shop.js build/source/projects.js build/source/settings.js build/source/content.js build/source/background.js build/source/onboarding.js build/source/openai-verify.js build/source/styles.css build/store/chrome/
+            cp build/source/manifest.json build/source/shared.js build/source/themes.js build/source/sidebar.js build/source/ai-check.js build/source/shop.js build/source/projects.js build/source/settings.js build/source/content.js build/source/background.js build/source/onboarding.js build/source/command-palette.js build/source/openai-verify.js build/source/styles.css build/store/chrome/
             cp build/source/icon*.png build/store/chrome/ 2>/dev/null || true
             cp build/source/themes/*.css build/store/chrome/themes/
             node scripts/store-publish.js stamp-manifest-version build/store/chrome/manifest.json "$PUBLISH_VERSION"
@@ -102,7 +102,7 @@ jobs:
 
           if [ "$PUBLISH_FIREFOX" = "true" ]; then
             cp build/source/manifest_firefox.json build/store/firefox/manifest.json
-            cp build/source/shared.js build/source/themes.js build/source/sidebar.js build/source/ai-check.js build/source/shop.js build/source/projects.js build/source/settings.js build/source/content.js build/source/background.js build/source/onboarding.js build/source/openai-verify.js build/source/styles.css build/store/firefox/
+            cp build/source/shared.js build/source/themes.js build/source/sidebar.js build/source/ai-check.js build/source/shop.js build/source/projects.js build/source/settings.js build/source/content.js build/source/background.js build/source/onboarding.js build/source/command-palette.js build/source/openai-verify.js build/source/styles.css build/store/firefox/
             cp build/source/icon*.png build/store/firefox/ 2>/dev/null || true
             cp build/source/themes/*.css build/store/firefox/themes/
             node scripts/store-publish.js stamp-manifest-version build/store/firefox/manifest.json "$PUBLISH_VERSION"

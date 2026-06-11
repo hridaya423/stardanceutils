@@ -60,6 +60,7 @@
     runEnhancement('profile project enhancements', SU.enhanceProfileProjectsPage);
     runEnhancement('shop enhancements', SU.enhanceShopPage);
     runEnhancement('feed AI enhancements', SU.enhanceFeedAiVerification);
+    runEnhancement('command palette enhancements', SU.enhanceCommandPalette);
     runEnhancement('onboarding', SU.maybeStartOnboarding);
 
     const dialog = document.getElementById('settings-modal');
@@ -98,6 +99,15 @@
         return false;
       }
 
+      if (SU.commandPaletteMutationGuard) {
+        return false;
+      }
+
+      const target = mutation.target;
+      if (target instanceof Element && (target.id === 'command-palette-results' || target.closest?.('#command-palette-dialog'))) {
+        return true;
+      }
+
       const nodes = [...mutation.addedNodes, ...mutation.removedNodes];
       return nodes.some((node) => {
         if (node.nodeType !== Node.ELEMENT_NODE) {
@@ -118,7 +128,10 @@
           || element.classList?.contains('project-show__actions')
           || element.classList?.contains('project-show__feed')
           || element.classList?.contains('composer-modal')
-          || Boolean(element.querySelector?.('#settings-modal, #primary-nav, .feed-post-card, .feed-post-card__media, .feed-post-card__media-viewport, .discover-rail, .shop-hub, .shop-category, .profile-tab-content, .project-list, .project-show__actions, .project-show__feed, .composer-modal'));
+          || element.id === 'command-palette-dialog'
+          || element.id === 'command-palette-results'
+          || element.classList?.contains('command-palette')
+          || Boolean(element.querySelector?.('#settings-modal, #primary-nav, #command-palette-dialog, #command-palette-results, .command-palette, .feed-post-card, .feed-post-card__media, .feed-post-card__media-viewport, .discover-rail, .shop-hub, .shop-category, .profile-tab-content, .project-list, .project-show__actions, .project-show__feed, .composer-modal'));
       });
     });
 
