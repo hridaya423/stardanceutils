@@ -8,6 +8,7 @@
 
     const select = dialog.querySelector('[data-stardance-utils-setting="sidebar-font-pairing"]');
     const themeSelect = dialog.querySelector('[data-stardance-utils-setting="site-theme"]');
+    const changelogFormatSelect = dialog.querySelector('[data-stardance-utils-setting="devlog-changelog-format"]');
     const orderList = dialog.querySelector('[data-stardance-utils-sidebar-order]');
     const shopLayoutToggle = dialog.querySelector('[data-stardance-utils-setting="shop-layout-enabled"]');
     const shopSidebarToggle = dialog.querySelector('[data-stardance-utils-setting="shop-sidebar-enabled"]');
@@ -19,6 +20,10 @@
 
     if (themeSelect) {
       SU.renderThemeOptions(themeSelect, SU.getEffectiveTheme());
+    }
+
+    if (changelogFormatSelect) {
+      SU.renderDevlogChangelogFormatOptions(changelogFormatSelect, SU.savedDevlogChangelogFormat);
     }
 
     if (orderList) {
@@ -114,6 +119,35 @@
     const sidebarAccordion = document.createElement('details');
     sidebarAccordion.className = 'stardance-utils-accordion';
     sidebarAccordion.setAttribute('data-stardance-utils-utils-section', 'sidebar');
+
+    const devlogsAccordion = document.createElement('details');
+    devlogsAccordion.className = 'stardance-utils-accordion';
+    devlogsAccordion.setAttribute('data-stardance-utils-utils-section', 'devlogs');
+
+    const devlogsSummary = document.createElement('summary');
+    devlogsSummary.className = 'stardance-utils-accordion-summary';
+    devlogsSummary.textContent = 'Devlogs';
+
+    const devlogsBody = document.createElement('div');
+    devlogsBody.className = 'stardance-utils-accordion-body';
+
+    const devlogsHeader = document.createElement('div');
+    devlogsHeader.className = 'stardance-utils-inline-header';
+
+    const devlogsLabel = document.createElement('label');
+    devlogsLabel.className = 'settings-form__label stardance-utils-section-label';
+    devlogsLabel.setAttribute('for', 'stardance-utils-devlog-changelog-format');
+    devlogsLabel.textContent = 'Changelog insert format';
+
+    const devlogsSelect = document.createElement('select');
+    devlogsSelect.id = 'stardance-utils-devlog-changelog-format';
+    devlogsSelect.className = 'settings-form__input stardance-utils-select';
+    devlogsSelect.setAttribute('data-stardance-utils-setting', 'devlog-changelog-format');
+    SU.renderDevlogChangelogFormatOptions(devlogsSelect, SU.savedDevlogChangelogFormat);
+
+    const devlogsHint = document.createElement('small');
+    devlogsHint.className = 'settings-form__hint';
+    devlogsHint.textContent = 'Choose how GitHub changelog commits get inserted into devlogs.';
 
     const sidebarSummary = document.createElement('summary');
     sidebarSummary.className = 'stardance-utils-accordion-summary';
@@ -316,6 +350,10 @@
       SU.updateUtilsPanel(panel.closest('dialog'));
     });
 
+    devlogsSelect.addEventListener('change', async () => {
+      await SU.setDevlogChangelogFormat(devlogsSelect.value);
+    });
+
     const handleAutocompleteInput = async (event) => {
       await SU.updateFontSuggestions(datalist, event.currentTarget.value);
     };
@@ -484,6 +522,13 @@
     appearanceAccordion.appendChild(appearanceSummary);
     appearanceAccordion.appendChild(appearanceBody);
     field.appendChild(appearanceAccordion);
+    devlogsHeader.appendChild(devlogsLabel);
+    devlogsBody.appendChild(devlogsHeader);
+    devlogsBody.appendChild(devlogsSelect);
+    devlogsBody.appendChild(devlogsHint);
+    devlogsAccordion.appendChild(devlogsSummary);
+    devlogsAccordion.appendChild(devlogsBody);
+    field.appendChild(devlogsAccordion);
     sidebarBody.appendChild(orderAccordion);
     sidebarBody.appendChild(customAccordion);
 

@@ -737,13 +737,13 @@
     window.removeEventListener('scroll', SU.positionOnboarding, true);
   };
 
-  SU.startOnboarding = async (force = false) => {
+  SU.startOnboarding = async (force = false, stepOverride = null) => {
     if (force) {
       SU.resetOnboardingState();
     }
 
     const state = SU.getOnboardingState();
-    const stepId = state.stepId || 'welcome';
+    const stepId = stepOverride || state.stepId || 'welcome';
     SU.ensureOnboardingListeners();
     SU.setOnboardingState({ started: true, completed: false, dismissed: false, stepId });
     window.addEventListener('resize', SU.positionOnboarding);
@@ -752,6 +752,11 @@
   };
 
   SU.maybeStartOnboarding = async () => {
+    if (SU.shouldAutoShowWhatsNew()) {
+      await SU.startOnboarding(false, 'whats-new');
+      return;
+    }
+
     if (SU.shouldAutoStartOnboarding()) {
       await SU.startOnboarding(false);
       return;
@@ -764,6 +769,21 @@
   };
 
   SU.ONBOARDING_STEPS = [
+    {
+      id: 'whats-new',
+      countsTowardProgress: false,
+      page: 'any',
+      title: `What's New in Stardance Utils ${SU.ONBOARDING_WHATS_NEW_LABEL}`,
+      body: 'A quick skim of the latest update. You can still replay the full walkthrough any time from Utils settings.',
+      layout: 'centered',
+      featureItems: [
+        { icon: '✦', title: 'GitHub changelog', body: 'Pull recent commits above the devlog composer and insert them in the format you want.' },
+        { icon: '⌘', title: 'Command palette actions', body: 'Themes, pairings, preview mode, shop toggles, and other Utils actions are now searchable.' },
+        { icon: '🎨', title: 'Themeed more pages', body: 'Project and voting now actually follow your chosen theme instead of falling back to mismatched defaults.' },
+        { icon: '🛠', title: 'Bug fixes and polish', body: 'A bunch of smaller fixes alongside the new tools so project pages feel better to use.' }
+      ],
+      nextId: null
+    },
     {
       id: 'welcome',
       countsTowardProgress: false,

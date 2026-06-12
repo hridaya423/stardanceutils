@@ -35,8 +35,10 @@
     SHOP_LAYOUT_ENABLED_KEY: 'shopLayoutEnabled',
     SHOP_LAYOUT_RAIL_KEY: 'shopLayoutUseRail',
     SHOP_ORDERS_BUTTON_KEY: 'shopOrdersButtonEnabled',
+    DEVLOG_CHANGELOG_FORMAT_KEY: 'devlogChangelogFormat',
     ONBOARDING_KEY: 'onboardingState',
-    ONBOARDING_VERSION: 1,
+    ONBOARDING_VERSION: 2,
+    ONBOARDING_WHATS_NEW_LABEL: '0.0.6',
     ONBOARDING_ROOT_ID: 'stardance-utils-onboarding',
     ONBOARDING_ACTIVE_CLASS: 'stardance-utils-onboarding-active',
     FONT_DATALIST_ID: 'stardance-utils-font-suggestions',
@@ -87,7 +89,8 @@
     SU.SHOP_GOALS_KEY,
     SU.SHOP_LAYOUT_ENABLED_KEY,
     SU.SHOP_LAYOUT_RAIL_KEY,
-    SU.SHOP_ORDERS_BUTTON_KEY
+    SU.SHOP_ORDERS_BUTTON_KEY,
+    SU.DEVLOG_CHANGELOG_FORMAT_KEY
   ]);
   SU.LOCAL_ONLY_SETTINGS_KEYS = new Set([
     SU.TRY_MODE_PENDING_KEY,
@@ -109,6 +112,7 @@
   SU.savedShopLayoutEnabled = true;
   SU.savedShopLayoutUseRail = true;
   SU.savedShopOrdersButtonEnabled = true;
+  SU.savedDevlogChangelogFormat = 'hash';
   SU.onboardingState = null;
   SU.googleFontCatalog = null;
   SU.googleFontCatalogPromise = null;
@@ -269,6 +273,11 @@
     return !state.completed && !state.dismissed && !state.started && state.lastUpdatedAt === 0;
   };
 
+  SU.shouldAutoShowWhatsNew = () => {
+    const state = SU.getOnboardingState();
+    return state.version !== SU.ONBOARDING_VERSION && state.lastUpdatedAt > 0;
+  };
+
   SU.getExtensionStorageArea = (area) => {
     if (area === 'sync' && SU.extensionSyncStorage) {
       return SU.extensionSyncStorage;
@@ -355,6 +364,12 @@
       return value;
     }
 
+    const mirroredValue = SU.readLocalSetting(key);
+    if (mirroredValue !== undefined) {
+      await SU.setExtensionStoredSetting({ [key]: mirroredValue }, 'local');
+      return mirroredValue;
+    }
+
     if (!legacyLocalStorageKey) {
       return undefined;
     }
@@ -372,8 +387,10 @@
   SU.setLocalOnlyStoredValue = async (key, value, legacyLocalStorageKey = null) => {
     if (value === undefined || value === null || value === '') {
       await SU.removeExtensionStoredSetting(key, 'local');
+      SU.clearLocalSetting(key);
     } else {
       await SU.setExtensionStoredSetting({ [key]: value }, 'local');
+      SU.writeLocalSetting(key, value);
     }
 
     if (legacyLocalStorageKey) {
@@ -383,6 +400,7 @@
 
   SU.removeLocalOnlyStoredValue = async (key, legacyLocalStorageKey = null) => {
     await SU.removeExtensionStoredSetting(key, 'local');
+    SU.clearLocalSetting(key);
     if (legacyLocalStorageKey) {
       SU.clearRawLocalStorageValue(legacyLocalStorageKey);
     }
@@ -391,9 +409,7 @@
   SU.migrateLegacyStoredValue = async (key, area, value) => {
     await SU.setExtensionStoredSetting({ [key]: value }, area);
 
-    if (SU.usesLegacyLocalStorage(key)) {
-      SU.clearLocalSetting(key);
-    }
+    SU.writeLocalSetting(key, value);
 
     if (area === 'sync') {
       void SU.removeExtensionStoredSetting(key, 'local');
@@ -583,7 +599,13 @@
 
     return readPreferredValue.then(async (value) => {
       if (value !== undefined) {
+        SU.writeLocalSetting(key, value);
         return value;
+      }
+
+      const mirroredValue = SU.readLocalSetting(key);
+      if (mirroredValue !== undefined) {
+        return SU.migrateLegacyStoredValue(key, preferredArea, mirroredValue);
       }
 
       if (SU.usesLegacyLocalStorage(key)) {
@@ -618,6 +640,14 @@
     const shardedSyncValues = {};
 
     Object.entries(values).forEach(([key, value]) => {
+      if (value === undefined || value === null || value === '') {
+        SU.clearLocalSetting(key);
+      } else {
+        SU.writeLocalSetting(key, value);
+      }
+    });
+
+    Object.entries(values).forEach(([key, value]) => {
       if (SU.getPreferredStorageArea(key) === 'sync') {
         if (key === SU.SHOP_GOALS_KEY) {
           shardedSyncValues[key] = value;
@@ -642,9 +672,6 @@
 
     return Promise.all(writes).then(() => {
       Object.keys(values).forEach((key) => {
-        if (SU.usesLegacyLocalStorage(key)) {
-          SU.clearLocalSetting(key);
-        }
         if (SU.getPreferredStorageArea(key) === 'sync') {
           void SU.removeExtensionStoredSetting(key, 'local');
         }
@@ -653,9 +680,7 @@
   };
 
   SU.removeStoredSetting = (key) => {
-    if (SU.usesLegacyLocalStorage(key)) {
-      SU.clearLocalSetting(key);
-    }
+    SU.clearLocalSetting(key);
 
     const removals = [
       SU.getPreferredStorageArea(key) === 'sync' && key === SU.SHOP_GOALS_KEY

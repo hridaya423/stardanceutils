@@ -602,3 +602,14 @@ html.stardance-utils-theme-custom .vote-score__options input:checked ~ .vote-sco
 html.stardance-utils-theme-custom .vote-scorecard__sparkle:last-child {
   background: linear-gradient(to left, transparent 0%, color-mix(in srgb, var(--color-space-text) 40%, transparent) 100%);
 }
+
+html.stardance-utils-theme-custom .stardance-utils-changelog-panel {
+  background: transparent;
+  border-color: var(--ctp-surface-2);
+  color: var(--ctp-text);
+}
+
+html.stardance-utils-theme-custom .stardance-utils-changelog-format-list {
+  background: var(--ctp-crust);
+  border-color: var(--ctp-surface-1);
+}

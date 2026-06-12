@@ -8,6 +8,7 @@
     ],
     "host_permissions": [
         "https://stardance.hackclub.com/*",
+        "https://api.github.com/*",
         "https://openai.com/*"
     ],
     "icons": {

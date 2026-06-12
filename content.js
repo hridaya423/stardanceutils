@@ -33,7 +33,8 @@
       SU.SHOP_GOALS_KEY,
       SU.SHOP_LAYOUT_ENABLED_KEY,
       SU.SHOP_LAYOUT_RAIL_KEY,
-      SU.SHOP_ORDERS_BUTTON_KEY
+      SU.SHOP_ORDERS_BUTTON_KEY,
+      SU.DEVLOG_CHANGELOG_FORMAT_KEY
     ]);
     SU.customFontPairings = Array.isArray(storedValues?.[SU.CUSTOM_FONT_PAIRINGS_KEY]) ? storedValues[SU.CUSTOM_FONT_PAIRINGS_KEY] : [];
     SU.savedSidebarOrder = SU.normalizeSidebarOrder(storedValues?.[SU.SIDEBAR_ORDER_KEY]);
@@ -42,6 +43,7 @@
     SU.savedShopLayoutEnabled = storedValues?.[SU.SHOP_LAYOUT_ENABLED_KEY] !== false;
     SU.savedShopLayoutUseRail = storedValues?.[SU.SHOP_LAYOUT_RAIL_KEY] !== false;
     SU.savedShopOrdersButtonEnabled = storedValues?.[SU.SHOP_ORDERS_BUTTON_KEY] !== false;
+    SU.savedDevlogChangelogFormat = SU.getValidDevlogChangelogFormat?.(storedValues?.[SU.DEVLOG_CHANGELOG_FORMAT_KEY]) ?? 'hash';
     SU.savedTheme = SU.getValidTheme(storedValues?.[SU.THEME_KEY]);
     SU.savedFontPairing = SU.getValidPairing(storedValues?.[SU.FONT_PAIRING_KEY]);
 
