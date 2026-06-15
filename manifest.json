@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Stardance Utils",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "description": "A utility extension for Stardance, with multiple useful features to enhance the experience",
     "permissions": [
         "storage"

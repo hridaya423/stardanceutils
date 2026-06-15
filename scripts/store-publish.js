@@ -23,6 +23,10 @@ function readJson(relativePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+function readJsonFromGit(ref, relativePath) {
+  return JSON.parse(git(['show', `${ref}:${relativePath}`]));
+}
+
 function fileExists(filePath) {
   return fs.existsSync(path.resolve(ROOT, filePath));
 }
@@ -95,23 +99,39 @@ function getManifestVersions() {
 
   return {
     version: chromeManifest.version,
-    publishVersion: chromeManifest.version,
+    chromeManifest,
+    firefoxManifest
+  };
+}
+
+function getManifestVersionsFromGit(ref) {
+  const chromeManifest = readJsonFromGit(ref, 'manifest.json');
+  const firefoxManifest = readJsonFromGit(ref, 'manifest_firefox.json');
+
+  if (chromeManifest.version !== firefoxManifest.version) {
+    throw new Error(
+      `Manifest version mismatch at ${ref}: manifest.json=${chromeManifest.version} manifest_firefox.json=${firefoxManifest.version}`
+    );
+  }
+
+  return {
+    version: chromeManifest.version,
     chromeManifest,
     firefoxManifest
   };
 }
 
 function getExpectedPublishVersion() {
-  const { publishVersion } = getManifestVersions();
   const configuredVersion = getEnv('PUBLISH_VERSION');
 
-  if (configuredVersion && configuredVersion !== publishVersion) {
-    throw new Error(
-      `Configured publish version ${configuredVersion} does not match the manifest version ${publishVersion}`
-    );
+  if (configuredVersion) {
+    validateManifestVersion(configuredVersion);
+    return configuredVersion;
   }
 
-  return configuredVersion || publishVersion;
+  const { version } = getManifestVersions();
+  validateManifestVersion(version);
+  return version;
 }
 
 function stampManifestVersion(filePath, version) {
@@ -220,8 +240,11 @@ async function poll(asyncFn, shouldStop, { attempts = 24, delayMs = 5000, label 
 }
 
 async function runPreflight() {
-  const { version, publishVersion } = getManifestVersions();
+  const { version } = getManifestVersions();
+  const sourceCommit = git(['rev-parse', 'HEAD^']);
+  const { version: publishVersion } = getManifestVersionsFromGit(sourceCommit);
   validateManifestVersion(version);
+  validateManifestVersion(publishVersion);
   const publishChromeRequested = getEnv('PUBLISH_CHROME', 'true') === 'true';
   const publishFirefoxRequested = getEnv('PUBLISH_FIREFOX', 'true') === 'true';
 
@@ -237,7 +260,26 @@ async function runPreflight() {
   let firefoxBlockedPending = false;
   let publishChrome = false;
   let publishFirefox = false;
-  let sourceCommit = git(['rev-parse', 'HEAD']);
+
+  if (compareVersions(version, publishVersion) <= 0) {
+    setOutput('manifest_version', version);
+    setOutput('publish_version', publishVersion);
+    setOutput('publish_chrome', 'false');
+    setOutput('publish_firefox', 'false');
+    setOutput('chrome_blocked_pending', 'false');
+    setOutput('firefox_blocked_pending', 'false');
+    setOutput('source_commit', sourceCommit || 'none');
+
+    appendSummary([
+      '## Store Preflight',
+      '',
+      `- Local manifest version: \`${version}\``,
+      `- Lagged publish target version: \`${publishVersion}\``,
+      `- Publish source commit: \`${sourceCommit}\``,
+      '- Publish skipped: current manifest version has not advanced beyond the lagged publish target.'
+    ]);
+    return;
+  }
 
   if (publishChromeRequested) {
     const chromeStatus = await fetchChromeStatus();
@@ -324,7 +366,7 @@ async function runPreflight() {
     '## Store Preflight',
     '',
     `- Local manifest version: \`${version}\``,
-    `- Publish target version: \`${publishVersion}\``,
+    `- Lagged publish target version: \`${publishVersion}\``,
     `- Publish source commit: \`${sourceCommit}\``,
     `- Chrome live version: \`${chromeLiveVersion || 'none'}\``,
     `- Chrome submitted version: \`${chromeSubmittedVersion || 'none'}\``,
