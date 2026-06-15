@@ -53,7 +53,7 @@ jobs:
           node-version: 20
 
       - id: chrome-auth
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.publish_chrome }}
+        if: ${{ (github.event_name != 'workflow_dispatch' || inputs.publish_chrome) && vars.CHROME_GCP_WORKLOAD_IDENTITY_PROVIDER != '' && vars.CHROME_GCP_SERVICE_ACCOUNT != '' }}
         uses: google-github-actions/auth@v3
         with:
           token_format: access_token
@@ -65,7 +65,7 @@ jobs:
         env:
           PUBLISH_CHROME: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_chrome && 'true' || 'false') || 'true' }}
           PUBLISH_FIREFOX: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_firefox && 'true' || 'false') || 'true' }}
-          CHROME_ACCESS_TOKEN: ${{ steps.chrome-auth.outputs.access_token }}
+          CHROME_ACCESS_TOKEN: ${{ steps.chrome-auth.outputs.access_token || secrets.CHROME_ACCESS_TOKEN }}
           CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
           CHROME_EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
           AMO_API_KEY: ${{ secrets.AMO_API_KEY }}
@@ -82,6 +82,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Build selected store packages
         env:
           SOURCE_COMMIT: ${{ needs.preflight.outputs.source_commit }}
@@ -91,6 +95,9 @@ jobs:
         run: |
           mkdir -p build/source build/store/chrome/themes build/store/firefox/themes
           git archive "$SOURCE_COMMIT" | tar -x -C build/source
+          if [ -f build/source/scripts/validate-extension-package.js ]; then
+            (cd build/source && node scripts/validate-extension-package.js)
+          fi
 
           if [ "$PUBLISH_CHROME" = "true" ]; then
             cp build/source/manifest.json build/source/shared.js build/source/themes.js build/source/sidebar.js build/source/ai-check.js build/source/shop.js build/source/projects.js build/source/settings.js build/source/content.js build/source/background.js build/source/onboarding.js build/source/command-palette.js build/source/openai-verify.js build/source/styles.css build/store/chrome/
@@ -135,6 +142,7 @@ jobs:
           path: .
 
       - id: chrome-auth
+        if: ${{ vars.CHROME_GCP_WORKLOAD_IDENTITY_PROVIDER != '' && vars.CHROME_GCP_SERVICE_ACCOUNT != '' }}
         uses: google-github-actions/auth@v3
         with:
           token_format: access_token
@@ -145,7 +153,7 @@ jobs:
       - name: Submit Chrome update
         env:
           PUBLISH_VERSION: ${{ needs.preflight.outputs.publish_version }}
-          CHROME_ACCESS_TOKEN: ${{ steps.chrome-auth.outputs.access_token }}
+          CHROME_ACCESS_TOKEN: ${{ steps.chrome-auth.outputs.access_token || secrets.CHROME_ACCESS_TOKEN }}
           CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
           CHROME_EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
           CHROME_PACKAGE_PATH: stardance-utils-chrome-v${{ needs.preflight.outputs.publish_version }}.zip

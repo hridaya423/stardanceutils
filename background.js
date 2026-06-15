@@ -24,7 +24,7 @@ function queueAiJob(job) {
 }
 
 function runNextAiJob() {
-  if (activeAiJobs >= 2 || AI_JOB_QUEUE.length === 0) {
+  if (activeAiJobs >= 1 || AI_JOB_QUEUE.length === 0) {
     return;
   }
 
@@ -215,14 +215,6 @@ function rejectPendingRequest(requestId, errorMessage) {
 }
 
 async function ensureVerifierTab() {
-  const existingTabs = await queryTabs({ url: `${AI_VERIFY_URL}*` }).catch(() => []);
-  const existingTab = existingTabs.find((tab) => tab?.id !== undefined);
-  if (existingTab?.id !== undefined) {
-    await updateTab(existingTab.id, { pinned: true, url: AI_VERIFY_URL });
-    logAi('Reusing existing verifier tab', { verifierTabId: existingTab.id });
-    return existingTab.id;
-  }
-
   const tab = await createTab({ url: AI_VERIFY_URL, active: false, pinned: true, index: 0 });
   const verifierTabId = tab?.id ?? null;
   logAi('Opened verifier tab', { verifierTabId });
@@ -262,33 +254,37 @@ async function runOpenAiToolCheck(imageUrl, fileName, mimeType, bytes, sourceTab
   logAi('Fetched image info for AI check', imageInfo);
 
   const tabId = await ensureVerifierTab();
-  await waitForVerifierReady(tabId);
-
-  const requestId = Math.random().toString(36).slice(2) + Date.now().toString(36);
-
-  const resultPromise = new Promise((resolve, reject) => {
-    const timeoutId = setTimeout(() => {
-      rejectPendingRequest(requestId, 'OpenAI verification timed out while waiting for a result');
-    }, VERIFY_RESULT_TIMEOUT_MS);
-
-    pendingVerifierRequests.set(requestId, { resolve, reject, timeoutId, imageInfo });
-  });
-
-  const ack = await sendTabMessage(tabId, {
-    type: 'stardance-utils-openai-execute',
-    requestId,
-    imageUrl,
-    fileName,
-    mimeType,
-    bytes
-  });
-
-  if (!ack?.ok) {
-    pendingVerifierRequests.delete(requestId);
-    throw new Error(ack?.error?.message || 'OpenAI verifier tab failed to accept the job');
-  }
-
   try {
+    await waitForVerifierReady(tabId);
+
+    const requestId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+    const resultPromise = new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        rejectPendingRequest(requestId, 'OpenAI verification timed out while waiting for a result');
+      }, VERIFY_RESULT_TIMEOUT_MS);
+
+      pendingVerifierRequests.set(requestId, { resolve, reject, timeoutId, imageInfo });
+    });
+
+    const ack = await sendTabMessage(tabId, {
+      type: 'stardance-utils-openai-execute',
+      requestId,
+      imageUrl,
+      fileName,
+      mimeType,
+      bytes
+    });
+
+    if (!ack?.ok) {
+      const pending = pendingVerifierRequests.get(requestId);
+      if (pending) {
+        clearTimeout(pending.timeoutId);
+        pendingVerifierRequests.delete(requestId);
+      }
+      throw new Error(ack?.error?.message || 'OpenAI verifier tab failed to accept the job');
+    }
+
     const response = await resultPromise;
     return {
       ...response,

@@ -1,5 +1,12 @@
 (() => {
   const SU = globalThis.StardanceUtils;
+  const DEVLOG_BODY_COLLAPSE_ATTR = 'data-stardance-utils-devlog-body-collapse';
+  const DEVLOG_BODY_COLLAPSE_BUTTON_ATTR = 'data-stardance-utils-devlog-body-collapse-button';
+  const DEVLOG_BODY_COLLAPSED_CLASS = 'stardance-utils-devlog-body--collapsed';
+  const DEVLOG_BODY_EXPANDED_CLASS = 'stardance-utils-devlog-body--expanded';
+  const DEVLOG_BODY_HIDDEN_CLASS = 'stardance-utils-devlog-body-hidden';
+  const DEVLOG_BODY_COLLAPSE_MIN_HEIGHT = 520;
+  const DEVLOG_BODY_COLLAPSED_HEIGHT = 420;
 
   SU.composeTranscriptText = (baseText, finalText, interimText) => {
     const parts = [baseText, finalText, interimText]
@@ -119,6 +126,15 @@
       });
 
     return SU.slackEmojiRequestPromise;
+  };
+
+  SU.getSafeSlackEmojiImageUrl = (value) => {
+    try {
+      const url = new URL(value, window.location.origin);
+      return url.protocol === 'https:' ? url.toString() : '';
+    } catch {
+      return '';
+    }
   };
 
   SU.insertTextAtCursor = (textarea, text) => {
@@ -633,15 +649,7 @@
 
   SU.persistDevlogDraftValue = (form, value) => {
     const draftKey = SU.getDevlogDraftKey(form);
-    try {
-      if ((value || '').trim()) {
-        window.localStorage.setItem(draftKey, value);
-      } else {
-        window.localStorage.removeItem(draftKey);
-      }
-    } catch {
-      // Ignore localStorage access failures.
-    }
+    return SU.setLocalOnlyStoredValue(draftKey, (value || '').trim() ? value : '', draftKey).catch(() => undefined);
   };
 
   SU.bindDevlogDraftPersistence = (composerSection) => {
@@ -682,21 +690,18 @@
       discardButton.hidden = !textarea.value.trim();
     };
 
-    try {
-      const savedDraft = window.localStorage.getItem(draftKey);
+    void SU.getLocalOnlyStoredValue(draftKey, draftKey).then((savedDraft) => {
       if (savedDraft && !textarea.value.trim()) {
         textarea.value = savedDraft;
         textarea.dispatchEvent(new Event('input', { bubbles: true }));
       }
-    } catch {
-      // Ignore localStorage access failures.
-    }
+    }).catch(() => undefined);
 
     syncDraftControls();
 
     let saveTimer = null;
     const persistDraft = () => {
-      SU.persistDevlogDraftValue(form, textarea.value || '');
+      void SU.persistDevlogDraftValue(form, textarea.value || '');
     };
 
     textarea.addEventListener('input', () => {
@@ -710,11 +715,7 @@
     discardButton.addEventListener('click', () => {
       textarea.value = '';
       textarea.dispatchEvent(new Event('input', { bubbles: true }));
-      try {
-        window.localStorage.removeItem(draftKey);
-      } catch {
-        // Ignore localStorage access failures.
-      }
+      void SU.removeLocalOnlyStoredValue(draftKey, draftKey).catch(() => undefined);
       syncDraftControls();
       textarea.focus();
     });
@@ -726,11 +727,7 @@
         return;
       }
 
-      try {
-        window.localStorage.removeItem(draftKey);
-      } catch {
-        // Ignore localStorage access failures.
-      }
+      void SU.removeLocalOnlyStoredValue(draftKey, draftKey).catch(() => undefined);
     });
   };
 
@@ -823,7 +820,17 @@
         if (index === activeAutocompleteIndex) {
           item.classList.add('is-active');
         }
-        item.innerHTML = `<img src="${emoji.imageUrl}" alt=":${emoji.name}:" loading="lazy" /><span>:${emoji.name}:</span>`;
+        const image = document.createElement('img');
+        const imageUrl = SU.getSafeSlackEmojiImageUrl(emoji.imageUrl);
+        if (imageUrl) {
+          image.src = imageUrl;
+        }
+        image.alt = `:${emoji.name}:`;
+        image.loading = 'lazy';
+        const label = document.createElement('span');
+        label.textContent = `:${emoji.name}:`;
+        item.appendChild(image);
+        item.appendChild(label);
         item.addEventListener('mousedown', (event) => {
           event.preventDefault();
           applyAutocompleteSelection(emoji);
@@ -956,7 +963,14 @@
             item.className = 'flex flex-center flex-middle stardance-utils-slack-picker-emoji';
             item.setAttribute('title', `:${emoji.name}:`);
             item.setAttribute('aria-label', `:${emoji.name}:`);
-            item.innerHTML = `<img src="${emoji.imageUrl}" alt=":${emoji.name}:" loading="lazy" />`;
+            const image = document.createElement('img');
+            const imageUrl = SU.getSafeSlackEmojiImageUrl(emoji.imageUrl);
+            if (imageUrl) {
+              image.src = imageUrl;
+            }
+            image.alt = `:${emoji.name}:`;
+            image.loading = 'lazy';
+            item.appendChild(image);
             item.addEventListener('click', () => {
               insertSlackEmojiMarkdown(emoji);
               renderSlackCategory();
@@ -1327,6 +1341,38 @@
     }, []);
   };
 
+  SU.DEVLOG_CHANGELOG_FORMAT_OPTIONS = [
+    { value: 'message', label: 'Commit message only' },
+    { value: 'message-hash', label: 'Commit message (hash)' },
+    { value: 'hash', label: 'Hash only' },
+    { value: 'hash-message', label: '(Hash) commit message' }
+  ];
+
+  SU.getValidDevlogChangelogFormat = (value) => (
+    SU.DEVLOG_CHANGELOG_FORMAT_OPTIONS.some((option) => option.value === value) ? value : 'hash'
+  );
+
+  SU.renderDevlogChangelogFormatOptions = (select, selectedValue = SU.savedDevlogChangelogFormat) => {
+    if (!select) {
+      return;
+    }
+
+    select.replaceChildren();
+    SU.DEVLOG_CHANGELOG_FORMAT_OPTIONS.forEach((optionData) => {
+      const option = document.createElement('option');
+      option.value = optionData.value;
+      option.textContent = optionData.label;
+      option.selected = optionData.value === selectedValue;
+      select.appendChild(option);
+    });
+  };
+
+  SU.setDevlogChangelogFormat = async (value) => {
+    SU.savedDevlogChangelogFormat = SU.getValidDevlogChangelogFormat(value);
+    await SU.setStoredSetting({ [SU.DEVLOG_CHANGELOG_FORMAT_KEY]: SU.savedDevlogChangelogFormat });
+    SU.updateUtilsPanel?.(document.getElementById('settings-modal'));
+  };
+
   SU.updateProfileProjectPinButtons = (list) => {
     const pinnedIds = new Set(SU.savedPinnedProjectIds);
 
@@ -1436,6 +1482,641 @@
 
     list.setAttribute('data-stardance-utils-project-pins', 'true');
     SU.applyProfileProjectPins();
+  };
+
+  SU.PROJECT_CHANGELOG_REPO_KEY_PREFIX = 'projectRepoUrl:';
+
+  SU.projectChangelogCache = SU.projectChangelogCache || new Map();
+  SU.projectChangelogInflight = SU.projectChangelogInflight || new Map();
+
+  SU.getProjectChangelogPanel = (projectMain) => (
+    projectMain?.querySelector('[data-stardance-utils-changelog="true"]') || null
+  );
+
+  SU.removeProjectChangelogPanel = (projectMain) => {
+    SU.getProjectChangelogPanel(projectMain)?.remove();
+  };
+
+  SU.getLatestProjectDevlogTimestamp = (projectMain) => (
+    SU.compactText(projectMain?.querySelector('.project-show__feed article.feed-post-card time.feed-post-card__time[datetime]')?.getAttribute('datetime')) || null
+  );
+
+  SU.getProjectChangelogStorageKey = (projectId) => `${SU.PROJECT_CHANGELOG_REPO_KEY_PREFIX}${projectId}`;
+
+  SU.normalizeGithubRepoInfo = (value) => {
+    if (!value) {
+      return null;
+    }
+
+    try {
+      const url = new URL(value, window.location.origin);
+      if (!/(^|\.)github\.com$/i.test(url.hostname)) {
+        return null;
+      }
+
+      const parts = url.pathname.split('/').filter(Boolean);
+      if (parts.length < 2) {
+        return null;
+      }
+
+      const owner = parts[0];
+      const repo = parts[1].replace(/\.git$/i, '');
+      if (!owner || !repo) {
+        return null;
+      }
+
+      return {
+        owner,
+        repo,
+        fullName: `${owner}/${repo}`,
+        url: `https://github.com/${owner}/${repo}`
+      };
+    } catch {
+      return null;
+    }
+  };
+
+  SU.getProjectGithubRepoFromDom = (projectMain) => {
+    const editInputRepo = SU.normalizeGithubRepoInfo(projectMain?.querySelector('#project_repo_url')?.value);
+    if (editInputRepo) {
+      return editInputRepo;
+    }
+
+    const links = [...(projectMain?.querySelectorAll('a[href*="github.com"]') || [])]
+      .map((link) => SU.normalizeGithubRepoInfo(link.getAttribute('href')))
+      .filter(Boolean);
+    if (!links.length) {
+      return null;
+    }
+
+    links.sort((left, right) => left.url.length - right.url.length);
+    return links[0];
+  };
+
+  SU.fetchProjectGithubRepo = async (projectId, projectMain) => {
+    const direct = SU.getProjectGithubRepoFromDom(projectMain);
+    if (direct) {
+      await SU.setLocalOnlyStoredValue(SU.getProjectChangelogStorageKey(projectId), direct.url).catch(() => undefined);
+      return direct;
+    }
+
+    try {
+      const response = await fetch(`/projects/${projectId}?editing=true`, { credentials: 'same-origin' });
+      if (!response.ok) {
+        throw new Error('Could not load project edit page');
+      }
+
+      const html = await response.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const fetched = SU.normalizeGithubRepoInfo(doc.querySelector('#project_repo_url')?.value);
+      if (fetched) {
+        await SU.setLocalOnlyStoredValue(SU.getProjectChangelogStorageKey(projectId), fetched.url).catch(() => undefined);
+      }
+      return fetched;
+    } catch {
+      const cachedValue = await SU.getLocalOnlyStoredValue(SU.getProjectChangelogStorageKey(projectId)).catch(() => undefined);
+      return SU.normalizeGithubRepoInfo(cachedValue);
+    }
+  };
+
+  SU.fetchGithubJson = async (url) => {
+    const response = await fetch(url, {
+      headers: {
+        Accept: 'application/vnd.github+json'
+      }
+    });
+
+    if (!response.ok) {
+      let message = `GitHub request failed (${response.status})`;
+      try {
+        const body = await response.json();
+        if (body?.message) {
+          message = body.message;
+        }
+      } catch {
+      }
+      throw new Error(message);
+    }
+
+    return response.json();
+  };
+
+  SU.getProjectChangelogBranchNames = (repoMeta, branchesJson, sinceIso) => {
+    const defaultBranch = repoMeta?.default_branch || 'main';
+    if (!sinceIso) {
+      return [defaultBranch];
+    }
+
+    const names = [defaultBranch];
+    (Array.isArray(branchesJson) ? branchesJson : []).forEach((branch) => {
+      const name = SU.compactText(branch?.name);
+      if (name && !names.includes(name)) {
+        names.push(name);
+      }
+    });
+    return names.slice(0, 25);
+  };
+
+  SU.normalizeProjectChangelogCommit = (entry, repoInfo, branchName) => {
+    const subject = SU.compactText(String(entry?.commit?.message || '').split('\n')[0]);
+    const sha = String(entry?.sha || '');
+    if (!subject || !sha || /^merge\s/i.test(subject)) {
+      return null;
+    }
+
+    return {
+      sha,
+      shaShort: sha.slice(0, 7),
+      message: subject,
+      url: `${repoInfo.url}/commit/${sha.slice(0, 7)}`,
+      date: entry?.commit?.author?.date || entry?.commit?.committer?.date || '',
+      author: entry?.commit?.author?.name || entry?.author?.login || '',
+      branches: [branchName]
+    };
+  };
+
+  SU.fetchProjectChangelogData = async (projectId, projectMain) => {
+    const repoInfo = await SU.fetchProjectGithubRepo(projectId, projectMain);
+    if (!repoInfo) {
+      return { status: 'no-repo' };
+    }
+
+    const sinceIso = SU.getLatestProjectDevlogTimestamp(projectMain);
+    const cacheKey = [projectId, repoInfo.fullName, sinceIso || 'latest'].join('|');
+    const cached = SU.projectChangelogCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const inflight = SU.projectChangelogInflight.get(cacheKey);
+    if (inflight) {
+      return inflight;
+    }
+
+    const request = (async () => {
+      try {
+        const repoMeta = await SU.fetchGithubJson(`https://api.github.com/repos/${repoInfo.owner}/${repoInfo.repo}`);
+        const branchesJson = sinceIso
+          ? await SU.fetchGithubJson(`https://api.github.com/repos/${repoInfo.owner}/${repoInfo.repo}/branches?per_page=100`)
+          : [];
+        const branchNames = SU.getProjectChangelogBranchNames(repoMeta, branchesJson, sinceIso);
+        const commitResponses = await Promise.allSettled(branchNames.map(async (branchName) => {
+          const params = new URLSearchParams({ sha: branchName, per_page: '20' });
+          if (sinceIso) {
+            params.set('since', sinceIso);
+          }
+
+          const commitsJson = await SU.fetchGithubJson(`https://api.github.com/repos/${repoInfo.owner}/${repoInfo.repo}/commits?${params.toString()}`);
+          return {
+            branchName,
+            commits: (Array.isArray(commitsJson) ? commitsJson : [])
+          };
+        }));
+
+        const commitMap = new Map();
+        commitResponses.forEach((response) => {
+          if (response.status !== 'fulfilled') {
+            return;
+          }
+
+          response.value.commits.forEach((entry) => {
+            const normalized = SU.normalizeProjectChangelogCommit(entry, repoInfo, response.value.branchName);
+            if (!normalized) {
+              return;
+            }
+
+            const existing = commitMap.get(normalized.sha);
+            if (existing) {
+              existing.branches = [...new Set([...existing.branches, ...normalized.branches])];
+              return;
+            }
+
+            commitMap.set(normalized.sha, normalized);
+          });
+        });
+
+        const commits = [...commitMap.values()].sort((left, right) => {
+          const leftTime = left.date ? Date.parse(left.date) : 0;
+          const rightTime = right.date ? Date.parse(right.date) : 0;
+          return rightTime - leftTime;
+        });
+        const branch = repoMeta?.default_branch || 'main';
+
+        const state = commits.length
+          ? {
+              status: 'ready',
+              repoInfo,
+              branch,
+              sinceIso,
+              heading: sinceIso ? 'Since your last devlog' : 'Latest commits',
+              commits
+            }
+          : {
+              status: 'empty',
+              repoInfo,
+              branch,
+              sinceIso,
+              heading: sinceIso ? 'Since your last devlog' : 'Latest commits',
+              commits: []
+            };
+        SU.projectChangelogCache.set(cacheKey, state);
+        return state;
+      } catch (error) {
+        const state = {
+          status: 'error',
+          repoInfo,
+          sinceIso,
+          heading: sinceIso ? 'Since your last devlog' : 'Latest commits',
+          error: error?.message || 'Could not load commits.'
+        };
+        SU.projectChangelogCache.set(cacheKey, state);
+        return state;
+      } finally {
+        SU.projectChangelogInflight.delete(cacheKey);
+      }
+    })();
+
+    SU.projectChangelogInflight.set(cacheKey, request);
+    return request;
+  };
+
+  SU.formatProjectChangelogDate = (value) => {
+    if (!value) {
+      return '';
+    }
+
+    try {
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      }).format(new Date(value));
+    } catch {
+      return value;
+    }
+  };
+
+  SU.buildProjectChangelogMarkdown = (commits) => {
+    const format = SU.getValidDevlogChangelogFormat(SU.savedDevlogChangelogFormat);
+    const lines = (Array.isArray(commits) ? commits : [])
+      .slice(0, 10)
+      .map((commit) => {
+        if (format === 'message') {
+          return `- ${commit.message}`;
+        }
+
+        if (format === 'message-hash') {
+          return `- ${commit.message} ([${commit.shaShort}](${commit.url}))`;
+        }
+
+        if (format === 'hash-message') {
+          return `- ([${commit.shaShort}](${commit.url})) ${commit.message}`;
+        }
+
+        return `- [${commit.shaShort}](${commit.url})`;
+      });
+    if (!lines.length) {
+      return '';
+    }
+
+    return `## Changelog\n\n${lines.join('\n')}`;
+  };
+
+  SU.addProjectChangelogToDevlog = (textarea, commits) => {
+    if (!textarea) {
+      return;
+    }
+
+    const markdown = SU.buildProjectChangelogMarkdown(commits);
+    if (!markdown) {
+      return;
+    }
+
+    const spacer = textarea.value.trim() ? '\n\n' : '';
+    SU.insertTextAtCursor(textarea, `${spacer}${markdown}`);
+  };
+
+  SU.renderProjectChangelogPanel = (panel, textarea, state, refresh) => {
+    if (!panel) {
+      return;
+    }
+
+    if (typeof panel._stardanceUtilsChangelogMenuCleanup === 'function') {
+      panel._stardanceUtilsChangelogMenuCleanup();
+      panel._stardanceUtilsChangelogMenuCleanup = null;
+    }
+
+    panel.replaceChildren();
+
+    const head = document.createElement('div');
+    head.className = 'stardance-utils-changelog-head';
+
+    const titleWrap = document.createElement('div');
+    const title = document.createElement('h3');
+    title.className = 'stardance-utils-changelog-title';
+    title.textContent = 'Changelog';
+    titleWrap.appendChild(title);
+
+    const meta = document.createElement('p');
+    meta.className = 'stardance-utils-changelog-meta';
+    if (state.repoInfo?.fullName) {
+      const sinceText = state.sinceIso ? ` · ${state.heading} · ${SU.formatProjectChangelogDate(state.sinceIso)}` : ` · ${state.heading}`;
+      meta.textContent = `From ${state.repoInfo.fullName}${sinceText}`;
+    }
+    titleWrap.appendChild(meta);
+
+    head.appendChild(titleWrap);
+    panel.appendChild(head);
+
+    const body = document.createElement('div');
+    body.className = 'stardance-utils-changelog-body';
+    panel.appendChild(body);
+
+    if (state.status === 'loading') {
+      const loading = document.createElement('p');
+      loading.className = 'stardance-utils-changelog-empty';
+      loading.textContent = 'Loading commits...';
+      body.appendChild(loading);
+      return;
+    }
+
+    if (state.status === 'error') {
+      const error = document.createElement('p');
+      error.className = 'stardance-utils-changelog-error';
+      error.textContent = state.error || 'Could not load commits.';
+      body.appendChild(error);
+      return;
+    }
+
+    if (state.status === 'empty') {
+      const empty = document.createElement('p');
+      empty.className = 'stardance-utils-changelog-empty';
+      empty.textContent = state.sinceIso ? 'No new commits since your last devlog.' : 'No recent commits found.';
+      body.appendChild(empty);
+      return;
+    }
+
+    if (state.status !== 'ready') {
+      return;
+    }
+
+    const list = document.createElement('ul');
+    list.className = 'stardance-utils-changelog-list';
+    state.commits.slice(0, 8).forEach((commit) => {
+      const item = document.createElement('li');
+      item.className = 'stardance-utils-changelog-item';
+
+      const sha = document.createElement('a');
+      sha.className = 'stardance-utils-changelog-sha';
+      sha.href = commit.url;
+      sha.target = '_blank';
+      sha.rel = 'noreferrer';
+      sha.textContent = commit.shaShort;
+
+      const message = document.createElement('a');
+      message.className = 'stardance-utils-changelog-message';
+      message.href = commit.url;
+      message.target = '_blank';
+      message.rel = 'noreferrer';
+      message.textContent = commit.message;
+      item.appendChild(sha);
+      item.appendChild(message);
+      list.appendChild(item);
+    });
+    body.appendChild(list);
+
+    if (state.commits.length > 8) {
+      const more = document.createElement('p');
+      more.className = 'stardance-utils-changelog-empty';
+      more.textContent = `+ ${state.commits.length - 8} more commits`;
+      body.appendChild(more);
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'stardance-utils-changelog-actions';
+
+    const formatWrap = document.createElement('div');
+    formatWrap.className = 'stardance-utils-changelog-format-menu';
+
+    const formatButton = document.createElement('button');
+    formatButton.type = 'button';
+    formatButton.className = 'stardance-utils-action-button stardance-utils-changelog-btn stardance-utils-changelog-icon-btn stardance-utils-changelog-format-trigger';
+    formatButton.setAttribute('aria-label', 'Changelog format settings');
+    formatButton.setAttribute('aria-expanded', 'false');
+    formatButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65A.506.506 0 0 0 14 2h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66Z"></path></svg>';
+    formatButton.addEventListener('mousedown', (event) => {
+      event.preventDefault();
+    });
+
+    const formatList = document.createElement('div');
+    formatList.className = 'stardance-utils-changelog-format-list';
+    formatList.hidden = true;
+    const selectedFormat = SU.getValidDevlogChangelogFormat(SU.savedDevlogChangelogFormat);
+    SU.DEVLOG_CHANGELOG_FORMAT_OPTIONS.forEach((optionData) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'stardance-utils-changelog-format-option';
+      button.setAttribute('data-active', String(optionData.value === selectedFormat));
+      button.textContent = optionData.label;
+      button.addEventListener('click', async () => {
+        await SU.setDevlogChangelogFormat(optionData.value);
+        formatList.querySelectorAll('.stardance-utils-changelog-format-option').forEach((node) => {
+          node.setAttribute('data-active', String(node === button));
+        });
+        closeFormatMenu();
+      });
+      formatList.appendChild(button);
+    });
+
+    const closeFormatMenu = () => {
+      formatList.hidden = true;
+      formatButton.setAttribute('aria-expanded', 'false');
+    };
+
+    const toggleFormatMenu = () => {
+      const nextOpen = formatList.hidden;
+      formatList.hidden = !nextOpen;
+      formatButton.setAttribute('aria-expanded', String(nextOpen));
+    };
+
+    const onDocumentPointerDown = (event) => {
+      if (!formatWrap.contains(event.target)) {
+        closeFormatMenu();
+      }
+    };
+
+    const onDocumentKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        closeFormatMenu();
+      }
+    };
+
+    document.addEventListener('pointerdown', onDocumentPointerDown, true);
+    document.addEventListener('keydown', onDocumentKeyDown, true);
+    panel._stardanceUtilsChangelogMenuCleanup = () => {
+      document.removeEventListener('pointerdown', onDocumentPointerDown, true);
+      document.removeEventListener('keydown', onDocumentKeyDown, true);
+    };
+
+    formatButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      toggleFormatMenu();
+    });
+
+    formatWrap.appendChild(formatButton);
+    formatWrap.appendChild(formatList);
+    actions.appendChild(formatWrap);
+
+    const refreshButton = document.createElement('button');
+    refreshButton.type = 'button';
+    refreshButton.className = 'stardance-utils-action-button stardance-utils-changelog-btn stardance-utils-changelog-icon-btn stardance-utils-changelog-refresh-btn';
+    refreshButton.setAttribute('aria-label', 'Refresh changelog');
+    refreshButton.innerHTML = '<svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M25 38c-7.2 0-13-5.8-13-13 0-3.2 1.2-6.2 3.3-8.6l1.5 1.3C15 19.7 14 22.3 14 25c0 6.1 4.9 11 11 11 1.6 0 3.1-.3 4.6-1l.8 1.8c-1.7.8-3.5 1.2-5.4 1.2z" fill="currentColor"/><path d="M34.7 33.7l-1.5-1.3c1.8-2 2.8-4.6 2.8-7.3 0-6.1-4.9-11-11-11-1.6 0-3.1.3-4.6 1l-.8-1.8c1.7-.8 3.5-1.2 5.4-1.2 7.2 0 13 5.8 13 13 0 3.1-1.2 6.2-3.3 8.6z" fill="currentColor"/><path d="M18 24h-2v-6h-6v-2h8z" fill="currentColor"/><path d="M40 34h-8v-8h2v6h6z" fill="currentColor"/></svg>';
+    refreshButton.addEventListener('mousedown', (event) => {
+      event.preventDefault();
+    });
+    refreshButton.addEventListener('click', refresh);
+    actions.appendChild(refreshButton);
+
+    const addButton = document.createElement('button');
+    addButton.type = 'button';
+    addButton.className = 'stardance-utils-action-button stardance-utils-action-button--primary stardance-utils-changelog-btn';
+    addButton.textContent = 'Add to devlog';
+    addButton.addEventListener('click', () => SU.addProjectChangelogToDevlog(textarea, state.commits));
+    actions.appendChild(addButton);
+
+    panel.appendChild(actions);
+  };
+
+  SU.enhanceProjectChangelog = async (projectMain, composerShell, textarea, projectId) => {
+    if (!projectMain || !composerShell || !textarea || !projectId) {
+      return;
+    }
+
+    let panel = SU.getProjectChangelogPanel(projectMain);
+    if (!panel) {
+      panel = document.createElement('section');
+      panel.className = 'stardance-utils-changelog-panel';
+      panel.setAttribute('data-stardance-utils-changelog', 'true');
+      composerShell.insertBefore(panel, textarea.closest('.feed-composer'));
+    }
+
+    const refresh = () => {
+      [...SU.projectChangelogCache.keys()].forEach((key) => {
+        if (String(key).startsWith(`${projectId}|`)) {
+          SU.projectChangelogCache.delete(key);
+        }
+      });
+      void SU.enhanceProjectChangelog(projectMain, composerShell, textarea, projectId);
+    };
+
+    const rerender = () => {
+      const repoInfo = SU.getProjectGithubRepoFromDom(projectMain);
+      const sinceIso = SU.getLatestProjectDevlogTimestamp(projectMain);
+      const cacheKey = repoInfo ? [projectId, repoInfo.fullName, sinceIso || 'latest'].join('|') : null;
+      const nextState = (cacheKey && SU.projectChangelogCache.get(cacheKey)) || { status: 'loading' };
+      SU.renderProjectChangelogPanel(panel, textarea, nextState, refresh, rerender);
+    };
+
+    SU.renderProjectChangelogPanel(panel, textarea, { status: 'loading' }, refresh, rerender);
+    const state = await SU.fetchProjectChangelogData(projectId, projectMain);
+    if (state.status === 'no-repo') {
+      panel.remove();
+      return;
+    }
+
+    SU.renderProjectChangelogPanel(panel, textarea, state, refresh, rerender);
+  };
+
+  SU.placeDevlogBodyCollapseLink = (body, button, expanded) => {
+    body.querySelectorAll(`.${DEVLOG_BODY_HIDDEN_CLASS}`).forEach((child) => {
+      child.classList.remove(DEVLOG_BODY_HIDDEN_CLASS);
+      child.hidden = false;
+    });
+
+    if (expanded) {
+      body.appendChild(button);
+      return;
+    }
+
+    const visibleChildren = [...body.children]
+      .filter((child) => child !== button && child.offsetTop + child.offsetHeight <= DEVLOG_BODY_COLLAPSED_HEIGHT - 4);
+    const target = visibleChildren.at(-1);
+    if (target) {
+      target.append(' ', button);
+      [...body.children].forEach((child) => {
+        if (child !== button && child !== target && child.offsetTop > target.offsetTop) {
+          child.classList.add(DEVLOG_BODY_HIDDEN_CLASS);
+          child.hidden = true;
+        }
+      });
+      return;
+    }
+
+    body.appendChild(button);
+  };
+
+  SU.updateDevlogBodyCollapseLink = (body, button, expanded) => {
+    button.textContent = expanded ? 'show less' : 'show more';
+    button.setAttribute('aria-expanded', String(expanded));
+    body.classList.toggle(DEVLOG_BODY_COLLAPSED_CLASS, !expanded);
+    body.classList.toggle(DEVLOG_BODY_EXPANDED_CLASS, expanded);
+    SU.placeDevlogBodyCollapseLink(body, button, expanded);
+  };
+
+  SU.clearDevlogBodyCollapse = () => {
+    document.querySelectorAll(`[${DEVLOG_BODY_COLLAPSE_BUTTON_ATTR}]`).forEach((button) => button.remove());
+    document.querySelectorAll(`[${DEVLOG_BODY_COLLAPSE_ATTR}]`).forEach((body) => {
+      body.removeAttribute(DEVLOG_BODY_COLLAPSE_ATTR);
+      body.classList.remove(DEVLOG_BODY_COLLAPSED_CLASS, DEVLOG_BODY_EXPANDED_CLASS);
+      body.querySelectorAll(`.${DEVLOG_BODY_HIDDEN_CLASS}`).forEach((child) => {
+        child.classList.remove(DEVLOG_BODY_HIDDEN_CLASS);
+        child.hidden = false;
+      });
+    });
+  };
+
+  SU.enhanceDevlogBodyCollapse = () => {
+    if (SU.savedDevlogAutoCollapseEnabled === false) {
+      SU.clearDevlogBodyCollapse();
+      return;
+    }
+
+    const selector = [
+      '.devlog-detail__post article.feed-post-card .feed-post-card__body.markdown-content',
+      'article.feed-post-card[data-feed-engagement-post-type-value="Post::Devlog"] .feed-post-card__body.markdown-content',
+      '.comment-modal__post-body.markdown-content'
+    ].join(', ');
+
+    document.querySelectorAll(selector).forEach((body) => {
+      if (body.getAttribute(DEVLOG_BODY_COLLAPSE_ATTR) === 'true') {
+        return;
+      }
+
+      const originalMaxHeight = body.style.maxHeight;
+      body.style.maxHeight = 'none';
+      const fullHeight = body.scrollHeight;
+      body.style.maxHeight = originalMaxHeight;
+      if (fullHeight < DEVLOG_BODY_COLLAPSE_MIN_HEIGHT) {
+        return;
+      }
+
+      body.setAttribute(DEVLOG_BODY_COLLAPSE_ATTR, 'true');
+      body.classList.add(DEVLOG_BODY_COLLAPSED_CLASS);
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'stardance-utils-devlog-body-toggle';
+      button.setAttribute(DEVLOG_BODY_COLLAPSE_BUTTON_ATTR, 'true');
+      SU.updateDevlogBodyCollapseLink(body, button, false);
+
+      button.addEventListener('click', () => {
+        const expanded = !body.classList.contains(DEVLOG_BODY_EXPANDED_CLASS);
+        SU.updateDevlogBodyCollapseLink(body, button, expanded);
+      });
+
+      body.appendChild(button);
+    });
   };
 
   SU.enhanceProjectShowPage = () => {
@@ -1555,6 +2236,9 @@
 
     const activeInlineComposer = [...projectMain.querySelectorAll('.stardance-utils-inline-composer.feed-composer, .feed-composer')]
       .find((composer) => isDevlogComposer(composer));
+    const changelogTextarea = activeInlineComposer?.querySelector('textarea[name="post_devlog[body]"]') || null;
+    const changelogShell = activeInlineComposer?.closest('.stardance-utils-inline-composer-shell') || null;
+    void SU.enhanceProjectChangelog(projectMain, changelogShell, changelogTextarea, projectId);
     SU.bindDevlogDraftPersistence(activeInlineComposer);
     SU.enhanceSlackEmoji(activeInlineComposer);
     SU.enhanceDevlogSpeech(activeInlineComposer);

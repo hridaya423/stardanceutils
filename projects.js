@@ -1,5 +1,12 @@
 (() => {
   const SU = globalThis.StardanceUtils;
+  const DEVLOG_BODY_COLLAPSE_ATTR = 'data-stardance-utils-devlog-body-collapse';
+  const DEVLOG_BODY_COLLAPSE_BUTTON_ATTR = 'data-stardance-utils-devlog-body-collapse-button';
+  const DEVLOG_BODY_COLLAPSED_CLASS = 'stardance-utils-devlog-body--collapsed';
+  const DEVLOG_BODY_EXPANDED_CLASS = 'stardance-utils-devlog-body--expanded';
+  const DEVLOG_BODY_HIDDEN_CLASS = 'stardance-utils-devlog-body-hidden';
+  const DEVLOG_BODY_COLLAPSE_MIN_HEIGHT = 520;
+  const DEVLOG_BODY_COLLAPSED_HEIGHT = 420;
 
   SU.composeTranscriptText = (baseText, finalText, interimText) => {
     const parts = [baseText, finalText, interimText]
@@ -119,6 +126,15 @@
       });
 
     return SU.slackEmojiRequestPromise;
+  };
+
+  SU.getSafeSlackEmojiImageUrl = (value) => {
+    try {
+      const url = new URL(value, window.location.origin);
+      return url.protocol === 'https:' ? url.toString() : '';
+    } catch {
+      return '';
+    }
   };
 
   SU.insertTextAtCursor = (textarea, text) => {
@@ -804,7 +820,17 @@
         if (index === activeAutocompleteIndex) {
           item.classList.add('is-active');
         }
-        item.innerHTML = `<img src="${emoji.imageUrl}" alt=":${emoji.name}:" loading="lazy" /><span>:${emoji.name}:</span>`;
+        const image = document.createElement('img');
+        const imageUrl = SU.getSafeSlackEmojiImageUrl(emoji.imageUrl);
+        if (imageUrl) {
+          image.src = imageUrl;
+        }
+        image.alt = `:${emoji.name}:`;
+        image.loading = 'lazy';
+        const label = document.createElement('span');
+        label.textContent = `:${emoji.name}:`;
+        item.appendChild(image);
+        item.appendChild(label);
         item.addEventListener('mousedown', (event) => {
           event.preventDefault();
           applyAutocompleteSelection(emoji);
@@ -937,7 +963,14 @@
             item.className = 'flex flex-center flex-middle stardance-utils-slack-picker-emoji';
             item.setAttribute('title', `:${emoji.name}:`);
             item.setAttribute('aria-label', `:${emoji.name}:`);
-            item.innerHTML = `<img src="${emoji.imageUrl}" alt=":${emoji.name}:" loading="lazy" />`;
+            const image = document.createElement('img');
+            const imageUrl = SU.getSafeSlackEmojiImageUrl(emoji.imageUrl);
+            if (imageUrl) {
+              image.src = imageUrl;
+            }
+            image.alt = `:${emoji.name}:`;
+            image.loading = 'lazy';
+            item.appendChild(image);
             item.addEventListener('click', () => {
               insertSlackEmojiMarkdown(emoji);
               renderSlackCategory();
@@ -1993,6 +2026,97 @@
     }
 
     SU.renderProjectChangelogPanel(panel, textarea, state, refresh, rerender);
+  };
+
+  SU.placeDevlogBodyCollapseLink = (body, button, expanded) => {
+    body.querySelectorAll(`.${DEVLOG_BODY_HIDDEN_CLASS}`).forEach((child) => {
+      child.classList.remove(DEVLOG_BODY_HIDDEN_CLASS);
+      child.hidden = false;
+    });
+
+    if (expanded) {
+      body.appendChild(button);
+      return;
+    }
+
+    const visibleChildren = [...body.children]
+      .filter((child) => child !== button && child.offsetTop + child.offsetHeight <= DEVLOG_BODY_COLLAPSED_HEIGHT - 4);
+    const target = visibleChildren.at(-1);
+    if (target) {
+      target.append(' ', button);
+      [...body.children].forEach((child) => {
+        if (child !== button && child !== target && child.offsetTop > target.offsetTop) {
+          child.classList.add(DEVLOG_BODY_HIDDEN_CLASS);
+          child.hidden = true;
+        }
+      });
+      return;
+    }
+
+    body.appendChild(button);
+  };
+
+  SU.updateDevlogBodyCollapseLink = (body, button, expanded) => {
+    button.textContent = expanded ? 'show less' : 'show more';
+    button.setAttribute('aria-expanded', String(expanded));
+    body.classList.toggle(DEVLOG_BODY_COLLAPSED_CLASS, !expanded);
+    body.classList.toggle(DEVLOG_BODY_EXPANDED_CLASS, expanded);
+    SU.placeDevlogBodyCollapseLink(body, button, expanded);
+  };
+
+  SU.clearDevlogBodyCollapse = () => {
+    document.querySelectorAll(`[${DEVLOG_BODY_COLLAPSE_BUTTON_ATTR}]`).forEach((button) => button.remove());
+    document.querySelectorAll(`[${DEVLOG_BODY_COLLAPSE_ATTR}]`).forEach((body) => {
+      body.removeAttribute(DEVLOG_BODY_COLLAPSE_ATTR);
+      body.classList.remove(DEVLOG_BODY_COLLAPSED_CLASS, DEVLOG_BODY_EXPANDED_CLASS);
+      body.querySelectorAll(`.${DEVLOG_BODY_HIDDEN_CLASS}`).forEach((child) => {
+        child.classList.remove(DEVLOG_BODY_HIDDEN_CLASS);
+        child.hidden = false;
+      });
+    });
+  };
+
+  SU.enhanceDevlogBodyCollapse = () => {
+    if (SU.savedDevlogAutoCollapseEnabled === false) {
+      SU.clearDevlogBodyCollapse();
+      return;
+    }
+
+    const selector = [
+      '.devlog-detail__post article.feed-post-card .feed-post-card__body.markdown-content',
+      'article.feed-post-card[data-feed-engagement-post-type-value="Post::Devlog"] .feed-post-card__body.markdown-content',
+      '.comment-modal__post-body.markdown-content'
+    ].join(', ');
+
+    document.querySelectorAll(selector).forEach((body) => {
+      if (body.getAttribute(DEVLOG_BODY_COLLAPSE_ATTR) === 'true') {
+        return;
+      }
+
+      const originalMaxHeight = body.style.maxHeight;
+      body.style.maxHeight = 'none';
+      const fullHeight = body.scrollHeight;
+      body.style.maxHeight = originalMaxHeight;
+      if (fullHeight < DEVLOG_BODY_COLLAPSE_MIN_HEIGHT) {
+        return;
+      }
+
+      body.setAttribute(DEVLOG_BODY_COLLAPSE_ATTR, 'true');
+      body.classList.add(DEVLOG_BODY_COLLAPSED_CLASS);
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'stardance-utils-devlog-body-toggle';
+      button.setAttribute(DEVLOG_BODY_COLLAPSE_BUTTON_ATTR, 'true');
+      SU.updateDevlogBodyCollapseLink(body, button, false);
+
+      button.addEventListener('click', () => {
+        const expanded = !body.classList.contains(DEVLOG_BODY_EXPANDED_CLASS);
+        SU.updateDevlogBodyCollapseLink(body, button, expanded);
+      });
+
+      body.appendChild(button);
+    });
   };
 
   SU.enhanceProjectShowPage = () => {

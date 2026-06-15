@@ -8,6 +8,8 @@
 
     const select = dialog.querySelector('[data-stardance-utils-setting="sidebar-font-pairing"]');
     const themeSelect = dialog.querySelector('[data-stardance-utils-setting="site-theme"]');
+    const changelogFormatSelect = dialog.querySelector('[data-stardance-utils-setting="devlog-changelog-format"]');
+    const devlogAutoCollapseToggle = dialog.querySelector('[data-stardance-utils-setting="devlog-auto-collapse"]');
     const orderList = dialog.querySelector('[data-stardance-utils-sidebar-order]');
     const shopLayoutToggle = dialog.querySelector('[data-stardance-utils-setting="shop-layout-enabled"]');
     const shopSidebarToggle = dialog.querySelector('[data-stardance-utils-setting="shop-sidebar-enabled"]');
@@ -19,6 +21,14 @@
 
     if (themeSelect) {
       SU.renderThemeOptions(themeSelect, SU.getEffectiveTheme());
+    }
+
+    if (changelogFormatSelect) {
+      SU.renderDevlogChangelogFormatOptions(changelogFormatSelect, SU.savedDevlogChangelogFormat);
+    }
+
+    if (devlogAutoCollapseToggle) {
+      devlogAutoCollapseToggle.checked = SU.savedDevlogAutoCollapseEnabled !== false;
     }
 
     if (orderList) {
@@ -35,8 +45,8 @@
     }
 
     if (shopOrdersToggle) {
-      shopOrdersToggle.checked = SU.savedShopOrdersButtonEnabled === false;
-      shopOrdersToggle.disabled = SU.savedShopLayoutEnabled === false || SU.savedShopLayoutUseRail === false;
+      shopOrdersToggle.checked = SU.savedShopOrdersButtonEnabled !== false;
+      shopOrdersToggle.disabled = false;
     }
   };
 
@@ -114,6 +124,56 @@
     const sidebarAccordion = document.createElement('details');
     sidebarAccordion.className = 'stardance-utils-accordion';
     sidebarAccordion.setAttribute('data-stardance-utils-utils-section', 'sidebar');
+
+    const devlogsAccordion = document.createElement('details');
+    devlogsAccordion.className = 'stardance-utils-accordion';
+    devlogsAccordion.setAttribute('data-stardance-utils-utils-section', 'devlogs');
+
+    const devlogsSummary = document.createElement('summary');
+    devlogsSummary.className = 'stardance-utils-accordion-summary';
+    devlogsSummary.textContent = 'Devlogs';
+
+    const devlogsBody = document.createElement('div');
+    devlogsBody.className = 'stardance-utils-accordion-body';
+
+    const devlogsHeader = document.createElement('div');
+    devlogsHeader.className = 'stardance-utils-inline-header';
+
+    const devlogsLabel = document.createElement('label');
+    devlogsLabel.className = 'settings-form__label stardance-utils-section-label';
+    devlogsLabel.setAttribute('for', 'stardance-utils-devlog-changelog-format');
+    devlogsLabel.textContent = 'Changelog insert format';
+
+    const devlogsSelect = document.createElement('select');
+    devlogsSelect.id = 'stardance-utils-devlog-changelog-format';
+    devlogsSelect.className = 'settings-form__input stardance-utils-select';
+    devlogsSelect.setAttribute('data-stardance-utils-setting', 'devlog-changelog-format');
+    SU.renderDevlogChangelogFormatOptions(devlogsSelect, SU.savedDevlogChangelogFormat);
+
+    const devlogsHint = document.createElement('small');
+    devlogsHint.className = 'settings-form__hint';
+    devlogsHint.textContent = 'Choose how GitHub changelog commits get inserted into devlogs.';
+
+    const devlogCollapseField = document.createElement('div');
+    devlogCollapseField.className = 'settings-form__field';
+
+    const devlogCollapseLabel = document.createElement('label');
+    devlogCollapseLabel.className = 'settings-form__checkbox';
+
+    const devlogCollapseToggle = document.createElement('input');
+    devlogCollapseToggle.type = 'checkbox';
+    devlogCollapseToggle.checked = SU.savedDevlogAutoCollapseEnabled !== false;
+    devlogCollapseToggle.setAttribute('data-stardance-utils-setting', 'devlog-auto-collapse');
+
+    const devlogCollapseText = document.createElement('span');
+    devlogCollapseText.textContent = 'Auto-collapse long devlogs';
+
+    devlogCollapseLabel.appendChild(devlogCollapseToggle);
+    devlogCollapseLabel.appendChild(devlogCollapseText);
+
+    const devlogCollapseHint = document.createElement('small');
+    devlogCollapseHint.className = 'settings-form__hint';
+    devlogCollapseHint.textContent = 'Shows a subtle inline "... show more" link on very long devlog posts.';
 
     const sidebarSummary = document.createElement('summary');
     sidebarSummary.className = 'stardance-utils-accordion-summary';
@@ -266,17 +326,16 @@
     shopOrdersLabel.className = 'settings-form__checkbox';
     const shopOrdersToggle = document.createElement('input');
     shopOrdersToggle.type = 'checkbox';
-    shopOrdersToggle.checked = SU.savedShopOrdersButtonEnabled === false;
-    shopOrdersToggle.disabled = SU.savedShopLayoutEnabled === false || SU.savedShopLayoutUseRail === false;
+    shopOrdersToggle.checked = SU.savedShopOrdersButtonEnabled !== false;
     shopOrdersToggle.setAttribute('data-stardance-utils-setting', 'shop-orders-button');
     const shopOrdersText = document.createElement('span');
-    shopOrdersText.textContent = 'Keep Your Orders in sidebar';
+    shopOrdersText.textContent = 'Move Your Orders to main area';
     shopOrdersLabel.appendChild(shopOrdersToggle);
     shopOrdersLabel.appendChild(shopOrdersText);
 
     const shopOrdersHint = document.createElement('small');
     shopOrdersHint.className = 'settings-form__hint';
-    shopOrdersHint.textContent = 'Off by default. When disabled, Your Orders becomes a main-area button and Goals gets more room in the sidebar.';
+    shopOrdersHint.textContent = 'On by default. Moves Your Orders into the main shop area so Goals gets more room in the sidebar.';
 
     const onboardingField = document.createElement('div');
     onboardingField.className = 'settings-form__field';
@@ -295,7 +354,7 @@
 
     const saveButton = document.createElement('button');
     saveButton.type = 'button';
-    saveButton.className = 'modal__actions-close modal__actions-close--primary stardance-utils-action-button stardance-utils-action-button--primary';
+    saveButton.className = 'stardance-utils-onboarding-btn stardance-utils-onboarding-btn--primary stardance-utils-theme-action-button';
     saveButton.textContent = 'Save';
 
     const resetButton = document.createElement('button');
@@ -314,6 +373,16 @@
       SU.previewTheme = SU.getValidTheme(themeSelect.value);
       void SU.applyTheme(SU.previewTheme);
       SU.updateUtilsPanel(panel.closest('dialog'));
+    });
+
+    devlogsSelect.addEventListener('change', async () => {
+      await SU.setDevlogChangelogFormat(devlogsSelect.value);
+    });
+
+    devlogCollapseToggle.addEventListener('change', async () => {
+      SU.savedDevlogAutoCollapseEnabled = devlogCollapseToggle.checked;
+      await SU.setStoredSetting({ [SU.DEVLOG_AUTO_COLLAPSE_KEY]: SU.savedDevlogAutoCollapseEnabled });
+      SU.enhanceDevlogBodyCollapse?.();
     });
 
     const handleAutocompleteInput = async (event) => {
@@ -424,10 +493,9 @@
       SU.savedShopLayoutUseRail = shopSidebarToggle.checked;
       if (SU.savedShopLayoutUseRail === false) {
         SU.savedShopOrdersButtonEnabled = true;
-        shopOrdersToggle.checked = false;
+        shopOrdersToggle.checked = true;
       }
 
-      shopOrdersToggle.disabled = SU.savedShopLayoutEnabled === false || SU.savedShopLayoutUseRail === false;
       await SU.setStoredSetting({
         [SU.SHOP_LAYOUT_RAIL_KEY]: SU.savedShopLayoutUseRail,
         [SU.SHOP_ORDERS_BUTTON_KEY]: SU.savedShopOrdersButtonEnabled
@@ -436,8 +504,20 @@
     });
 
     shopOrdersToggle.addEventListener('change', async () => {
-      SU.savedShopOrdersButtonEnabled = !shopOrdersToggle.checked;
-      await SU.setStoredSetting({ [SU.SHOP_ORDERS_BUTTON_KEY]: SU.savedShopOrdersButtonEnabled });
+      SU.savedShopOrdersButtonEnabled = shopOrdersToggle.checked;
+      if (SU.savedShopOrdersButtonEnabled) {
+        SU.savedShopLayoutEnabled = true;
+        SU.savedShopLayoutUseRail = true;
+        shopLayoutToggle.checked = true;
+        shopSidebarToggle.checked = true;
+        shopSidebarToggle.disabled = false;
+      }
+
+      await SU.setStoredSetting({
+        [SU.SHOP_LAYOUT_ENABLED_KEY]: SU.savedShopLayoutEnabled,
+        [SU.SHOP_LAYOUT_RAIL_KEY]: SU.savedShopLayoutUseRail,
+        [SU.SHOP_ORDERS_BUTTON_KEY]: SU.savedShopOrdersButtonEnabled
+      });
       refreshShopUi();
     });
 
@@ -484,6 +564,16 @@
     appearanceAccordion.appendChild(appearanceSummary);
     appearanceAccordion.appendChild(appearanceBody);
     field.appendChild(appearanceAccordion);
+    devlogsHeader.appendChild(devlogsLabel);
+    devlogsBody.appendChild(devlogsHeader);
+    devlogsBody.appendChild(devlogsSelect);
+    devlogsBody.appendChild(devlogsHint);
+    devlogCollapseField.appendChild(devlogCollapseLabel);
+    devlogCollapseField.appendChild(devlogCollapseHint);
+    devlogsBody.appendChild(devlogCollapseField);
+    devlogsAccordion.appendChild(devlogsSummary);
+    devlogsAccordion.appendChild(devlogsBody);
+    field.appendChild(devlogsAccordion);
     sidebarBody.appendChild(orderAccordion);
     sidebarBody.appendChild(customAccordion);
 

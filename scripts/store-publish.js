@@ -42,27 +42,11 @@ function compareVersions(left, right) {
   return 0;
 }
 
-function getPublishTargetVersion(version) {
+function validateManifestVersion(version) {
   const parts = String(version).split('.');
-
   if (parts.length < 3 || parts.some((part) => !/^\d+$/.test(part))) {
-    throw new Error(`Unsupported version format: ${version}. Expected dotted numeric semver like 0.0.6`);
+    throw new Error(`Unsupported version format: ${version}. Expected dotted numeric semver like 0.0.7`);
   }
-
-  const publishParts = parts.map(Number);
-  let index = publishParts.length - 1;
-
-  while (index >= 0 && publishParts[index] === 0) {
-    publishParts[index] = 9;
-    index -= 1;
-  }
-
-  if (index < 0) {
-    throw new Error(`Cannot derive previous publish target from ${version}`);
-  }
-
-  publishParts[index] -= 1;
-  return publishParts.join('.');
 }
 
 function setOutput(name, value) {
@@ -111,7 +95,7 @@ function getManifestVersions() {
 
   return {
     version: chromeManifest.version,
-    publishVersion: getPublishTargetVersion(chromeManifest.version),
+    publishVersion: chromeManifest.version,
     chromeManifest,
     firefoxManifest
   };
@@ -123,7 +107,7 @@ function getExpectedPublishVersion() {
 
   if (configuredVersion && configuredVersion !== publishVersion) {
     throw new Error(
-      `Configured publish version ${configuredVersion} does not match the derived publish target ${publishVersion}`
+      `Configured publish version ${configuredVersion} does not match the manifest version ${publishVersion}`
     );
   }
 
@@ -142,31 +126,6 @@ function git(args) {
     cwd: ROOT,
     encoding: 'utf8'
   }).trim();
-}
-
-function getManifestVersionAtRef(ref, manifestPath) {
-  const content = git(['show', `${ref}:${manifestPath}`]);
-  return JSON.parse(content).version;
-}
-
-function resolveSourceCommitForVersion(version) {
-  const commits = git(['rev-list', 'HEAD'])
-    .split('\n')
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-
-  for (const commit of commits) {
-    try {
-      const chromeVersion = getManifestVersionAtRef(commit, 'manifest.json');
-      const firefoxVersion = getManifestVersionAtRef(commit, 'manifest_firefox.json');
-      if (chromeVersion === version && firefoxVersion === version) {
-        return commit;
-      }
-    } catch {
-    }
-  }
-
-  throw new Error(`Could not find a commit in git history where both manifests were version ${version}`);
 }
 
 function getChromePublishedVersion(statusPayload) {
@@ -262,6 +221,7 @@ async function poll(asyncFn, shouldStop, { attempts = 24, delayMs = 5000, label 
 
 async function runPreflight() {
   const { version, publishVersion } = getManifestVersions();
+  validateManifestVersion(version);
   const publishChromeRequested = getEnv('PUBLISH_CHROME', 'true') === 'true';
   const publishFirefoxRequested = getEnv('PUBLISH_FIREFOX', 'true') === 'true';
 
@@ -277,7 +237,7 @@ async function runPreflight() {
   let firefoxBlockedPending = false;
   let publishChrome = false;
   let publishFirefox = false;
-  let sourceCommit = '';
+  let sourceCommit = git(['rev-parse', 'HEAD']);
 
   if (publishChromeRequested) {
     const chromeStatus = await fetchChromeStatus();
@@ -348,10 +308,6 @@ async function runPreflight() {
     }
   }
 
-  if (publishChrome || publishFirefox) {
-    sourceCommit = resolveSourceCommitForVersion(publishVersion);
-  }
-
   setOutput('manifest_version', version);
   setOutput('publish_version', publishVersion);
   setOutput('publish_chrome', String(publishChrome));
@@ -369,7 +325,7 @@ async function runPreflight() {
     '',
     `- Local manifest version: \`${version}\``,
     `- Publish target version: \`${publishVersion}\``,
-    `- Publish source commit: \`${sourceCommit || 'none'}\``,
+    `- Publish source commit: \`${sourceCommit}\``,
     `- Chrome live version: \`${chromeLiveVersion || 'none'}\``,
     `- Chrome submitted version: \`${chromeSubmittedVersion || 'none'}\``,
     `- Chrome blocked by pending review: \`${chromeBlockedPending}\``,
@@ -539,12 +495,6 @@ async function main() {
         throw new Error('Usage: node scripts/store-publish.js stamp-manifest-version <filePath> <version>');
       }
       stampManifestVersion(targetFilePath, targetVersion);
-      return;
-    case 'resolve-source-commit':
-      if (!targetVersion) {
-        throw new Error('Usage: node scripts/store-publish.js resolve-source-commit <version>');
-      }
-      setOutput('source_commit', resolveSourceCommitForVersion(targetVersion));
       return;
     case 'publish-chrome':
       await runPublishChrome();

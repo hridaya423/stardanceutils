@@ -23,16 +23,23 @@
     DEVLOG_INLINE_EDIT_LINK_ATTR: 'data-stardance-utils-inline-edit-link',
     DEVLOG_DRAFT_ATTR: 'data-stardance-utils-draft',
     DEVLOG_SLACK_EMOJI_ATTR: 'data-stardance-utils-slack-emoji',
+    DEVLOG_AUTO_COLLAPSE_KEY: 'devlogAutoCollapseEnabled',
     SLACK_EMOJI_API_URL: 'https://cachet.dunkirk.sh/emojis',
     CUSTOM_FONT_PAIRINGS_KEY: 'customSidebarFontPairings',
     SIDEBAR_ORDER_KEY: 'sidebarTabOrder',
     PROJECT_PINNED_IDS_KEY: 'pinnedProjectIds',
     SHOP_GOALS_KEY: 'shopGoals',
+    SHOP_GOALS_SYNC_META_KEY: 'shopGoals:meta',
+    SHOP_GOALS_SYNC_CHUNK_PREFIX: 'shopGoals:chunk:',
+    SHOP_GOALS_LOCAL_FALLBACK_KEY: 'shopGoals:localFallback',
+    SHOP_GOALS_SUPPRESSED_KEY: 'shopGoals:suppressedUntil',
     SHOP_LAYOUT_ENABLED_KEY: 'shopLayoutEnabled',
     SHOP_LAYOUT_RAIL_KEY: 'shopLayoutUseRail',
     SHOP_ORDERS_BUTTON_KEY: 'shopOrdersButtonEnabled',
+    DEVLOG_CHANGELOG_FORMAT_KEY: 'devlogChangelogFormat',
     ONBOARDING_KEY: 'onboardingState',
-    ONBOARDING_VERSION: 1,
+    ONBOARDING_VERSION: 2,
+    ONBOARDING_WHATS_NEW_LABEL: '0.0.6',
     ONBOARDING_ROOT_ID: 'stardance-utils-onboarding',
     ONBOARDING_ACTIVE_CLASS: 'stardance-utils-onboarding-active',
     FONT_DATALIST_ID: 'stardance-utils-font-suggestions',
@@ -42,6 +49,9 @@
     TRY_MODE_FALLBACK_PATH: '/home',
     SIDEBAR_REORDER_CLASS: 'stardance-utils-sidebar-reordering'
   });
+
+  SU.SYNC_ITEM_SAFE_BYTES = 7000;
+  SU.SYNC_TOTAL_SAFE_BYTES = 95000;
 
   SU.FONTSHARE_FONT_CATALOG = [
     { name: 'Switzer', slug: 'switzer', fallback: 'sans-serif' },
@@ -71,17 +81,25 @@
   ];
 
   SU.LOCAL_SETTINGS_PREFIX = 'stardance-utils:';
-  SU.LOCAL_SETTINGS_KEYS = new Set([
+  SU.SYNC_SETTINGS_KEYS = new Set([
     SU.THEME_KEY,
     SU.FONT_PAIRING_KEY,
-    SU.TRY_MODE_PENDING_KEY,
     SU.CUSTOM_FONT_PAIRINGS_KEY,
     SU.SIDEBAR_ORDER_KEY,
     SU.PROJECT_PINNED_IDS_KEY,
+    SU.SHOP_GOALS_KEY,
     SU.SHOP_LAYOUT_ENABLED_KEY,
     SU.SHOP_LAYOUT_RAIL_KEY,
     SU.SHOP_ORDERS_BUTTON_KEY,
+    SU.DEVLOG_CHANGELOG_FORMAT_KEY
+  ]);
+  SU.LOCAL_ONLY_SETTINGS_KEYS = new Set([
+    SU.TRY_MODE_PENDING_KEY,
     SU.ONBOARDING_KEY
+  ]);
+  SU.LEGACY_LOCAL_STORAGE_KEYS = new Set([
+    ...SU.SYNC_SETTINGS_KEYS,
+    ...SU.LOCAL_ONLY_SETTINGS_KEYS
   ]);
 
   SU.savedFontPairing = SU.DEFAULT_FONT_PAIRING;
@@ -95,17 +113,129 @@
   SU.savedShopLayoutEnabled = true;
   SU.savedShopLayoutUseRail = true;
   SU.savedShopOrdersButtonEnabled = true;
+  SU.savedDevlogChangelogFormat = 'hash';
   SU.onboardingState = null;
   SU.googleFontCatalog = null;
   SU.googleFontCatalogPromise = null;
   SU.draggedSidebarItemId = null;
   SU.slackEmojiCache = null;
   SU.slackEmojiRequestPromise = null;
-  SU.extensionStorage = globalThis.browser?.storage?.local ?? globalThis.chrome?.storage?.local ?? null;
+  SU.extensionLocalStorage = globalThis.browser?.storage?.local ?? globalThis.chrome?.storage?.local ?? null;
+  SU.extensionSyncStorage = globalThis.browser?.storage?.sync ?? globalThis.chrome?.storage?.sync ?? null;
+  SU.extensionStorageEvents = globalThis.browser?.storage?.onChanged ?? globalThis.chrome?.storage?.onChanged ?? null;
   SU.extensionRuntime = globalThis.browser?.runtime ?? globalThis.chrome?.runtime ?? null;
+  SU.extensionContextInvalidated = false;
   SU.aiButtonResetTimers = new WeakMap();
 
-  SU.usesLocalStorage = (key) => SU.LOCAL_SETTINGS_KEYS.has(key);
+  SU.isExtensionContextError = (error) => {
+    const message = String(error?.message || error || '').toLowerCase();
+    return message.includes('extension context invalidated')
+      || message.includes('context invalidated')
+      || message.includes('extension context')
+      || message.includes('receiving end does not exist');
+  };
+
+  SU.handleExtensionContextError = (error) => {
+    if (!SU.isExtensionContextError(error)) {
+      throw error;
+    }
+
+    SU.extensionContextInvalidated = true;
+    return undefined;
+  };
+
+  SU.sendRuntimeMessage = (message) => {
+    if (SU.extensionContextInvalidated) {
+      return Promise.reject(new Error('Extension context is unavailable. Reload the page to reconnect Stardance Utils.'));
+    }
+
+    if (globalThis.browser?.runtime?.sendMessage) {
+      try {
+        return globalThis.browser.runtime.sendMessage(message).catch((error) => {
+          if (SU.isExtensionContextError(error)) {
+            SU.extensionContextInvalidated = true;
+          }
+          throw error;
+        });
+      } catch (error) {
+        if (SU.isExtensionContextError(error)) {
+          SU.extensionContextInvalidated = true;
+        }
+        return Promise.reject(error);
+      }
+    }
+
+    const runtime = globalThis.chrome?.runtime ?? SU.extensionRuntime;
+    if (!runtime?.sendMessage) {
+      return Promise.reject(new Error('Extension background messaging is unavailable'));
+    }
+
+    return new Promise((resolve, reject) => {
+      try {
+        runtime.sendMessage(message, (response) => {
+          const runtimeError = globalThis.chrome?.runtime?.lastError;
+          if (runtimeError) {
+            const error = new Error(runtimeError.message);
+            if (SU.isExtensionContextError(error)) {
+              SU.extensionContextInvalidated = true;
+            }
+            reject(error);
+            return;
+          }
+
+          resolve(response);
+        });
+      } catch (error) {
+        if (SU.isExtensionContextError(error)) {
+          SU.extensionContextInvalidated = true;
+        }
+        reject(error);
+      }
+    });
+  };
+
+  SU.safeExtensionStorageCall = async (operation, fallbackValue) => {
+    if (SU.extensionContextInvalidated) {
+      return fallbackValue;
+    }
+
+    try {
+      return await operation();
+    } catch (error) {
+      const handled = SU.handleExtensionContextError(error);
+      if (handled === undefined && SU.extensionContextInvalidated) {
+        return fallbackValue;
+      }
+
+      throw error;
+    }
+  };
+
+  SU.isSyncSettingKey = (key) => SU.SYNC_SETTINGS_KEYS.has(key);
+
+  SU.isLocalOnlySettingKey = (key) => SU.LOCAL_ONLY_SETTINGS_KEYS.has(key);
+
+  SU.usesLegacyLocalStorage = (key) => SU.LEGACY_LOCAL_STORAGE_KEYS.has(key);
+
+  SU.getPreferredStorageArea = (key) => {
+    if (SU.isSyncSettingKey(key) && SU.extensionSyncStorage) {
+      return 'sync';
+    }
+
+    return 'local';
+  };
+
+  SU.getSerializedByteSize = (value) => {
+    const text = typeof value === 'string' ? value : JSON.stringify(value);
+    if (typeof TextEncoder !== 'undefined') {
+      return new TextEncoder().encode(text).length;
+    }
+    return text.length;
+  };
+
+  SU.getStorageItemSizeEstimate = (key, value) => key.length + SU.getSerializedByteSize(value);
+
+  SU.isShopGoalsShardKey = (key) => key === SU.SHOP_GOALS_SYNC_META_KEY || key.startsWith(SU.SHOP_GOALS_SYNC_CHUNK_PREFIX);
 
   SU.getLocalStorageKey = (key) => `${SU.LOCAL_SETTINGS_PREFIX}${key}`;
 
@@ -129,6 +259,23 @@
   SU.clearLocalSetting = (key) => {
     try {
       window.localStorage.removeItem(SU.getLocalStorageKey(key));
+    } catch {
+      // Ignore localStorage access failures.
+    }
+  };
+
+  SU.readRawLocalStorageValue = (key) => {
+    try {
+      const value = window.localStorage.getItem(key);
+      return value === null ? undefined : value;
+    } catch {
+      return undefined;
+    }
+  };
+
+  SU.clearRawLocalStorageValue = (key) => {
+    try {
+      window.localStorage.removeItem(key);
     } catch {
       // Ignore localStorage access failures.
     }
@@ -212,48 +359,315 @@
     return !state.completed && !state.dismissed && !state.started && state.lastUpdatedAt === 0;
   };
 
-  SU.getExtensionStoredSetting = (key) => {
-    if (!SU.extensionStorage) {
+  SU.shouldAutoShowWhatsNew = () => {
+    const state = SU.getOnboardingState();
+    return state.version !== SU.ONBOARDING_VERSION && state.lastUpdatedAt > 0;
+  };
+
+  SU.getExtensionStorageArea = (area) => {
+    if (area === 'sync' && SU.extensionSyncStorage) {
+      return SU.extensionSyncStorage;
+    }
+
+    return SU.extensionLocalStorage;
+  };
+
+  SU.runChromeStorageCallback = (operation) => new Promise((resolve, reject) => {
+    try {
+      operation((result) => {
+        const lastError = globalThis.chrome?.runtime?.lastError ?? SU.extensionRuntime?.lastError;
+        if (lastError) {
+          reject(new Error(lastError.message || 'Extension storage operation failed'));
+          return;
+        }
+
+        resolve(result);
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+  SU.getExtensionStoredSetting = (key, area = 'local') => {
+    const storageArea = SU.getExtensionStorageArea(area);
+    if (!storageArea) {
       return Promise.resolve(undefined);
     }
 
-    if (globalThis.browser?.storage?.local) {
-      return globalThis.browser.storage.local.get(key).then((result) => result?.[key]);
+    return SU.safeExtensionStorageCall(async () => {
+      if (globalThis.browser?.storage?.[area]) {
+        return globalThis.browser.storage[area].get(key).then((result) => result?.[key]);
+      }
+
+      return SU.runChromeStorageCallback((callback) => {
+        storageArea.get(key, callback);
+      }).then((result) => result?.[key]);
+    }, SU.readLocalSetting(key));
+  };
+
+  SU.setExtensionStoredSetting = (values, area = 'local') => {
+    const storageArea = SU.getExtensionStorageArea(area);
+    if (!storageArea) {
+      return Promise.resolve();
     }
 
-    return new Promise((resolve) => {
-      SU.extensionStorage.get(key, (result) => {
-        resolve(result?.[key]);
+    return SU.safeExtensionStorageCall(async () => {
+      if (globalThis.browser?.storage?.[area]) {
+        return globalThis.browser.storage[area].set(values);
+      }
+
+      return SU.runChromeStorageCallback((callback) => {
+        storageArea.set(values, callback);
+      }).then(() => undefined);
+    }, undefined);
+  };
+
+  SU.removeExtensionStoredSetting = (key, area = 'local') => {
+    const storageArea = SU.getExtensionStorageArea(area);
+    if (!storageArea) {
+      return Promise.resolve();
+    }
+
+    return SU.safeExtensionStorageCall(async () => {
+      if (globalThis.browser?.storage?.[area]) {
+        return globalThis.browser.storage[area].remove(key);
+      }
+
+      return SU.runChromeStorageCallback((callback) => {
+        storageArea.remove(key, callback);
+      }).then(() => undefined);
+    }, undefined);
+  };
+
+  SU.getExtensionStoredSettings = (keys, area = 'local') => {
+    const storageArea = SU.getExtensionStorageArea(area);
+    if (!storageArea || !Array.isArray(keys) || keys.length === 0) {
+      return Promise.resolve({});
+    }
+
+    return SU.safeExtensionStorageCall(async () => {
+      if (globalThis.browser?.storage?.[area]) {
+        return globalThis.browser.storage[area].get(keys);
+      }
+
+      return SU.runChromeStorageCallback((callback) => {
+        storageArea.get(keys, callback);
       });
-    });
+    }, Object.fromEntries(keys.map((key) => [key, SU.readLocalSetting(key)])));
   };
 
-  SU.setExtensionStoredSetting = (values) => {
-    if (!SU.extensionStorage) {
-      return Promise.resolve();
+  SU.getLocalOnlyStoredValue = async (key, legacyLocalStorageKey = null) => {
+    const value = await SU.getExtensionStoredSetting(key, 'local');
+    if (value !== undefined) {
+      return value;
     }
 
-    if (globalThis.browser?.storage?.local) {
-      return globalThis.browser.storage.local.set(values);
+    const mirroredValue = SU.readLocalSetting(key);
+    if (mirroredValue !== undefined) {
+      await SU.setExtensionStoredSetting({ [key]: mirroredValue }, 'local');
+      return mirroredValue;
     }
 
-    return new Promise((resolve) => {
-      SU.extensionStorage.set(values, () => resolve());
-    });
+    if (!legacyLocalStorageKey) {
+      return undefined;
+    }
+
+    const legacyValue = SU.readRawLocalStorageValue(legacyLocalStorageKey);
+    if (legacyValue === undefined) {
+      return undefined;
+    }
+
+    await SU.setExtensionStoredSetting({ [key]: legacyValue }, 'local');
+    SU.clearRawLocalStorageValue(legacyLocalStorageKey);
+    return legacyValue;
   };
 
-  SU.removeExtensionStoredSetting = (key) => {
-    if (!SU.extensionStorage) {
-      return Promise.resolve();
+  SU.setLocalOnlyStoredValue = async (key, value, legacyLocalStorageKey = null) => {
+    if (value === undefined || value === null || value === '') {
+      await SU.removeExtensionStoredSetting(key, 'local');
+      SU.clearLocalSetting(key);
+    } else {
+      await SU.setExtensionStoredSetting({ [key]: value }, 'local');
+      SU.writeLocalSetting(key, value);
     }
 
-    if (globalThis.browser?.storage?.local) {
-      return globalThis.browser.storage.local.remove(key);
+    if (legacyLocalStorageKey) {
+      SU.clearRawLocalStorageValue(legacyLocalStorageKey);
+    }
+  };
+
+  SU.removeLocalOnlyStoredValue = async (key, legacyLocalStorageKey = null) => {
+    await SU.removeExtensionStoredSetting(key, 'local');
+    SU.clearLocalSetting(key);
+    if (legacyLocalStorageKey) {
+      SU.clearRawLocalStorageValue(legacyLocalStorageKey);
+    }
+  };
+
+  SU.migrateLegacyStoredValue = async (key, area, value) => {
+    await SU.setExtensionStoredSetting({ [key]: value }, area);
+
+    SU.writeLocalSetting(key, value);
+
+    if (area === 'sync') {
+      void SU.removeExtensionStoredSetting(key, 'local');
     }
 
-    return new Promise((resolve) => {
-      SU.extensionStorage.remove(key, () => resolve());
+    return value;
+  };
+
+  SU.buildShopGoalSyncChunks = (goals) => {
+    const entries = Object.entries(goals || {});
+    const chunks = [];
+    let currentChunk = {};
+    let currentIndex = 0;
+
+    const flushChunk = () => {
+      const chunkKey = `${SU.SHOP_GOALS_SYNC_CHUNK_PREFIX}${currentIndex}`;
+      chunks.push([chunkKey, currentChunk]);
+      currentChunk = {};
+      currentIndex += 1;
+    };
+
+    entries.forEach(([goalId, goalValue]) => {
+      const nextChunk = {
+        ...currentChunk,
+        [goalId]: goalValue
+      };
+      const nextChunkKey = `${SU.SHOP_GOALS_SYNC_CHUNK_PREFIX}${currentIndex}`;
+
+      if (Object.keys(currentChunk).length > 0 && SU.getStorageItemSizeEstimate(nextChunkKey, nextChunk) > SU.SYNC_ITEM_SAFE_BYTES) {
+        flushChunk();
+      }
+
+      currentChunk[goalId] = goalValue;
+
+      if (SU.getStorageItemSizeEstimate(`${SU.SHOP_GOALS_SYNC_CHUNK_PREFIX}${currentIndex}`, currentChunk) > SU.SYNC_ITEM_SAFE_BYTES) {
+        throw new Error(`Shop goals entry ${goalId} is too large to fit into sync storage even when isolated`);
+      }
     });
+
+    if (Object.keys(currentChunk).length > 0) {
+      flushChunk();
+    }
+
+    return chunks;
+  };
+
+  SU.getShopGoalsLocalFallbackFlag = () => SU.getExtensionStoredSetting(SU.SHOP_GOALS_LOCAL_FALLBACK_KEY, 'local');
+
+  SU.getShopGoalsSuppressedUntil = async () => {
+    const raw = await SU.getExtensionStoredSetting(SU.SHOP_GOALS_SUPPRESSED_KEY, 'local');
+    if (!raw || typeof raw !== 'object') {
+      return {};
+    }
+    const now = Date.now();
+    const pruned = Object.fromEntries(Object.entries(raw).filter(([, expiry]) => expiry > now));
+    if (Object.keys(pruned).length !== Object.keys(raw).length) {
+      void SU.setExtensionStoredSetting({ [SU.SHOP_GOALS_SUPPRESSED_KEY]: pruned }, 'local');
+    }
+    return pruned;
+  };
+
+  SU.setShopGoalsSuppressedUntil = (map) => (
+    SU.setExtensionStoredSetting({ [SU.SHOP_GOALS_SUPPRESSED_KEY]: map }, 'local')
+  );
+
+  SU.setShopGoalsLocalFallbackFlag = (enabled) => {
+    if (enabled) {
+      return SU.setExtensionStoredSetting({ [SU.SHOP_GOALS_LOCAL_FALLBACK_KEY]: true }, 'local');
+    }
+
+    return SU.removeExtensionStoredSetting(SU.SHOP_GOALS_LOCAL_FALLBACK_KEY, 'local');
+  };
+
+  SU.getShardedSyncSetting = async (key) => {
+    if (key !== SU.SHOP_GOALS_KEY) {
+      return SU.getExtensionStoredSetting(key, 'sync');
+    }
+
+    const meta = await SU.getExtensionStoredSetting(SU.SHOP_GOALS_SYNC_META_KEY, 'sync');
+    if (meta?.chunkKeys && Array.isArray(meta.chunkKeys) && meta.chunkKeys.length > 0) {
+      const chunkValues = await SU.getExtensionStoredSettings(meta.chunkKeys, 'sync');
+      return meta.chunkKeys.reduce((acc, chunkKey) => {
+        const chunk = chunkValues?.[chunkKey];
+        if (chunk && typeof chunk === 'object') {
+          Object.assign(acc, chunk);
+        }
+        return acc;
+      }, {});
+    }
+
+    return SU.getExtensionStoredSetting(key, 'sync');
+  };
+
+  SU.setShardedSyncSetting = async (key, value) => {
+    if (key !== SU.SHOP_GOALS_KEY) {
+      await SU.setExtensionStoredSetting({ [key]: value }, 'sync');
+      return;
+    }
+
+    const currentMeta = await SU.getExtensionStoredSetting(SU.SHOP_GOALS_SYNC_META_KEY, 'sync');
+    const previousChunkKeys = Array.isArray(currentMeta?.chunkKeys) ? currentMeta.chunkKeys : [];
+    const chunks = SU.buildShopGoalSyncChunks(value || {});
+
+    if (chunks.length === 0) {
+      await SU.removeShardedSyncSetting(key);
+      return;
+    }
+
+    const syncValues = Object.fromEntries(chunks);
+    syncValues[SU.SHOP_GOALS_SYNC_META_KEY] = {
+      version: 1,
+      chunkKeys: chunks.map(([chunkKey]) => chunkKey)
+    };
+
+    const totalSize = Object.entries(syncValues).reduce((sum, [chunkKey, chunkValue]) => (
+      sum + SU.getStorageItemSizeEstimate(chunkKey, chunkValue)
+    ), 0);
+
+    const fallbackToLocal = async () => {
+      await SU.removeShardedSyncSetting(key);
+      await SU.setExtensionStoredSetting({ [SU.SHOP_GOALS_KEY]: value }, 'local');
+      await SU.setShopGoalsLocalFallbackFlag(true);
+    };
+
+    if (totalSize > SU.SYNC_TOTAL_SAFE_BYTES) {
+      await fallbackToLocal();
+      return;
+    }
+
+    try {
+      await SU.setExtensionStoredSetting(syncValues, 'sync');
+    } catch (error) {
+      await fallbackToLocal();
+      return;
+    }
+
+    const staleChunkKeys = previousChunkKeys.filter((chunkKey) => !syncValues[chunkKey]);
+    if (staleChunkKeys.length > 0) {
+      await Promise.all(staleChunkKeys.map((chunkKey) => SU.removeExtensionStoredSetting(chunkKey, 'sync')));
+    }
+
+    await SU.removeExtensionStoredSetting(SU.SHOP_GOALS_KEY, 'sync');
+    await SU.removeExtensionStoredSetting(SU.SHOP_GOALS_KEY, 'local');
+    await SU.setShopGoalsLocalFallbackFlag(false);
+  };
+
+  SU.removeShardedSyncSetting = async (key) => {
+    if (key !== SU.SHOP_GOALS_KEY) {
+      await SU.removeExtensionStoredSetting(key, 'sync');
+      return;
+    }
+
+    const meta = await SU.getExtensionStoredSetting(SU.SHOP_GOALS_SYNC_META_KEY, 'sync');
+    const chunkKeys = Array.isArray(meta?.chunkKeys) ? meta.chunkKeys : [];
+    const removals = chunkKeys.map((chunkKey) => SU.removeExtensionStoredSetting(chunkKey, 'sync'));
+    removals.push(SU.removeExtensionStoredSetting(SU.SHOP_GOALS_SYNC_META_KEY, 'sync'));
+    removals.push(SU.removeExtensionStoredSetting(SU.SHOP_GOALS_KEY, 'sync'));
+    removals.push(SU.removeExtensionStoredSetting(SU.SHOP_GOALS_KEY, 'local'));
+    removals.push(SU.setShopGoalsLocalFallbackFlag(false));
+    await Promise.all(removals);
   };
 
   SU.ensureFontLink = () => {
@@ -275,22 +689,42 @@
   };
 
   SU.getStoredSetting = (key) => {
-    if (SU.usesLocalStorage(key)) {
-      const localValue = SU.readLocalSetting(key);
-      if (localValue !== undefined) {
-        return Promise.resolve(localValue);
+    const preferredArea = SU.getPreferredStorageArea(key);
+
+    const readPreferredValue = preferredArea === 'sync' && key === SU.SHOP_GOALS_KEY
+      ? SU.getShardedSyncSetting(key)
+      : SU.getExtensionStoredSetting(key, preferredArea);
+
+    return readPreferredValue.then(async (value) => {
+      if (value !== undefined) {
+        SU.writeLocalSetting(key, value);
+        return value;
       }
 
-      return SU.getExtensionStoredSetting(key).then((value) => {
-        if (value !== undefined) {
-          SU.writeLocalSetting(key, value);
-          void SU.removeExtensionStoredSetting(key);
-        }
-        return value;
-      });
-    }
+      const mirroredValue = SU.readLocalSetting(key);
+      if (mirroredValue !== undefined) {
+        return SU.migrateLegacyStoredValue(key, preferredArea, mirroredValue);
+      }
 
-    return SU.getExtensionStoredSetting(key);
+      if (SU.usesLegacyLocalStorage(key)) {
+        const localValue = SU.readLocalSetting(key);
+        if (localValue !== undefined) {
+          return SU.migrateLegacyStoredValue(key, preferredArea, localValue);
+        }
+      }
+
+      if (preferredArea === 'sync') {
+        const localAreaValue = await SU.getExtensionStoredSetting(key, 'local');
+        if (localAreaValue !== undefined) {
+          if (key === SU.SHOP_GOALS_KEY && await SU.getShopGoalsLocalFallbackFlag()) {
+            return localAreaValue;
+          }
+          return SU.migrateLegacyStoredValue(key, 'sync', localAreaValue);
+        }
+      }
+
+      return undefined;
+    });
   };
 
   SU.getStoredSettings = async (keys) => {
@@ -299,26 +733,63 @@
   };
 
   SU.setStoredSetting = (values) => {
-    const extensionValues = {};
+    const localValues = {};
+    const syncValues = {};
+    const shardedSyncValues = {};
 
     Object.entries(values).forEach(([key, value]) => {
-      if (SU.usesLocalStorage(key)) {
-        SU.writeLocalSetting(key, value);
-        void SU.removeExtensionStoredSetting(key);
+      if (value === undefined || value === null || value === '') {
+        SU.clearLocalSetting(key);
       } else {
-        extensionValues[key] = value;
+        SU.writeLocalSetting(key, value);
       }
     });
 
-    return Object.keys(extensionValues).length > 0 ? SU.setExtensionStoredSetting(extensionValues) : Promise.resolve();
+    Object.entries(values).forEach(([key, value]) => {
+      if (SU.getPreferredStorageArea(key) === 'sync') {
+        if (key === SU.SHOP_GOALS_KEY) {
+          shardedSyncValues[key] = value;
+        } else {
+          syncValues[key] = value;
+        }
+      } else {
+        localValues[key] = value;
+      }
+    });
+
+    const writes = [];
+    if (Object.keys(localValues).length > 0) {
+      writes.push(SU.setExtensionStoredSetting(localValues, 'local'));
+    }
+    if (Object.keys(syncValues).length > 0) {
+      writes.push(SU.setExtensionStoredSetting(syncValues, 'sync'));
+    }
+    if (Object.keys(shardedSyncValues).length > 0) {
+      writes.push(...Object.entries(shardedSyncValues).map(([key, value]) => SU.setShardedSyncSetting(key, value)));
+    }
+
+    return Promise.all(writes).then(() => {
+      Object.keys(values).forEach((key) => {
+        if (SU.getPreferredStorageArea(key) === 'sync') {
+          void SU.removeExtensionStoredSetting(key, 'local');
+        }
+      });
+    });
   };
 
   SU.removeStoredSetting = (key) => {
-    if (SU.usesLocalStorage(key)) {
-      SU.clearLocalSetting(key);
+    SU.clearLocalSetting(key);
+
+    const removals = [
+      SU.getPreferredStorageArea(key) === 'sync' && key === SU.SHOP_GOALS_KEY
+        ? SU.removeShardedSyncSetting(key)
+        : SU.removeExtensionStoredSetting(key, SU.getPreferredStorageArea(key))
+    ];
+    if (SU.getPreferredStorageArea(key) === 'sync') {
+      removals.push(SU.removeExtensionStoredSetting(key, 'local'));
     }
 
-    return SU.removeExtensionStoredSetting(key);
+    return Promise.all(removals).then(() => undefined);
   };
 
   SU.normalizeFontName = (value) => value.trim().replace(/\s+/g, ' ').toLowerCase();

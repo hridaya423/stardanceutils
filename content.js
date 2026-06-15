@@ -34,7 +34,8 @@
       SU.SHOP_LAYOUT_ENABLED_KEY,
       SU.SHOP_LAYOUT_RAIL_KEY,
       SU.SHOP_ORDERS_BUTTON_KEY,
-      SU.DEVLOG_CHANGELOG_FORMAT_KEY
+      SU.DEVLOG_CHANGELOG_FORMAT_KEY,
+      SU.DEVLOG_AUTO_COLLAPSE_KEY
     ]);
     SU.customFontPairings = Array.isArray(storedValues?.[SU.CUSTOM_FONT_PAIRINGS_KEY]) ? storedValues[SU.CUSTOM_FONT_PAIRINGS_KEY] : [];
     SU.savedSidebarOrder = SU.normalizeSidebarOrder(storedValues?.[SU.SIDEBAR_ORDER_KEY]);
@@ -44,6 +45,7 @@
     SU.savedShopLayoutUseRail = storedValues?.[SU.SHOP_LAYOUT_RAIL_KEY] !== false;
     SU.savedShopOrdersButtonEnabled = storedValues?.[SU.SHOP_ORDERS_BUTTON_KEY] !== false;
     SU.savedDevlogChangelogFormat = SU.getValidDevlogChangelogFormat?.(storedValues?.[SU.DEVLOG_CHANGELOG_FORMAT_KEY]) ?? 'hash';
+    SU.savedDevlogAutoCollapseEnabled = storedValues?.[SU.DEVLOG_AUTO_COLLAPSE_KEY] !== false;
     SU.savedTheme = SU.getValidTheme(storedValues?.[SU.THEME_KEY]);
     SU.savedFontPairing = SU.getValidPairing(storedValues?.[SU.FONT_PAIRING_KEY]);
 
@@ -59,6 +61,7 @@
     SU.applySidebarOrder(SU.savedSidebarOrder);
     SU.applyFontPairing(SU.getEffectivePairing());
     runEnhancement('project page enhancements', SU.enhanceProjectShowPage);
+    runEnhancement('devlog collapse enhancements', SU.enhanceDevlogBodyCollapse);
     runEnhancement('profile project enhancements', SU.enhanceProfileProjectsPage);
     runEnhancement('shop enhancements', SU.enhanceShopPage);
     runEnhancement('feed AI enhancements', SU.enhanceFeedAiVerification);
@@ -82,6 +85,7 @@
   };
 
   let syncScheduled = false;
+  let observedBody = null;
 
   const scheduleSync = () => {
     if (syncScheduled) {
@@ -91,7 +95,17 @@
     syncScheduled = true;
     queueMicrotask(async () => {
       syncScheduled = false;
-      await SU.syncEnhancements();
+      try {
+        await SU.syncEnhancements();
+      } catch (error) {
+        if (SU.isExtensionContextError?.(error)) {
+          SU.extensionContextInvalidated = true;
+          console.warn('[Stardance Utils]', 'Extension context was invalidated. Reload the page to reconnect Utils.');
+          return;
+        }
+
+        console.error('[Stardance Utils]', 'Failed to sync enhancements', error);
+      }
     });
   };
 
@@ -108,6 +122,15 @@
       const target = mutation.target;
       if (target instanceof Element && (target.id === 'command-palette-results' || target.closest?.('#command-palette-dialog'))) {
         return true;
+      }
+
+      if (mutation.type === 'attributes' && target instanceof Element) {
+        return target.classList?.contains('feed-post-card')
+          || target.classList?.contains('feed-post-card__body')
+          || target.classList?.contains('feed-post-card__media')
+          || target.classList?.contains('feed-post-card__media-viewport')
+          || target.classList?.contains('feed-post-card__image')
+          || Boolean(target.closest?.('article.feed-post-card, .devlog-detail__post, .comment-modal'));
       }
 
       const nodes = [...mutation.addedNodes, ...mutation.removedNodes];
@@ -142,9 +165,20 @@
     }
   });
 
-  if (document.body) {
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
+  const ensureObserver = () => {
+    if (!document.body || observedBody === document.body) {
+      return;
+    }
+
+    observer.disconnect();
+    observedBody = document.body;
+    observer.observe(observedBody, {
+      attributes: true,
+      attributeFilter: ['class', 'src', 'data-feed-engagement-post-type-value'],
+      childList: true,
+      subtree: true
+    });
+  };
 
   const resyncKeys = new Set([
     SU.THEME_KEY,
@@ -156,23 +190,47 @@
     SU.SHOP_GOALS_KEY,
     SU.SHOP_LAYOUT_ENABLED_KEY,
     SU.SHOP_LAYOUT_RAIL_KEY,
-    SU.SHOP_ORDERS_BUTTON_KEY
+    SU.SHOP_ORDERS_BUTTON_KEY,
+    SU.DEVLOG_CHANGELOG_FORMAT_KEY,
+    SU.DEVLOG_AUTO_COLLAPSE_KEY
   ]);
 
-  SU.extensionStorageEvents?.addListener((changes, areaName) => {
-    if (areaName !== 'sync' && areaName !== 'local') {
-      return;
-    }
+  try {
+    SU.extensionStorageEvents?.addListener((changes, areaName) => {
+      if (areaName !== 'sync' && areaName !== 'local') {
+        return;
+      }
 
-    const shouldResync = Object.keys(changes).some((key) => resyncKeys.has(key) || SU.isShopGoalsShardKey?.(key));
-    if (shouldResync) {
+      const shouldResync = Object.keys(changes).some((key) => resyncKeys.has(key) || SU.isShopGoalsShardKey?.(key));
+      if (shouldResync) {
+        scheduleSync();
+      }
+    });
+  } catch (error) {
+    if (SU.isExtensionContextError?.(error)) {
+      SU.extensionContextInvalidated = true;
+    } else {
+      throw error;
+    }
+  }
+
+  const reconnectAndSync = () => {
+    ensureObserver();
+    scheduleSync();
+    requestAnimationFrame(() => {
+      ensureObserver();
       scheduleSync();
-    }
+    });
+  };
+
+  window.addEventListener('DOMContentLoaded', reconnectAndSync);
+  window.addEventListener('turbo:before-render', () => {
+    observedBody = null;
   });
+  window.addEventListener('turbo:load', reconnectAndSync);
+  window.addEventListener('turbo:render', reconnectAndSync);
+  window.addEventListener('turbo:frame-load', reconnectAndSync);
+  window.addEventListener('pageshow', reconnectAndSync);
 
-  window.addEventListener('turbo:load', scheduleSync);
-  window.addEventListener('turbo:render', scheduleSync);
-  window.addEventListener('pageshow', scheduleSync);
-
-  scheduleSync();
+  reconnectAndSync();
 })();

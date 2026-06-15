@@ -2,6 +2,7 @@
   const SU = globalThis.StardanceUtils;
   const FEED_IMAGE_ZOOM_BUTTON_ATTR = 'data-stardance-utils-image-zoom-button';
   const FEED_IMAGE_ZOOM_DIALOG_ID = 'stardance-utils-image-zoom-dialog';
+  const AI_IMAGE_MAX_BYTES = 8 * 1024 * 1024;
   const FEED_AI_BUTTON_ICON = `
     <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
       <path d="M8 17.75h8m3.5-5.5h.75a1.5 1.5 0 0 1 1.5 1.5v2a1.5 1.5 0 0 1-1.5 1.5h-.75m-15-5h-.75a1.5 1.5 0 0 0-1.5 1.5v2a1.5 1.5 0 0 0 1.5 1.5h.75M12 8V6m1.5-1.5A1.5 1.5 0 0 1 12 6a1.5 1.5 0 0 1-1.5-1.5A1.5 1.5 0 0 1 12 3a1.5 1.5 0 0 1 1.5 1.5m2.75 8.75a1.5 1.5 0 0 1-1.5 1.5a1.5 1.5 0 0 1-1.5-1.5a1.5 1.5 0 0 1 1.5-1.5a1.5 1.5 0 0 1 1.5 1.5m-5.5 0a1.5 1.5 0 0 1-1.5 1.5a1.5 1.5 0 0 1-1.5-1.5a1.5 1.5 0 0 1 1.5-1.5a1.5 1.5 0 0 1 1.5 1.5M8.25 8.5h7.5a3.74 3.74 0 0 1 3.75 3.75v5A3.74 3.74 0 0 1 15.75 21h-7.5a3.74 3.74 0 0 1-3.75-3.75v-5A3.74 3.74 0 0 1 8.25 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -56,7 +57,7 @@
   };
 
   SU.runFeedAiVerification = async (imageUrl, mode = 'basic') => {
-    if (!SU.extensionRuntime?.sendMessage) {
+    if (typeof SU.sendRuntimeMessage !== 'function') {
       throw new Error('Extension background messaging is unavailable');
     }
 
@@ -67,6 +68,10 @@
     }
 
     const blob = await response.blob();
+    if (blob.size > AI_IMAGE_MAX_BYTES) {
+      throw new Error('Image is too large to inspect safely. Try a smaller image.');
+    }
+
     const fileName = decodeURIComponent(imageUrl.split('/').pop() || 'image');
     const buffer = await blob.arrayBuffer();
     const byteArray = Array.from(new Uint8Array(buffer));
@@ -79,30 +84,21 @@
       byteLength: byteArray.length
     });
 
-    return new Promise((resolve, reject) => {
-      SU.extensionRuntime.sendMessage({
-        type: 'stardance-utils-ai-check',
-        imageUrl,
-        mode,
-        fileName,
-        mimeType: blob.type || 'image/png',
-        bytes: byteArray
-      }, (result) => {
-        const runtimeError = globalThis.chrome?.runtime?.lastError;
-        if (runtimeError) {
-          reject(new Error(runtimeError.message));
-          return;
-        }
-
-        if (!result?.ok) {
-          reject(new Error(result?.error?.message || 'Background AI verification failed'));
-          return;
-        }
-
-        SU.logAiDebug('Received AI verification response from background worker', result.result);
-        resolve(result.result);
-      });
+    const result = await SU.sendRuntimeMessage({
+      type: 'stardance-utils-ai-check',
+      imageUrl,
+      mode,
+      fileName,
+      mimeType: blob.type || 'image/png',
+      bytes: byteArray
     });
+
+    if (!result?.ok) {
+      throw new Error(result?.error?.message || 'Background AI verification failed');
+    }
+
+    SU.logAiDebug('Received AI verification response from background worker', result.result);
+    return result.result;
   };
 
   SU.ensureFeedMediaControls = (card) => {
@@ -318,18 +314,18 @@
     SU.logAiDebug('Scanning feed cards for AI verification', { totalCards: cards.length });
     cards.forEach((card) => {
       card.querySelectorAll('.stardance-utils-ai-row').forEach((row) => row.remove());
+      const button = SU.ensureFeedAiButton(card);
+      SU.ensureFeedImageZoomButton(card);
+
       if (card.getAttribute(SU.FEED_AI_ATTR) === 'true') {
         return;
       }
 
       card.setAttribute(SU.FEED_AI_ATTR, 'true');
       SU.logAiDebug('Attached AI verification hooks to feed card', { postId: card.id || null });
-      const button = SU.ensureFeedAiButton(card);
       button?.addEventListener('click', () => {
         void SU.verifyFeedCard(card, 'deep', 'manual');
       });
-
-      SU.ensureFeedImageZoomButton(card);
     });
   };
 })();

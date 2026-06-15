@@ -9,6 +9,7 @@
     const select = dialog.querySelector('[data-stardance-utils-setting="sidebar-font-pairing"]');
     const themeSelect = dialog.querySelector('[data-stardance-utils-setting="site-theme"]');
     const changelogFormatSelect = dialog.querySelector('[data-stardance-utils-setting="devlog-changelog-format"]');
+    const devlogAutoCollapseToggle = dialog.querySelector('[data-stardance-utils-setting="devlog-auto-collapse"]');
     const orderList = dialog.querySelector('[data-stardance-utils-sidebar-order]');
     const shopLayoutToggle = dialog.querySelector('[data-stardance-utils-setting="shop-layout-enabled"]');
     const shopSidebarToggle = dialog.querySelector('[data-stardance-utils-setting="shop-sidebar-enabled"]');
@@ -26,6 +27,10 @@
       SU.renderDevlogChangelogFormatOptions(changelogFormatSelect, SU.savedDevlogChangelogFormat);
     }
 
+    if (devlogAutoCollapseToggle) {
+      devlogAutoCollapseToggle.checked = SU.savedDevlogAutoCollapseEnabled !== false;
+    }
+
     if (orderList) {
       SU.renderSidebarOrderList(orderList);
     }
@@ -41,7 +46,7 @@
 
     if (shopOrdersToggle) {
       shopOrdersToggle.checked = SU.savedShopOrdersButtonEnabled !== false;
-      shopOrdersToggle.disabled = SU.savedShopLayoutEnabled === false || SU.savedShopLayoutUseRail === false;
+      shopOrdersToggle.disabled = false;
     }
   };
 
@@ -148,6 +153,27 @@
     const devlogsHint = document.createElement('small');
     devlogsHint.className = 'settings-form__hint';
     devlogsHint.textContent = 'Choose how GitHub changelog commits get inserted into devlogs.';
+
+    const devlogCollapseField = document.createElement('div');
+    devlogCollapseField.className = 'settings-form__field';
+
+    const devlogCollapseLabel = document.createElement('label');
+    devlogCollapseLabel.className = 'settings-form__checkbox';
+
+    const devlogCollapseToggle = document.createElement('input');
+    devlogCollapseToggle.type = 'checkbox';
+    devlogCollapseToggle.checked = SU.savedDevlogAutoCollapseEnabled !== false;
+    devlogCollapseToggle.setAttribute('data-stardance-utils-setting', 'devlog-auto-collapse');
+
+    const devlogCollapseText = document.createElement('span');
+    devlogCollapseText.textContent = 'Auto-collapse long devlogs';
+
+    devlogCollapseLabel.appendChild(devlogCollapseToggle);
+    devlogCollapseLabel.appendChild(devlogCollapseText);
+
+    const devlogCollapseHint = document.createElement('small');
+    devlogCollapseHint.className = 'settings-form__hint';
+    devlogCollapseHint.textContent = 'Shows a subtle inline "... show more" link on very long devlog posts.';
 
     const sidebarSummary = document.createElement('summary');
     sidebarSummary.className = 'stardance-utils-accordion-summary';
@@ -300,17 +326,16 @@
     shopOrdersLabel.className = 'settings-form__checkbox';
     const shopOrdersToggle = document.createElement('input');
     shopOrdersToggle.type = 'checkbox';
-    shopOrdersToggle.checked = SU.savedShopOrdersButtonEnabled === false;
-    shopOrdersToggle.disabled = SU.savedShopLayoutEnabled === false || SU.savedShopLayoutUseRail === false;
+    shopOrdersToggle.checked = SU.savedShopOrdersButtonEnabled !== false;
     shopOrdersToggle.setAttribute('data-stardance-utils-setting', 'shop-orders-button');
     const shopOrdersText = document.createElement('span');
-    shopOrdersText.textContent = 'Keep Your Orders in sidebar';
+    shopOrdersText.textContent = 'Move Your Orders to main area';
     shopOrdersLabel.appendChild(shopOrdersToggle);
     shopOrdersLabel.appendChild(shopOrdersText);
 
     const shopOrdersHint = document.createElement('small');
     shopOrdersHint.className = 'settings-form__hint';
-    shopOrdersHint.textContent = 'Off by default. When disabled, Your Orders becomes a main-area button and Goals gets more room in the sidebar.';
+    shopOrdersHint.textContent = 'On by default. Moves Your Orders into the main shop area so Goals gets more room in the sidebar.';
 
     const onboardingField = document.createElement('div');
     onboardingField.className = 'settings-form__field';
@@ -352,6 +377,12 @@
 
     devlogsSelect.addEventListener('change', async () => {
       await SU.setDevlogChangelogFormat(devlogsSelect.value);
+    });
+
+    devlogCollapseToggle.addEventListener('change', async () => {
+      SU.savedDevlogAutoCollapseEnabled = devlogCollapseToggle.checked;
+      await SU.setStoredSetting({ [SU.DEVLOG_AUTO_COLLAPSE_KEY]: SU.savedDevlogAutoCollapseEnabled });
+      SU.enhanceDevlogBodyCollapse?.();
     });
 
     const handleAutocompleteInput = async (event) => {
@@ -465,7 +496,6 @@
         shopOrdersToggle.checked = true;
       }
 
-      shopOrdersToggle.disabled = SU.savedShopLayoutEnabled === false || SU.savedShopLayoutUseRail === false;
       await SU.setStoredSetting({
         [SU.SHOP_LAYOUT_RAIL_KEY]: SU.savedShopLayoutUseRail,
         [SU.SHOP_ORDERS_BUTTON_KEY]: SU.savedShopOrdersButtonEnabled
@@ -475,7 +505,19 @@
 
     shopOrdersToggle.addEventListener('change', async () => {
       SU.savedShopOrdersButtonEnabled = shopOrdersToggle.checked;
-      await SU.setStoredSetting({ [SU.SHOP_ORDERS_BUTTON_KEY]: SU.savedShopOrdersButtonEnabled });
+      if (SU.savedShopOrdersButtonEnabled) {
+        SU.savedShopLayoutEnabled = true;
+        SU.savedShopLayoutUseRail = true;
+        shopLayoutToggle.checked = true;
+        shopSidebarToggle.checked = true;
+        shopSidebarToggle.disabled = false;
+      }
+
+      await SU.setStoredSetting({
+        [SU.SHOP_LAYOUT_ENABLED_KEY]: SU.savedShopLayoutEnabled,
+        [SU.SHOP_LAYOUT_RAIL_KEY]: SU.savedShopLayoutUseRail,
+        [SU.SHOP_ORDERS_BUTTON_KEY]: SU.savedShopOrdersButtonEnabled
+      });
       refreshShopUi();
     });
 
@@ -526,6 +568,9 @@
     devlogsBody.appendChild(devlogsHeader);
     devlogsBody.appendChild(devlogsSelect);
     devlogsBody.appendChild(devlogsHint);
+    devlogCollapseField.appendChild(devlogCollapseLabel);
+    devlogCollapseField.appendChild(devlogCollapseHint);
+    devlogsBody.appendChild(devlogCollapseField);
     devlogsAccordion.appendChild(devlogsSummary);
     devlogsAccordion.appendChild(devlogsBody);
     field.appendChild(devlogsAccordion);

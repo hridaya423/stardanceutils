@@ -2,7 +2,7 @@
 //  ViewController.swift
 //  Stardance Utils Safari
 //
-//  Created by Hridya Agrawal on 08/06/2026.
+//  Created by Hridya Agrawal on 15/06/2026.
 //
 
 import Cocoa

@@ -10,6 +10,7 @@ const APP_PROJECT_ROOT = path.join(PROJECT_DIR, APP_NAME);
 const APP_XCODEPROJ = path.join(APP_PROJECT_ROOT, `${APP_NAME}.xcodeproj`);
 const APP_BUNDLE_ID = 'com.hridyaagrawal.stardanceutils';
 const EXTENSION_BUNDLE_ID = `${APP_BUNDLE_ID}.extension`;
+const DEFAULT_MACOS_DEPLOYMENT_TARGET = '14.0';
 
 const SOURCE_FILES = [
   'manifest.json',
@@ -23,6 +24,7 @@ const SOURCE_FILES = [
   'projects.js',
   'settings.js',
   'onboarding.js',
+  'command-palette.js',
   'openai-verify.js',
   'styles.css',
   'icon32.png',
@@ -53,13 +55,15 @@ function readJson(relativePath) {
   return JSON.parse(fs.readFileSync(path.join(ROOT, relativePath), 'utf8'));
 }
 
-function patchProject(manifestVersion) {
+function patchProject(manifestVersion, buildNumber, deploymentTarget) {
   const projectFile = path.join(APP_XCODEPROJ, 'project.pbxproj');
   let content = fs.readFileSync(projectFile, 'utf8');
 
   content = content.replace(/PRODUCT_BUNDLE_IDENTIFIER = com\.hridyaagrawal\.stardanceutils\.Extension;/g, `PRODUCT_BUNDLE_IDENTIFIER = ${EXTENSION_BUNDLE_ID};`);
   content = content.replace(/PRODUCT_BUNDLE_IDENTIFIER = "com\.hridyaagrawal\.Stardance-Utils-Safari";/g, `PRODUCT_BUNDLE_IDENTIFIER = ${APP_BUNDLE_ID};`);
-  content = content.replace(/MARKETING_VERSION = 1\.0;/g, `MARKETING_VERSION = ${manifestVersion};`);
+  content = content.replace(/MARKETING_VERSION = [^;]+;/g, `MARKETING_VERSION = ${manifestVersion};`);
+  content = content.replace(/CURRENT_PROJECT_VERSION = [^;]+;/g, `CURRENT_PROJECT_VERSION = ${buildNumber};`);
+  content = content.replace(/MACOSX_DEPLOYMENT_TARGET = [^;]+;/g, `MACOSX_DEPLOYMENT_TARGET = ${deploymentTarget};`);
 
   if (!content.includes('INFOPLIST_KEY_LSApplicationCategoryType')) {
     content = content.replace(
@@ -73,6 +77,8 @@ function patchProject(manifestVersion) {
 
 function main() {
   const manifest = readJson('manifest.json');
+  const buildNumber = process.env.SAFARI_BUILD_NUMBER || '1';
+  const deploymentTarget = process.env.SAFARI_MACOS_DEPLOYMENT_TARGET || DEFAULT_MACOS_DEPLOYMENT_TARGET;
 
   resetDir(SOURCE_DIR);
   fs.mkdirSync(path.join(SOURCE_DIR, 'themes'), { recursive: true });
@@ -104,9 +110,9 @@ function main() {
     '--force'
   ]);
 
-  patchProject(manifest.version);
+  patchProject(manifest.version, buildNumber, deploymentTarget);
 
-  console.log(`Prepared Safari project at ${path.relative(ROOT, APP_PROJECT_ROOT)}`);
+  console.log(`Prepared Safari project at ${path.relative(ROOT, APP_PROJECT_ROOT)} (${manifest.version} build ${buildNumber}, macOS ${deploymentTarget}+)`);
 }
 
 main();

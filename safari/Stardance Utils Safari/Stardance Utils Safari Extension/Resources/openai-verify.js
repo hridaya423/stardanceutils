@@ -11,7 +11,11 @@ function log(message, payload) {
 }
 
 function sendMessage(message) {
-  const runtime = globalThis.browser?.runtime ?? globalThis.chrome?.runtime ?? null;
+  if (globalThis.browser?.runtime?.sendMessage) {
+    return globalThis.browser.runtime.sendMessage(message);
+  }
+
+  const runtime = globalThis.chrome?.runtime ?? null;
   if (!runtime?.sendMessage) {
     return Promise.reject(new Error('Runtime messaging unavailable'));
   }

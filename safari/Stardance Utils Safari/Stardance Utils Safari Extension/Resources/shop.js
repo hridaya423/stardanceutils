@@ -91,8 +91,8 @@
     }, {});
   };
 
-  SU.loadShopGoals = () => {
-    SU.savedShopGoals = SU.normalizeShopGoals(SU.readLocalSetting(SU.SHOP_GOALS_KEY));
+  SU.loadShopGoals = async () => {
+    SU.savedShopGoals = SU.normalizeShopGoals(await SU.getStoredSetting(SU.SHOP_GOALS_KEY));
     SU.ensureShopGoalSortOrder();
     return SU.savedShopGoals;
   };
@@ -118,18 +118,24 @@
         };
       });
 
-    SU.persistShopGoals();
+    void SU.persistShopGoals();
     return true;
   };
 
-  SU.persistShopGoals = () => {
-    if (!SU.savedShopGoals || Object.keys(SU.savedShopGoals).length === 0) {
-      SU.clearLocalSetting(SU.SHOP_GOALS_KEY);
-      SU.savedShopGoals = {};
-      return;
-    }
+  SU.persistShopGoals = async () => {
+    try {
+      if (!SU.savedShopGoals || Object.keys(SU.savedShopGoals).length === 0) {
+        await SU.removeStoredSetting(SU.SHOP_GOALS_KEY);
+        SU.savedShopGoals = {};
+        return true;
+      }
 
-    SU.writeLocalSetting(SU.SHOP_GOALS_KEY, SU.savedShopGoals);
+      await SU.setStoredSetting({ [SU.SHOP_GOALS_KEY]: SU.savedShopGoals });
+      return true;
+    } catch (error) {
+      console.error('[Stardance Utils]', 'Failed to persist shop goals', error);
+      return false;
+    }
   };
 
   SU.getShopItemId = (card) => SU.compactText(
@@ -187,7 +193,14 @@
       sortOrder: Number.isFinite(existing.sortOrder) ? existing.sortOrder : SU.getNextShopGoalSortOrder(),
       updatedAt: Date.now()
     };
-    SU.persistShopGoals();
+    void SU.persistShopGoals();
+    void (async () => {
+      const map = (await SU.getShopGoalsSuppressedUntil?.()) ?? {};
+      if (map[normalized.id]) {
+        delete map[normalized.id];
+        await SU.setShopGoalsSuppressedUntil?.(map);
+      }
+    })();
   };
 
   SU.upsertShopGoalFromSourceRecord = (record) => {
@@ -229,7 +242,7 @@
         : SU.getNextShopGoalSortOrder(),
       updatedAt: Date.now()
     };
-    SU.persistShopGoals();
+    void SU.persistShopGoals();
   };
 
   SU.setSourceShopCardWishlisted = (shopId, shouldBeWishlisted) => {
@@ -247,7 +260,6 @@
     }
 
     star.click();
-    SU.scheduleShopGoalSyncForItem(shopId, 120);
     return true;
   };
 
@@ -257,7 +269,12 @@
     }
 
     delete SU.savedShopGoals[shopId];
-    SU.persistShopGoals();
+    void SU.persistShopGoals();
+    void (async () => {
+      const map = (await SU.getShopGoalsSuppressedUntil?.()) ?? {};
+      map[shopId] = Date.now() + 30_000;
+      await SU.setShopGoalsSuppressedUntil?.(map);
+    })();
   };
 
   SU.getSortedShopGoals = () => Object.values(SU.savedShopGoals || {})
@@ -471,7 +488,7 @@
     });
 
     if (changed) {
-      SU.persistShopGoals();
+      void SU.persistShopGoals();
     }
 
     return changed;
@@ -498,7 +515,7 @@
     });
 
     if (changed) {
-      SU.persistShopGoals();
+      void SU.persistShopGoals();
     }
 
     return changed;
@@ -888,6 +905,12 @@
       })
       .then((html) => new DOMParser().parseFromString(html, 'text/html').querySelector('.shop-category'));
 
+    request.catch(() => {
+      if (SU.shopCategoryMarkupCache.get(path) === request) {
+        SU.shopCategoryMarkupCache.delete(path);
+      }
+    });
+
     SU.shopCategoryMarkupCache.set(path, request);
     return request;
   };
@@ -1228,7 +1251,6 @@
           SU.removeShopGoal(shopId);
           SU.setSourceShopCardWishlisted(shopId, false);
           SU.renderShopGoalsRail();
-          SU.scheduleShopGoalSyncForItem(shopId, 160);
           return;
         } else if (action === 'increment') {
           SU.setShopGoalQuantity(shopId, 1);
@@ -1361,7 +1383,9 @@
     });
   };
 
-  SU.hydrateShopGoalsFromPage = () => {
+  SU.hydrateShopGoalsFromPage = async () => {
+    const suppressedUntil = (await SU.getShopGoalsSuppressedUntil?.()) ?? {};
+    const now = Date.now();
     let changed = false;
 
     document.querySelectorAll('.shop-item-card.shop-item-card--wishlisted, .shop-item-card[data-shop-wishlist-wishlisted-value="true"]').forEach((card) => {
@@ -1370,11 +1394,15 @@
         return;
       }
 
+      if (suppressedUntil[record.id] > now) {
+        return;
+      }
+
       changed = SU.upsertShopGoalFromSourceRecord(record) || changed;
     });
 
     if (changed) {
-      SU.persistShopGoals();
+      void SU.persistShopGoals();
     }
   };
 
@@ -1391,7 +1419,7 @@
     }
 
     SU.cleanupLegacyAiCheckStorage();
-    SU.loadShopGoals();
+    await SU.loadShopGoals();
 
     if (SU.savedShopLayoutEnabled === false) {
       return;
@@ -1399,7 +1427,7 @@
 
     SU.refreshShopGoalRecordsFromPage();
     SU.ensureShopEventBindings();
-    SU.hydrateShopGoalsFromPage();
+    await SU.hydrateShopGoalsFromPage();
     SU.renderShopGoalsRail();
 
     if (SU.isShopHubPage()) {

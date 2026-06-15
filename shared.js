@@ -23,6 +23,7 @@
     DEVLOG_INLINE_EDIT_LINK_ATTR: 'data-stardance-utils-inline-edit-link',
     DEVLOG_DRAFT_ATTR: 'data-stardance-utils-draft',
     DEVLOG_SLACK_EMOJI_ATTR: 'data-stardance-utils-slack-emoji',
+    DEVLOG_AUTO_COLLAPSE_KEY: 'devlogAutoCollapseEnabled',
     SLACK_EMOJI_API_URL: 'https://cachet.dunkirk.sh/emojis',
     CUSTOM_FONT_PAIRINGS_KEY: 'customSidebarFontPairings',
     SIDEBAR_ORDER_KEY: 'sidebarTabOrder',
@@ -123,7 +124,92 @@
   SU.extensionSyncStorage = globalThis.browser?.storage?.sync ?? globalThis.chrome?.storage?.sync ?? null;
   SU.extensionStorageEvents = globalThis.browser?.storage?.onChanged ?? globalThis.chrome?.storage?.onChanged ?? null;
   SU.extensionRuntime = globalThis.browser?.runtime ?? globalThis.chrome?.runtime ?? null;
+  SU.extensionContextInvalidated = false;
   SU.aiButtonResetTimers = new WeakMap();
+
+  SU.isExtensionContextError = (error) => {
+    const message = String(error?.message || error || '').toLowerCase();
+    return message.includes('extension context invalidated')
+      || message.includes('context invalidated')
+      || message.includes('extension context')
+      || message.includes('receiving end does not exist');
+  };
+
+  SU.handleExtensionContextError = (error) => {
+    if (!SU.isExtensionContextError(error)) {
+      throw error;
+    }
+
+    SU.extensionContextInvalidated = true;
+    return undefined;
+  };
+
+  SU.sendRuntimeMessage = (message) => {
+    if (SU.extensionContextInvalidated) {
+      return Promise.reject(new Error('Extension context is unavailable. Reload the page to reconnect Stardance Utils.'));
+    }
+
+    if (globalThis.browser?.runtime?.sendMessage) {
+      try {
+        return globalThis.browser.runtime.sendMessage(message).catch((error) => {
+          if (SU.isExtensionContextError(error)) {
+            SU.extensionContextInvalidated = true;
+          }
+          throw error;
+        });
+      } catch (error) {
+        if (SU.isExtensionContextError(error)) {
+          SU.extensionContextInvalidated = true;
+        }
+        return Promise.reject(error);
+      }
+    }
+
+    const runtime = globalThis.chrome?.runtime ?? SU.extensionRuntime;
+    if (!runtime?.sendMessage) {
+      return Promise.reject(new Error('Extension background messaging is unavailable'));
+    }
+
+    return new Promise((resolve, reject) => {
+      try {
+        runtime.sendMessage(message, (response) => {
+          const runtimeError = globalThis.chrome?.runtime?.lastError;
+          if (runtimeError) {
+            const error = new Error(runtimeError.message);
+            if (SU.isExtensionContextError(error)) {
+              SU.extensionContextInvalidated = true;
+            }
+            reject(error);
+            return;
+          }
+
+          resolve(response);
+        });
+      } catch (error) {
+        if (SU.isExtensionContextError(error)) {
+          SU.extensionContextInvalidated = true;
+        }
+        reject(error);
+      }
+    });
+  };
+
+  SU.safeExtensionStorageCall = async (operation, fallbackValue) => {
+    if (SU.extensionContextInvalidated) {
+      return fallbackValue;
+    }
+
+    try {
+      return await operation();
+    } catch (error) {
+      const handled = SU.handleExtensionContextError(error);
+      if (handled === undefined && SU.extensionContextInvalidated) {
+        return fallbackValue;
+      }
+
+      throw error;
+    }
+  };
 
   SU.isSyncSettingKey = (key) => SU.SYNC_SETTINGS_KEYS.has(key);
 
@@ -287,15 +373,19 @@
   };
 
   SU.runChromeStorageCallback = (operation) => new Promise((resolve, reject) => {
-    operation((result) => {
-      const lastError = globalThis.chrome?.runtime?.lastError ?? SU.extensionRuntime?.lastError;
-      if (lastError) {
-        reject(new Error(lastError.message || 'Extension storage operation failed'));
-        return;
-      }
+    try {
+      operation((result) => {
+        const lastError = globalThis.chrome?.runtime?.lastError ?? SU.extensionRuntime?.lastError;
+        if (lastError) {
+          reject(new Error(lastError.message || 'Extension storage operation failed'));
+          return;
+        }
 
-      resolve(result);
-    });
+        resolve(result);
+      });
+    } catch (error) {
+      reject(error);
+    }
   });
 
   SU.getExtensionStoredSetting = (key, area = 'local') => {
@@ -304,13 +394,15 @@
       return Promise.resolve(undefined);
     }
 
-    if (globalThis.browser?.storage?.[area]) {
-      return globalThis.browser.storage[area].get(key).then((result) => result?.[key]);
-    }
+    return SU.safeExtensionStorageCall(async () => {
+      if (globalThis.browser?.storage?.[area]) {
+        return globalThis.browser.storage[area].get(key).then((result) => result?.[key]);
+      }
 
-    return SU.runChromeStorageCallback((callback) => {
-      storageArea.get(key, callback);
-    }).then((result) => result?.[key]);
+      return SU.runChromeStorageCallback((callback) => {
+        storageArea.get(key, callback);
+      }).then((result) => result?.[key]);
+    }, SU.readLocalSetting(key));
   };
 
   SU.setExtensionStoredSetting = (values, area = 'local') => {
@@ -319,13 +411,15 @@
       return Promise.resolve();
     }
 
-    if (globalThis.browser?.storage?.[area]) {
-      return globalThis.browser.storage[area].set(values);
-    }
+    return SU.safeExtensionStorageCall(async () => {
+      if (globalThis.browser?.storage?.[area]) {
+        return globalThis.browser.storage[area].set(values);
+      }
 
-    return SU.runChromeStorageCallback((callback) => {
-      storageArea.set(values, callback);
-    }).then(() => undefined);
+      return SU.runChromeStorageCallback((callback) => {
+        storageArea.set(values, callback);
+      }).then(() => undefined);
+    }, undefined);
   };
 
   SU.removeExtensionStoredSetting = (key, area = 'local') => {
@@ -334,13 +428,15 @@
       return Promise.resolve();
     }
 
-    if (globalThis.browser?.storage?.[area]) {
-      return globalThis.browser.storage[area].remove(key);
-    }
+    return SU.safeExtensionStorageCall(async () => {
+      if (globalThis.browser?.storage?.[area]) {
+        return globalThis.browser.storage[area].remove(key);
+      }
 
-    return SU.runChromeStorageCallback((callback) => {
-      storageArea.remove(key, callback);
-    }).then(() => undefined);
+      return SU.runChromeStorageCallback((callback) => {
+        storageArea.remove(key, callback);
+      }).then(() => undefined);
+    }, undefined);
   };
 
   SU.getExtensionStoredSettings = (keys, area = 'local') => {
@@ -349,13 +445,15 @@
       return Promise.resolve({});
     }
 
-    if (globalThis.browser?.storage?.[area]) {
-      return globalThis.browser.storage[area].get(keys);
-    }
+    return SU.safeExtensionStorageCall(async () => {
+      if (globalThis.browser?.storage?.[area]) {
+        return globalThis.browser.storage[area].get(keys);
+      }
 
-    return SU.runChromeStorageCallback((callback) => {
-      storageArea.get(keys, callback);
-    });
+      return SU.runChromeStorageCallback((callback) => {
+        storageArea.get(keys, callback);
+      });
+    }, Object.fromEntries(keys.map((key) => [key, SU.readLocalSetting(key)])));
   };
 
   SU.getLocalOnlyStoredValue = async (key, legacyLocalStorageKey = null) => {
