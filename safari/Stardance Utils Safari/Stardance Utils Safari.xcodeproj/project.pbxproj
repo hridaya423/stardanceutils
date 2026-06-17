@@ -7,54 +7,54 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CC25D4B62FE08E9F0083FE0E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC25D4B52FE08E9F0083FE0E /* AppDelegate.swift */; };
-		CC25D4BA2FE08E9F0083FE0E /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4B82FE08E9F0083FE0E /* Main.html */; };
-		CC25D4BC2FE08E9F0083FE0E /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4BB2FE08E9F0083FE0E /* Icon.png */; };
-		CC25D4BE2FE08E9F0083FE0E /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4BD2FE08E9F0083FE0E /* Style.css */; };
-		CC25D4C02FE08E9F0083FE0E /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4BF2FE08E9F0083FE0E /* Script.js */; };
-		CC25D4C22FE08E9F0083FE0E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC25D4C12FE08E9F0083FE0E /* ViewController.swift */; };
-		CC25D4C52FE08E9F0083FE0E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4C32FE08E9F0083FE0E /* Main.storyboard */; };
-		CC25D4C72FE08EA00083FE0E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4C62FE08EA00083FE0E /* Assets.xcassets */; };
-		CC25D4CE2FE08EA00083FE0E /* Stardance Utils Safari Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CC25D4CD2FE08EA00083FE0E /* Stardance Utils Safari Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		CC25D4D32FE08EA00083FE0E /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC25D4D22FE08EA00083FE0E /* SafariWebExtensionHandler.swift */; };
-		CC25D4F12FE08EA00083FE0E /* onboarding.js in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4DF2FE08EA00083FE0E /* onboarding.js */; };
-		CC25D4F22FE08EA00083FE0E /* styles.css in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4E02FE08EA00083FE0E /* styles.css */; };
-		CC25D4F32FE08EA00083FE0E /* openai-verify.js in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4E12FE08EA00083FE0E /* openai-verify.js */; };
-		CC25D4F42FE08EA00083FE0E /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4E22FE08EA00083FE0E /* background.js */; };
-		CC25D4F52FE08EA00083FE0E /* command-palette.js in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4E32FE08EA00083FE0E /* command-palette.js */; };
-		CC25D4F62FE08EA00083FE0E /* sidebar.js in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4E42FE08EA00083FE0E /* sidebar.js */; };
-		CC25D4F72FE08EA00083FE0E /* ai-check.js in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4E52FE08EA00083FE0E /* ai-check.js */; };
-		CC25D4F82FE08EA00083FE0E /* themes.js in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4E62FE08EA00083FE0E /* themes.js */; };
-		CC25D4F92FE08EA00083FE0E /* icon128.png in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4E72FE08EA00083FE0E /* icon128.png */; };
-		CC25D4FA2FE08EA00083FE0E /* icon64.png in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4E82FE08EA00083FE0E /* icon64.png */; };
-		CC25D4FB2FE08EA00083FE0E /* projects.js in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4E92FE08EA00083FE0E /* projects.js */; };
-		CC25D4FC2FE08EA00083FE0E /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4EA2FE08EA00083FE0E /* manifest.json */; };
-		CC25D4FD2FE08EA00083FE0E /* shop.js in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4EB2FE08EA00083FE0E /* shop.js */; };
-		CC25D4FE2FE08EA00083FE0E /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4EC2FE08EA00083FE0E /* content.js */; };
-		CC25D4FF2FE08EA00083FE0E /* shared.js in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4ED2FE08EA00083FE0E /* shared.js */; };
-		CC25D5002FE08EA00083FE0E /* themes in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4EE2FE08EA00083FE0E /* themes */; };
-		CC25D5012FE08EA00083FE0E /* settings.js in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4EF2FE08EA00083FE0E /* settings.js */; };
-		CC25D5022FE08EA00083FE0E /* icon32.png in Resources */ = {isa = PBXBuildFile; fileRef = CC25D4F02FE08EA00083FE0E /* icon32.png */; };
+		CC7155032FE3373C009EC8C2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC7155022FE3373C009EC8C2 /* AppDelegate.swift */; };
+		CC7155072FE3373C009EC8C2 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = CC7155052FE3373C009EC8C2 /* Main.html */; };
+		CC7155092FE3373C009EC8C2 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = CC7155082FE3373C009EC8C2 /* Icon.png */; };
+		CC71550B2FE3373C009EC8C2 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = CC71550A2FE3373C009EC8C2 /* Style.css */; };
+		CC71550D2FE3373C009EC8C2 /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = CC71550C2FE3373C009EC8C2 /* Script.js */; };
+		CC71550F2FE3373C009EC8C2 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC71550E2FE3373C009EC8C2 /* ViewController.swift */; };
+		CC7155122FE3373C009EC8C2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CC7155102FE3373C009EC8C2 /* Main.storyboard */; };
+		CC7155142FE3373D009EC8C2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC7155132FE3373D009EC8C2 /* Assets.xcassets */; };
+		CC71551B2FE3373D009EC8C2 /* Stardance Utils Safari Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CC71551A2FE3373D009EC8C2 /* Stardance Utils Safari Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CC7155202FE3373D009EC8C2 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC71551F2FE3373D009EC8C2 /* SafariWebExtensionHandler.swift */; };
+		CC71553E2FE3373E009EC8C2 /* onboarding.js in Resources */ = {isa = PBXBuildFile; fileRef = CC71552C2FE3373E009EC8C2 /* onboarding.js */; };
+		CC71553F2FE3373E009EC8C2 /* styles.css in Resources */ = {isa = PBXBuildFile; fileRef = CC71552D2FE3373E009EC8C2 /* styles.css */; };
+		CC7155402FE3373E009EC8C2 /* openai-verify.js in Resources */ = {isa = PBXBuildFile; fileRef = CC71552E2FE3373E009EC8C2 /* openai-verify.js */; };
+		CC7155412FE3373E009EC8C2 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = CC71552F2FE3373E009EC8C2 /* background.js */; };
+		CC7155422FE3373E009EC8C2 /* command-palette.js in Resources */ = {isa = PBXBuildFile; fileRef = CC7155302FE3373E009EC8C2 /* command-palette.js */; };
+		CC7155432FE3373E009EC8C2 /* sidebar.js in Resources */ = {isa = PBXBuildFile; fileRef = CC7155312FE3373E009EC8C2 /* sidebar.js */; };
+		CC7155442FE3373E009EC8C2 /* ai-check.js in Resources */ = {isa = PBXBuildFile; fileRef = CC7155322FE3373E009EC8C2 /* ai-check.js */; };
+		CC7155452FE3373E009EC8C2 /* themes.js in Resources */ = {isa = PBXBuildFile; fileRef = CC7155332FE3373E009EC8C2 /* themes.js */; };
+		CC7155462FE3373E009EC8C2 /* icon128.png in Resources */ = {isa = PBXBuildFile; fileRef = CC7155342FE3373E009EC8C2 /* icon128.png */; };
+		CC7155472FE3373E009EC8C2 /* icon64.png in Resources */ = {isa = PBXBuildFile; fileRef = CC7155352FE3373E009EC8C2 /* icon64.png */; };
+		CC7155482FE3373E009EC8C2 /* projects.js in Resources */ = {isa = PBXBuildFile; fileRef = CC7155362FE3373E009EC8C2 /* projects.js */; };
+		CC7155492FE3373E009EC8C2 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = CC7155372FE3373E009EC8C2 /* manifest.json */; };
+		CC71554A2FE3373E009EC8C2 /* shop.js in Resources */ = {isa = PBXBuildFile; fileRef = CC7155382FE3373E009EC8C2 /* shop.js */; };
+		CC71554B2FE3373E009EC8C2 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = CC7155392FE3373E009EC8C2 /* content.js */; };
+		CC71554C2FE3373E009EC8C2 /* shared.js in Resources */ = {isa = PBXBuildFile; fileRef = CC71553A2FE3373E009EC8C2 /* shared.js */; };
+		CC71554D2FE3373E009EC8C2 /* themes in Resources */ = {isa = PBXBuildFile; fileRef = CC71553B2FE3373E009EC8C2 /* themes */; };
+		CC71554E2FE3373E009EC8C2 /* settings.js in Resources */ = {isa = PBXBuildFile; fileRef = CC71553C2FE3373E009EC8C2 /* settings.js */; };
+		CC71554F2FE3373E009EC8C2 /* icon32.png in Resources */ = {isa = PBXBuildFile; fileRef = CC71553D2FE3373E009EC8C2 /* icon32.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		CC25D4CF2FE08EA00083FE0E /* PBXContainerItemProxy */ = {
+		CC71551C2FE3373D009EC8C2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = CC25D4AA2FE08E9F0083FE0E /* Project object */;
+			containerPortal = CC7154F72FE3373C009EC8C2 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CC25D4CC2FE08EA00083FE0E;
+			remoteGlobalIDString = CC7155192FE3373D009EC8C2;
 			remoteInfo = "Stardance Utils Safari Extension";
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		CC25D4DA2FE08EA00083FE0E /* Embed Foundation Extensions */ = {
+		CC7155272FE3373D009EC8C2 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				CC25D4CE2FE08EA00083FE0E /* Stardance Utils Safari Extension.appex in Embed Foundation Extensions */,
+				CC71551B2FE3373D009EC8C2 /* Stardance Utils Safari Extension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -62,48 +62,48 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		CC25D4B22FE08E9F0083FE0E /* Stardance Utils Safari.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Stardance Utils Safari.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		CC25D4B52FE08E9F0083FE0E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		CC25D4B92FE08E9F0083FE0E /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
-		CC25D4BB2FE08E9F0083FE0E /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
-		CC25D4BD2FE08E9F0083FE0E /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
-		CC25D4BF2FE08E9F0083FE0E /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
-		CC25D4C12FE08E9F0083FE0E /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		CC25D4C42FE08E9F0083FE0E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		CC25D4C62FE08EA00083FE0E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		CC25D4C82FE08EA00083FE0E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		CC25D4CD2FE08EA00083FE0E /* Stardance Utils Safari Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Stardance Utils Safari Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
-		CC25D4D22FE08EA00083FE0E /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
-		CC25D4D42FE08EA00083FE0E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		CC25D4DF2FE08EA00083FE0E /* onboarding.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = onboarding.js; path = Resources/onboarding.js; sourceTree = "<group>"; };
-		CC25D4E02FE08EA00083FE0E /* styles.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = styles.css; path = Resources/styles.css; sourceTree = "<group>"; };
-		CC25D4E12FE08EA00083FE0E /* openai-verify.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "openai-verify.js"; path = "Resources/openai-verify.js"; sourceTree = "<group>"; };
-		CC25D4E22FE08EA00083FE0E /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = Resources/background.js; sourceTree = "<group>"; };
-		CC25D4E32FE08EA00083FE0E /* command-palette.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "command-palette.js"; path = "Resources/command-palette.js"; sourceTree = "<group>"; };
-		CC25D4E42FE08EA00083FE0E /* sidebar.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = sidebar.js; path = Resources/sidebar.js; sourceTree = "<group>"; };
-		CC25D4E52FE08EA00083FE0E /* ai-check.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "ai-check.js"; path = "Resources/ai-check.js"; sourceTree = "<group>"; };
-		CC25D4E62FE08EA00083FE0E /* themes.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = themes.js; path = Resources/themes.js; sourceTree = "<group>"; };
-		CC25D4E72FE08EA00083FE0E /* icon128.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon128.png; path = Resources/icon128.png; sourceTree = "<group>"; };
-		CC25D4E82FE08EA00083FE0E /* icon64.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon64.png; path = Resources/icon64.png; sourceTree = "<group>"; };
-		CC25D4E92FE08EA00083FE0E /* projects.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = projects.js; path = Resources/projects.js; sourceTree = "<group>"; };
-		CC25D4EA2FE08EA00083FE0E /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = Resources/manifest.json; sourceTree = "<group>"; };
-		CC25D4EB2FE08EA00083FE0E /* shop.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = shop.js; path = Resources/shop.js; sourceTree = "<group>"; };
-		CC25D4EC2FE08EA00083FE0E /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = Resources/content.js; sourceTree = "<group>"; };
-		CC25D4ED2FE08EA00083FE0E /* shared.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = shared.js; path = Resources/shared.js; sourceTree = "<group>"; };
-		CC25D4EE2FE08EA00083FE0E /* themes */ = {isa = PBXFileReference; lastKnownFileType = folder; name = themes; path = Resources/themes; sourceTree = "<group>"; };
-		CC25D4EF2FE08EA00083FE0E /* settings.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = settings.js; path = Resources/settings.js; sourceTree = "<group>"; };
-		CC25D4F02FE08EA00083FE0E /* icon32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon32.png; path = Resources/icon32.png; sourceTree = "<group>"; };
+		CC7154FF2FE3373C009EC8C2 /* Stardance Utils Safari.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Stardance Utils Safari.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC7155022FE3373C009EC8C2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		CC7155062FE3373C009EC8C2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
+		CC7155082FE3373C009EC8C2 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		CC71550A2FE3373C009EC8C2 /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
+		CC71550C2FE3373C009EC8C2 /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
+		CC71550E2FE3373C009EC8C2 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		CC7155112FE3373C009EC8C2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		CC7155132FE3373D009EC8C2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		CC7155152FE3373D009EC8C2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CC71551A2FE3373D009EC8C2 /* Stardance Utils Safari Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Stardance Utils Safari Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC71551F2FE3373D009EC8C2 /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		CC7155212FE3373D009EC8C2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CC71552C2FE3373E009EC8C2 /* onboarding.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = onboarding.js; path = Resources/onboarding.js; sourceTree = "<group>"; };
+		CC71552D2FE3373E009EC8C2 /* styles.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = styles.css; path = Resources/styles.css; sourceTree = "<group>"; };
+		CC71552E2FE3373E009EC8C2 /* openai-verify.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "openai-verify.js"; path = "Resources/openai-verify.js"; sourceTree = "<group>"; };
+		CC71552F2FE3373E009EC8C2 /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = Resources/background.js; sourceTree = "<group>"; };
+		CC7155302FE3373E009EC8C2 /* command-palette.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "command-palette.js"; path = "Resources/command-palette.js"; sourceTree = "<group>"; };
+		CC7155312FE3373E009EC8C2 /* sidebar.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = sidebar.js; path = Resources/sidebar.js; sourceTree = "<group>"; };
+		CC7155322FE3373E009EC8C2 /* ai-check.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "ai-check.js"; path = "Resources/ai-check.js"; sourceTree = "<group>"; };
+		CC7155332FE3373E009EC8C2 /* themes.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = themes.js; path = Resources/themes.js; sourceTree = "<group>"; };
+		CC7155342FE3373E009EC8C2 /* icon128.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon128.png; path = Resources/icon128.png; sourceTree = "<group>"; };
+		CC7155352FE3373E009EC8C2 /* icon64.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon64.png; path = Resources/icon64.png; sourceTree = "<group>"; };
+		CC7155362FE3373E009EC8C2 /* projects.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = projects.js; path = Resources/projects.js; sourceTree = "<group>"; };
+		CC7155372FE3373E009EC8C2 /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = Resources/manifest.json; sourceTree = "<group>"; };
+		CC7155382FE3373E009EC8C2 /* shop.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = shop.js; path = Resources/shop.js; sourceTree = "<group>"; };
+		CC7155392FE3373E009EC8C2 /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = Resources/content.js; sourceTree = "<group>"; };
+		CC71553A2FE3373E009EC8C2 /* shared.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = shared.js; path = Resources/shared.js; sourceTree = "<group>"; };
+		CC71553B2FE3373E009EC8C2 /* themes */ = {isa = PBXFileReference; lastKnownFileType = folder; name = themes; path = Resources/themes; sourceTree = "<group>"; };
+		CC71553C2FE3373E009EC8C2 /* settings.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = settings.js; path = Resources/settings.js; sourceTree = "<group>"; };
+		CC71553D2FE3373E009EC8C2 /* icon32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon32.png; path = Resources/icon32.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		CC25D4AF2FE08E9F0083FE0E /* Frameworks */ = {
+		CC7154FC2FE3373C009EC8C2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CC25D4CA2FE08EA00083FE0E /* Frameworks */ = {
+		CC7155172FE3373D009EC8C2 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -113,79 +113,79 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		CC25D4A92FE08E9F0083FE0E = {
+		CC7154F62FE3373C009EC8C2 = {
 			isa = PBXGroup;
 			children = (
-				CC25D4B42FE08E9F0083FE0E /* Stardance Utils Safari */,
-				CC25D4D12FE08EA00083FE0E /* Stardance Utils Safari Extension */,
-				CC25D4B32FE08E9F0083FE0E /* Products */,
+				CC7155012FE3373C009EC8C2 /* Stardance Utils Safari */,
+				CC71551E2FE3373D009EC8C2 /* Stardance Utils Safari Extension */,
+				CC7155002FE3373C009EC8C2 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		CC25D4B32FE08E9F0083FE0E /* Products */ = {
+		CC7155002FE3373C009EC8C2 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				CC25D4B22FE08E9F0083FE0E /* Stardance Utils Safari.app */,
-				CC25D4CD2FE08EA00083FE0E /* Stardance Utils Safari Extension.appex */,
+				CC7154FF2FE3373C009EC8C2 /* Stardance Utils Safari.app */,
+				CC71551A2FE3373D009EC8C2 /* Stardance Utils Safari Extension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		CC25D4B42FE08E9F0083FE0E /* Stardance Utils Safari */ = {
+		CC7155012FE3373C009EC8C2 /* Stardance Utils Safari */ = {
 			isa = PBXGroup;
 			children = (
-				CC25D4B52FE08E9F0083FE0E /* AppDelegate.swift */,
-				CC25D4C12FE08E9F0083FE0E /* ViewController.swift */,
-				CC25D4C32FE08E9F0083FE0E /* Main.storyboard */,
-				CC25D4C62FE08EA00083FE0E /* Assets.xcassets */,
-				CC25D4C82FE08EA00083FE0E /* Info.plist */,
-				CC25D4B72FE08E9F0083FE0E /* Resources */,
+				CC7155022FE3373C009EC8C2 /* AppDelegate.swift */,
+				CC71550E2FE3373C009EC8C2 /* ViewController.swift */,
+				CC7155102FE3373C009EC8C2 /* Main.storyboard */,
+				CC7155132FE3373D009EC8C2 /* Assets.xcassets */,
+				CC7155152FE3373D009EC8C2 /* Info.plist */,
+				CC7155042FE3373C009EC8C2 /* Resources */,
 			);
 			path = "Stardance Utils Safari";
 			sourceTree = "<group>";
 		};
-		CC25D4B72FE08E9F0083FE0E /* Resources */ = {
+		CC7155042FE3373C009EC8C2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				CC25D4B82FE08E9F0083FE0E /* Main.html */,
-				CC25D4BB2FE08E9F0083FE0E /* Icon.png */,
-				CC25D4BD2FE08E9F0083FE0E /* Style.css */,
-				CC25D4BF2FE08E9F0083FE0E /* Script.js */,
+				CC7155052FE3373C009EC8C2 /* Main.html */,
+				CC7155082FE3373C009EC8C2 /* Icon.png */,
+				CC71550A2FE3373C009EC8C2 /* Style.css */,
+				CC71550C2FE3373C009EC8C2 /* Script.js */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
 		};
-		CC25D4D12FE08EA00083FE0E /* Stardance Utils Safari Extension */ = {
+		CC71551E2FE3373D009EC8C2 /* Stardance Utils Safari Extension */ = {
 			isa = PBXGroup;
 			children = (
-				CC25D4DE2FE08EA00083FE0E /* Resources */,
-				CC25D4D22FE08EA00083FE0E /* SafariWebExtensionHandler.swift */,
-				CC25D4D42FE08EA00083FE0E /* Info.plist */,
+				CC71552B2FE3373E009EC8C2 /* Resources */,
+				CC71551F2FE3373D009EC8C2 /* SafariWebExtensionHandler.swift */,
+				CC7155212FE3373D009EC8C2 /* Info.plist */,
 			);
 			path = "Stardance Utils Safari Extension";
 			sourceTree = "<group>";
 		};
-		CC25D4DE2FE08EA00083FE0E /* Resources */ = {
+		CC71552B2FE3373E009EC8C2 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				CC25D4DF2FE08EA00083FE0E /* onboarding.js */,
-				CC25D4E02FE08EA00083FE0E /* styles.css */,
-				CC25D4E12FE08EA00083FE0E /* openai-verify.js */,
-				CC25D4E22FE08EA00083FE0E /* background.js */,
-				CC25D4E32FE08EA00083FE0E /* command-palette.js */,
-				CC25D4E42FE08EA00083FE0E /* sidebar.js */,
-				CC25D4E52FE08EA00083FE0E /* ai-check.js */,
-				CC25D4E62FE08EA00083FE0E /* themes.js */,
-				CC25D4E72FE08EA00083FE0E /* icon128.png */,
-				CC25D4E82FE08EA00083FE0E /* icon64.png */,
-				CC25D4E92FE08EA00083FE0E /* projects.js */,
-				CC25D4EA2FE08EA00083FE0E /* manifest.json */,
-				CC25D4EB2FE08EA00083FE0E /* shop.js */,
-				CC25D4EC2FE08EA00083FE0E /* content.js */,
-				CC25D4ED2FE08EA00083FE0E /* shared.js */,
-				CC25D4EE2FE08EA00083FE0E /* themes */,
-				CC25D4EF2FE08EA00083FE0E /* settings.js */,
-				CC25D4F02FE08EA00083FE0E /* icon32.png */,
+				CC71552C2FE3373E009EC8C2 /* onboarding.js */,
+				CC71552D2FE3373E009EC8C2 /* styles.css */,
+				CC71552E2FE3373E009EC8C2 /* openai-verify.js */,
+				CC71552F2FE3373E009EC8C2 /* background.js */,
+				CC7155302FE3373E009EC8C2 /* command-palette.js */,
+				CC7155312FE3373E009EC8C2 /* sidebar.js */,
+				CC7155322FE3373E009EC8C2 /* ai-check.js */,
+				CC7155332FE3373E009EC8C2 /* themes.js */,
+				CC7155342FE3373E009EC8C2 /* icon128.png */,
+				CC7155352FE3373E009EC8C2 /* icon64.png */,
+				CC7155362FE3373E009EC8C2 /* projects.js */,
+				CC7155372FE3373E009EC8C2 /* manifest.json */,
+				CC7155382FE3373E009EC8C2 /* shop.js */,
+				CC7155392FE3373E009EC8C2 /* content.js */,
+				CC71553A2FE3373E009EC8C2 /* shared.js */,
+				CC71553B2FE3373E009EC8C2 /* themes */,
+				CC71553C2FE3373E009EC8C2 /* settings.js */,
+				CC71553D2FE3373E009EC8C2 /* icon32.png */,
 			);
 			name = Resources;
 			path = "Stardance Utils Safari Extension";
@@ -194,34 +194,34 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		CC25D4B12FE08E9F0083FE0E /* Stardance Utils Safari */ = {
+		CC7154FE2FE3373C009EC8C2 /* Stardance Utils Safari */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CC25D4DB2FE08EA00083FE0E /* Build configuration list for PBXNativeTarget "Stardance Utils Safari" */;
+			buildConfigurationList = CC7155282FE3373D009EC8C2 /* Build configuration list for PBXNativeTarget "Stardance Utils Safari" */;
 			buildPhases = (
-				CC25D4AE2FE08E9F0083FE0E /* Sources */,
-				CC25D4AF2FE08E9F0083FE0E /* Frameworks */,
-				CC25D4B02FE08E9F0083FE0E /* Resources */,
-				CC25D4DA2FE08EA00083FE0E /* Embed Foundation Extensions */,
+				CC7154FB2FE3373C009EC8C2 /* Sources */,
+				CC7154FC2FE3373C009EC8C2 /* Frameworks */,
+				CC7154FD2FE3373C009EC8C2 /* Resources */,
+				CC7155272FE3373D009EC8C2 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				CC25D4D02FE08EA00083FE0E /* PBXTargetDependency */,
+				CC71551D2FE3373D009EC8C2 /* PBXTargetDependency */,
 			);
 			name = "Stardance Utils Safari";
 			packageProductDependencies = (
 			);
 			productName = "Stardance Utils Safari";
-			productReference = CC25D4B22FE08E9F0083FE0E /* Stardance Utils Safari.app */;
+			productReference = CC7154FF2FE3373C009EC8C2 /* Stardance Utils Safari.app */;
 			productType = "com.apple.product-type.application";
 		};
-		CC25D4CC2FE08EA00083FE0E /* Stardance Utils Safari Extension */ = {
+		CC7155192FE3373D009EC8C2 /* Stardance Utils Safari Extension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CC25D4D72FE08EA00083FE0E /* Build configuration list for PBXNativeTarget "Stardance Utils Safari Extension" */;
+			buildConfigurationList = CC7155242FE3373D009EC8C2 /* Build configuration list for PBXNativeTarget "Stardance Utils Safari Extension" */;
 			buildPhases = (
-				CC25D4C92FE08EA00083FE0E /* Sources */,
-				CC25D4CA2FE08EA00083FE0E /* Frameworks */,
-				CC25D4CB2FE08EA00083FE0E /* Resources */,
+				CC7155162FE3373D009EC8C2 /* Sources */,
+				CC7155172FE3373D009EC8C2 /* Frameworks */,
+				CC7155182FE3373D009EC8C2 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -231,129 +231,129 @@
 			packageProductDependencies = (
 			);
 			productName = "Stardance Utils Safari Extension";
-			productReference = CC25D4CD2FE08EA00083FE0E /* Stardance Utils Safari Extension.appex */;
+			productReference = CC71551A2FE3373D009EC8C2 /* Stardance Utils Safari Extension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		CC25D4AA2FE08E9F0083FE0E /* Project object */ = {
+		CC7154F72FE3373C009EC8C2 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
-					CC25D4B12FE08E9F0083FE0E = {
+					CC7154FE2FE3373C009EC8C2 = {
 						CreatedOnToolsVersion = 26.2;
 					};
-					CC25D4CC2FE08EA00083FE0E = {
+					CC7155192FE3373D009EC8C2 = {
 						CreatedOnToolsVersion = 26.2;
 					};
 				};
 			};
-			buildConfigurationList = CC25D4AD2FE08E9F0083FE0E /* Build configuration list for PBXProject "Stardance Utils Safari" */;
+			buildConfigurationList = CC7154FA2FE3373C009EC8C2 /* Build configuration list for PBXProject "Stardance Utils Safari" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = CC25D4A92FE08E9F0083FE0E;
+			mainGroup = CC7154F62FE3373C009EC8C2;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = CC25D4B32FE08E9F0083FE0E /* Products */;
+			productRefGroup = CC7155002FE3373C009EC8C2 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				CC25D4B12FE08E9F0083FE0E /* Stardance Utils Safari */,
-				CC25D4CC2FE08EA00083FE0E /* Stardance Utils Safari Extension */,
+				CC7154FE2FE3373C009EC8C2 /* Stardance Utils Safari */,
+				CC7155192FE3373D009EC8C2 /* Stardance Utils Safari Extension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		CC25D4B02FE08E9F0083FE0E /* Resources */ = {
+		CC7154FD2FE3373C009EC8C2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CC25D4BC2FE08E9F0083FE0E /* Icon.png in Resources */,
-				CC25D4C52FE08E9F0083FE0E /* Main.storyboard in Resources */,
-				CC25D4C02FE08E9F0083FE0E /* Script.js in Resources */,
-				CC25D4BA2FE08E9F0083FE0E /* Main.html in Resources */,
-				CC25D4C72FE08EA00083FE0E /* Assets.xcassets in Resources */,
-				CC25D4BE2FE08E9F0083FE0E /* Style.css in Resources */,
+				CC7155092FE3373C009EC8C2 /* Icon.png in Resources */,
+				CC7155122FE3373C009EC8C2 /* Main.storyboard in Resources */,
+				CC71550D2FE3373C009EC8C2 /* Script.js in Resources */,
+				CC7155072FE3373C009EC8C2 /* Main.html in Resources */,
+				CC7155142FE3373D009EC8C2 /* Assets.xcassets in Resources */,
+				CC71550B2FE3373C009EC8C2 /* Style.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CC25D4CB2FE08EA00083FE0E /* Resources */ = {
+		CC7155182FE3373D009EC8C2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CC25D4F52FE08EA00083FE0E /* command-palette.js in Resources */,
-				CC25D4F42FE08EA00083FE0E /* background.js in Resources */,
-				CC25D4F92FE08EA00083FE0E /* icon128.png in Resources */,
-				CC25D4F82FE08EA00083FE0E /* themes.js in Resources */,
-				CC25D4FC2FE08EA00083FE0E /* manifest.json in Resources */,
-				CC25D5012FE08EA00083FE0E /* settings.js in Resources */,
-				CC25D4FA2FE08EA00083FE0E /* icon64.png in Resources */,
-				CC25D5022FE08EA00083FE0E /* icon32.png in Resources */,
-				CC25D4F12FE08EA00083FE0E /* onboarding.js in Resources */,
-				CC25D4F72FE08EA00083FE0E /* ai-check.js in Resources */,
-				CC25D4FB2FE08EA00083FE0E /* projects.js in Resources */,
-				CC25D4FD2FE08EA00083FE0E /* shop.js in Resources */,
-				CC25D4F32FE08EA00083FE0E /* openai-verify.js in Resources */,
-				CC25D4F22FE08EA00083FE0E /* styles.css in Resources */,
-				CC25D5002FE08EA00083FE0E /* themes in Resources */,
-				CC25D4FE2FE08EA00083FE0E /* content.js in Resources */,
-				CC25D4FF2FE08EA00083FE0E /* shared.js in Resources */,
-				CC25D4F62FE08EA00083FE0E /* sidebar.js in Resources */,
+				CC7155422FE3373E009EC8C2 /* command-palette.js in Resources */,
+				CC7155412FE3373E009EC8C2 /* background.js in Resources */,
+				CC7155462FE3373E009EC8C2 /* icon128.png in Resources */,
+				CC7155452FE3373E009EC8C2 /* themes.js in Resources */,
+				CC7155492FE3373E009EC8C2 /* manifest.json in Resources */,
+				CC71554E2FE3373E009EC8C2 /* settings.js in Resources */,
+				CC7155472FE3373E009EC8C2 /* icon64.png in Resources */,
+				CC71554F2FE3373E009EC8C2 /* icon32.png in Resources */,
+				CC71553E2FE3373E009EC8C2 /* onboarding.js in Resources */,
+				CC7155442FE3373E009EC8C2 /* ai-check.js in Resources */,
+				CC7155482FE3373E009EC8C2 /* projects.js in Resources */,
+				CC71554A2FE3373E009EC8C2 /* shop.js in Resources */,
+				CC7155402FE3373E009EC8C2 /* openai-verify.js in Resources */,
+				CC71553F2FE3373E009EC8C2 /* styles.css in Resources */,
+				CC71554D2FE3373E009EC8C2 /* themes in Resources */,
+				CC71554B2FE3373E009EC8C2 /* content.js in Resources */,
+				CC71554C2FE3373E009EC8C2 /* shared.js in Resources */,
+				CC7155432FE3373E009EC8C2 /* sidebar.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		CC25D4AE2FE08E9F0083FE0E /* Sources */ = {
+		CC7154FB2FE3373C009EC8C2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CC25D4C22FE08E9F0083FE0E /* ViewController.swift in Sources */,
-				CC25D4B62FE08E9F0083FE0E /* AppDelegate.swift in Sources */,
+				CC71550F2FE3373C009EC8C2 /* ViewController.swift in Sources */,
+				CC7155032FE3373C009EC8C2 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CC25D4C92FE08EA00083FE0E /* Sources */ = {
+		CC7155162FE3373D009EC8C2 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CC25D4D32FE08EA00083FE0E /* SafariWebExtensionHandler.swift in Sources */,
+				CC7155202FE3373D009EC8C2 /* SafariWebExtensionHandler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		CC25D4D02FE08EA00083FE0E /* PBXTargetDependency */ = {
+		CC71551D2FE3373D009EC8C2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = CC25D4CC2FE08EA00083FE0E /* Stardance Utils Safari Extension */;
-			targetProxy = CC25D4CF2FE08EA00083FE0E /* PBXContainerItemProxy */;
+			target = CC7155192FE3373D009EC8C2 /* Stardance Utils Safari Extension */;
+			targetProxy = CC71551C2FE3373D009EC8C2 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		CC25D4B82FE08E9F0083FE0E /* Main.html */ = {
+		CC7155052FE3373C009EC8C2 /* Main.html */ = {
 			isa = PBXVariantGroup;
 			children = (
-				CC25D4B92FE08E9F0083FE0E /* Base */,
+				CC7155062FE3373C009EC8C2 /* Base */,
 			);
 			name = Main.html;
 			sourceTree = "<group>";
 		};
-		CC25D4C32FE08E9F0083FE0E /* Main.storyboard */ = {
+		CC7155102FE3373C009EC8C2 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				CC25D4C42FE08E9F0083FE0E /* Base */,
+				CC7155112FE3373C009EC8C2 /* Base */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -361,7 +361,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		CC25D4D52FE08EA00083FE0E /* Debug */ = {
+		CC7155222FE3373D009EC8C2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -424,7 +424,7 @@
 			};
 			name = Debug;
 		};
-		CC25D4D62FE08EA00083FE0E /* Release */ = {
+		CC7155232FE3373D009EC8C2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -479,7 +479,7 @@
 			};
 			name = Release;
 		};
-		CC25D4D82FE08EA00083FE0E /* Debug */ = {
+		CC7155252FE3373D009EC8C2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -497,7 +497,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.0.7;
+				MARKETING_VERSION = 0.0.8;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -513,7 +513,7 @@
 			};
 			name = Debug;
 		};
-		CC25D4D92FE08EA00083FE0E /* Release */ = {
+		CC7155262FE3373D009EC8C2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
@@ -531,7 +531,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.0.7;
+				MARKETING_VERSION = 0.0.8;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -547,7 +547,7 @@
 			};
 			name = Release;
 		};
-		CC25D4DC2FE08EA00083FE0E /* Debug */ = {
+		CC7155292FE3373D009EC8C2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -570,7 +570,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.0.7;
+				MARKETING_VERSION = 0.0.8;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -589,7 +589,7 @@
 			};
 			name = Debug;
 		};
-		CC25D4DD2FE08EA00083FE0E /* Release */ = {
+		CC71552A2FE3373D009EC8C2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -612,7 +612,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.0.7;
+				MARKETING_VERSION = 0.0.8;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -634,34 +634,34 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		CC25D4AD2FE08E9F0083FE0E /* Build configuration list for PBXProject "Stardance Utils Safari" */ = {
+		CC7154FA2FE3373C009EC8C2 /* Build configuration list for PBXProject "Stardance Utils Safari" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				CC25D4D52FE08EA00083FE0E /* Debug */,
-				CC25D4D62FE08EA00083FE0E /* Release */,
+				CC7155222FE3373D009EC8C2 /* Debug */,
+				CC7155232FE3373D009EC8C2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CC25D4D72FE08EA00083FE0E /* Build configuration list for PBXNativeTarget "Stardance Utils Safari Extension" */ = {
+		CC7155242FE3373D009EC8C2 /* Build configuration list for PBXNativeTarget "Stardance Utils Safari Extension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				CC25D4D82FE08EA00083FE0E /* Debug */,
-				CC25D4D92FE08EA00083FE0E /* Release */,
+				CC7155252FE3373D009EC8C2 /* Debug */,
+				CC7155262FE3373D009EC8C2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CC25D4DB2FE08EA00083FE0E /* Build configuration list for PBXNativeTarget "Stardance Utils Safari" */ = {
+		CC7155282FE3373D009EC8C2 /* Build configuration list for PBXNativeTarget "Stardance Utils Safari" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				CC25D4DC2FE08EA00083FE0E /* Debug */,
-				CC25D4DD2FE08EA00083FE0E /* Release */,
+				CC7155292FE3373D009EC8C2 /* Debug */,
+				CC71552A2FE3373D009EC8C2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = CC25D4AA2FE08E9F0083FE0E /* Project object */;
+	rootObject = CC7154F72FE3373C009EC8C2 /* Project object */;
 }

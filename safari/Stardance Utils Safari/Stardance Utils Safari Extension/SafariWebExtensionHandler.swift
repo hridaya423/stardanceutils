@@ -2,7 +2,7 @@
 //  SafariWebExtensionHandler.swift
 //  Stardance Utils Safari Extension
 //
-//  Created by Hridya Agrawal on 15/06/2026.
+//  Created by Hridya Agrawal on 17/06/2026.
 //
 
 import SafariServices

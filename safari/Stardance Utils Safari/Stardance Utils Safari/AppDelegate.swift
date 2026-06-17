@@ -2,7 +2,7 @@
 //  AppDelegate.swift
 //  Stardance Utils Safari
 //
-//  Created by Hridya Agrawal on 15/06/2026.
+//  Created by Hridya Agrawal on 17/06/2026.
 //
 
 import Cocoa

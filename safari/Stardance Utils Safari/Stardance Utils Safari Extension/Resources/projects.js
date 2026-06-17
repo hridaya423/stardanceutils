@@ -386,147 +386,40 @@
   };
 
   SU.mountMarkdownPreview = (composerSection, textarea) => {
-    if (!composerSection || !textarea || composerSection.getAttribute('data-stardance-utils-markdown-preview') === 'true') {
+    if (!composerSection || !textarea) {
       return;
     }
 
-    composerSection.setAttribute('data-stardance-utils-markdown-preview', 'true');
-
-    const field = textarea.closest('.feed-composer__field');
-    if (!field) {
-      return;
+    const wrapper = textarea.closest('.stardance-utils-markdown-preview-wrap');
+    if (wrapper) {
+      wrapper.parentNode?.insertBefore(textarea, wrapper);
+      wrapper.remove();
     }
 
-    const wrapper = document.createElement('div');
-    wrapper.className = 'stardance-utils-markdown-preview-wrap';
-
-    const preview = document.createElement('div');
-    preview.className = 'stardance-utils-markdown-live-preview';
-    preview.setAttribute('aria-hidden', 'true');
-
-    textarea.parentNode.insertBefore(wrapper, textarea);
-    wrapper.appendChild(preview);
-    wrapper.appendChild(textarea);
-
-    const syncStyles = () => {
-      const computed = window.getComputedStyle(textarea);
-      const props = [
-        'fontSize',
-        'fontFamily',
-        'fontWeight',
-        'lineHeight',
-        'letterSpacing',
-        'paddingTop',
-        'paddingLeft',
-        'paddingRight',
-        'paddingBottom',
-        'boxSizing',
-        'textAlign',
-        'wordBreak',
-        'overflowWrap',
-        'whiteSpace',
-        'borderTopWidth',
-        'borderRightWidth',
-        'borderBottomWidth',
-        'borderLeftWidth'
-      ];
-
-      props.forEach((prop) => {
-        preview.style[prop] = computed[prop];
-      });
-
-      preview.style.width = `${textarea.clientWidth}px`;
-      preview.style.minHeight = `${textarea.clientHeight}px`;
-    };
-
-    const syncHeight = () => {
-      const nextHeight = Math.max(textarea.scrollHeight, preview.scrollHeight, textarea.clientHeight, 30);
-      wrapper.style.minHeight = `${nextHeight}px`;
-      textarea.style.minHeight = `${nextHeight}px`;
-      preview.style.minHeight = `${nextHeight}px`;
-    };
-
-    const syncScroll = () => {
-      preview.scrollTop = textarea.scrollTop;
-      preview.scrollLeft = textarea.scrollLeft;
-    };
-
-    const syncPreview = () => {
-      const value = textarea.value || '';
-      const isFocused = document.activeElement === textarea;
-      const editingMarkdownSyntax = isFocused && SU.selectionTouchesMarkdownSyntax(
-        value,
-        textarea.selectionStart ?? 0,
-        textarea.selectionEnd ?? 0
-      );
-      if (!value.trim()) {
-        preview.hidden = true;
-        wrapper.classList.remove('is-active');
-        wrapper.classList.toggle('is-focused', isFocused);
-        syncHeight();
-        return;
-      }
-
-      if (editingMarkdownSyntax) {
-        preview.hidden = true;
-        wrapper.classList.remove('is-active');
-        wrapper.classList.toggle('is-focused', isFocused);
-        syncHeight();
-        return;
-      }
-
-      preview.hidden = false;
-      preview.innerHTML = SU.renderMarkdownPreviewHtml(value, {
-        richMedia: !isFocused,
-        selectionStart: null,
-        selectionEnd: null
-      });
-      wrapper.classList.add('is-active');
-      wrapper.classList.toggle('is-focused', isFocused);
-      preview.querySelectorAll('img').forEach((img) => {
-        if (!img.complete) {
-          img.addEventListener('load', syncHeight, { once: true });
-        }
-      });
-      syncHeight();
-      syncScroll();
-    };
-
-    textarea.addEventListener('input', syncPreview);
-    textarea.addEventListener('scroll', syncScroll);
-    textarea.addEventListener('focus', syncPreview);
-    textarea.addEventListener('click', syncPreview);
-    textarea.addEventListener('keyup', syncPreview);
-    textarea.addEventListener('select', syncPreview);
-    textarea.addEventListener('blur', () => requestAnimationFrame(syncPreview));
-
-    preview.addEventListener('mousedown', (event) => {
-      event.preventDefault();
-      const token = event.target.closest('.stardance-utils-md-rich-token');
-      if (token) {
-        const start = Number.parseInt(token.getAttribute('data-token-start') || '0', 10);
-        textarea.focus();
-        textarea.setSelectionRange(start, start);
-        syncPreview();
-        return;
-      }
-
-      textarea.focus();
-    });
-
-    const observer = new ResizeObserver(() => {
-      syncStyles();
-      syncHeight();
-      syncScroll();
-    });
-    observer.observe(textarea);
-
-    syncStyles();
-    syncPreview();
+    textarea.style.minHeight = '';
+    composerSection.removeAttribute('data-stardance-utils-markdown-preview');
+    return;
   };
 
   SU.mountMarkdownToolbar = (composerSection, textarea) => {
-    if (!composerSection || !textarea || composerSection.getAttribute('data-stardance-utils-markdown-toolbar') === 'true') {
+    if (!composerSection || !textarea) {
+      return;
+    }
+
+    const usesNativeMarkdownPreview = (composerSection.getAttribute('data-controller') || '').includes('markdown-preview');
+    const writePanel = composerSection.querySelector('[data-markdown-preview-target="writePanel"]');
+    const existingToolbar = composerSection.querySelector('.stardance-utils-markdown-toolbar');
+    if (existingToolbar) {
+      if (usesNativeMarkdownPreview && writePanel && existingToolbar.parentElement !== writePanel) {
+        writePanel.insertBefore(existingToolbar, writePanel.firstChild);
+        existingToolbar.style.setProperty('--stardance-utils-markdown-offset', '0px');
+        existingToolbar.style.setProperty('--stardance-utils-markdown-width', '100%');
+      }
+      composerSection.setAttribute('data-stardance-utils-markdown-toolbar', 'true');
+      return;
+    }
+
+    if (composerSection.getAttribute('data-stardance-utils-markdown-toolbar') === 'true') {
       return;
     }
 
@@ -606,7 +499,11 @@
       }
     }
 
-    if (composerScroll && composerMain) {
+    if (usesNativeMarkdownPreview && writePanel) {
+      writePanel.insertBefore(toolbar, writePanel.firstChild);
+      toolbar.style.setProperty('--stardance-utils-markdown-offset', '0px');
+      toolbar.style.setProperty('--stardance-utils-markdown-width', '100%');
+    } else if (composerScroll && composerMain) {
       composerScroll.insertBefore(toolbar, composerMain);
     } else if (field) {
       field.insertBefore(toolbar, field.firstChild);
@@ -615,7 +512,7 @@
     }
 
     const alignToolbarToField = () => {
-      if (!field) {
+      if (!field || usesNativeMarkdownPreview) {
         return;
       }
 
@@ -652,6 +549,20 @@
     return SU.setLocalOnlyStoredValue(draftKey, (value || '').trim() ? value : '', draftKey).catch(() => undefined);
   };
 
+  SU.cleanupLegacySlackEmojiEnhancements = (composerSection) => {
+    if (!composerSection) {
+      return;
+    }
+
+    const emojiPopover = composerSection.querySelector('[data-emoji-picker-target="popover"]');
+    composerSection.querySelectorAll('.stardance-utils-emoji-autocomplete').forEach((node) => node.remove());
+
+    const picker = emojiPopover?.querySelector('em-emoji-picker');
+    const pickerRoot = picker?.shadowRoot || picker;
+    pickerRoot?.querySelectorAll('.stardance-utils-slack-picker-tab, .stardance-utils-slack-category').forEach((node) => node.remove());
+    composerSection.removeAttribute(SU.DEVLOG_SLACK_EMOJI_ATTR);
+  };
+
   SU.bindDevlogDraftPersistence = (composerSection) => {
     if (!composerSection || composerSection.getAttribute(SU.DEVLOG_DRAFT_ATTR) === 'true') {
       return;
@@ -668,6 +579,7 @@
     const draftKey = SU.getDevlogDraftKey(form);
     SU.mountMarkdownToolbar(composerSection, textarea);
     SU.mountMarkdownPreview(composerSection, textarea);
+    SU.cleanupLegacySlackEmojiEnhancements(composerSection);
 
     const draftControls = document.createElement('div');
     draftControls.className = 'stardance-utils-draft-controls';
@@ -732,334 +644,7 @@
   };
 
   SU.enhanceSlackEmoji = (composerSection) => {
-    if (!composerSection || composerSection.getAttribute(SU.DEVLOG_SLACK_EMOJI_ATTR) === 'true') {
-      return;
-    }
-
-    const textarea = composerSection.querySelector('textarea[name="post_devlog[body]"]');
-    const emojiPopover = composerSection.querySelector('[data-emoji-picker-target="popover"]');
-    if (!textarea || !emojiPopover) {
-      return;
-    }
-
-    composerSection.setAttribute(SU.DEVLOG_SLACK_EMOJI_ATTR, 'true');
-
-    const autocomplete = document.createElement('div');
-    autocomplete.className = 'stardance-utils-emoji-autocomplete';
-    autocomplete.hidden = true;
-    const field = textarea.closest('.feed-composer__field');
-    field?.appendChild(autocomplete);
-
-    let allEmojis = [];
-    let activeAutocompleteItems = [];
-    let activeAutocompleteIndex = 0;
-
-    const closeAutocomplete = () => {
-      autocomplete.hidden = true;
-      autocomplete.textContent = '';
-      activeAutocompleteItems = [];
-      activeAutocompleteIndex = 0;
-    };
-
-    const replaceShortcodeTokenAtCursor = (emoji) => {
-      const value = textarea.value || '';
-      const caret = textarea.selectionStart ?? value.length;
-      const before = value.slice(0, caret);
-      const after = value.slice(caret);
-      const match = before.match(/(^|\s):([a-zA-Z0-9_+\-]*)$/);
-      if (!match) {
-        return;
-      }
-
-      const tokenStart = before.length - match[0].length + match[1].length;
-      const replacement = `![:${emoji.name}:](${emoji.imageUrl}) `;
-      textarea.value = `${value.slice(0, tokenStart)}${replacement}${after}`;
-      const nextCaret = tokenStart + replacement.length;
-      textarea.setSelectionRange(nextCaret, nextCaret);
-      textarea.dispatchEvent(new Event('input', { bubbles: true }));
-    };
-
-    const applyAutocompleteSelection = (emoji) => {
-      if (!emoji) {
-        return;
-      }
-      replaceShortcodeTokenAtCursor(emoji);
-      closeAutocomplete();
-    };
-
-    const renderAutocomplete = () => {
-      const value = textarea.value || '';
-      const caret = textarea.selectionStart ?? value.length;
-      const before = value.slice(0, caret);
-      const match = before.match(/(^|\s):([a-zA-Z0-9_+\-]{1,32})$/);
-      if (!match || !allEmojis.length) {
-        closeAutocomplete();
-        return;
-      }
-
-      const query = match[2].toLowerCase();
-      const results = allEmojis
-        .filter((emoji) => emoji.name.toLowerCase().includes(query) || (emoji.alias || '').toLowerCase().includes(query))
-        .slice(0, 6);
-
-      if (!results.length) {
-        closeAutocomplete();
-        return;
-      }
-
-      activeAutocompleteItems = results;
-      if (activeAutocompleteIndex >= results.length) {
-        activeAutocompleteIndex = 0;
-      }
-
-      autocomplete.textContent = '';
-      results.forEach((emoji, index) => {
-        const item = document.createElement('button');
-        item.type = 'button';
-        item.className = 'stardance-utils-emoji-autocomplete-item';
-        if (index === activeAutocompleteIndex) {
-          item.classList.add('is-active');
-        }
-        const image = document.createElement('img');
-        const imageUrl = SU.getSafeSlackEmojiImageUrl(emoji.imageUrl);
-        if (imageUrl) {
-          image.src = imageUrl;
-        }
-        image.alt = `:${emoji.name}:`;
-        image.loading = 'lazy';
-        const label = document.createElement('span');
-        label.textContent = `:${emoji.name}:`;
-        item.appendChild(image);
-        item.appendChild(label);
-        item.addEventListener('mousedown', (event) => {
-          event.preventDefault();
-          applyAutocompleteSelection(emoji);
-        });
-        autocomplete.appendChild(item);
-      });
-      autocomplete.hidden = false;
-    };
-
-    textarea.addEventListener('input', () => {
-      activeAutocompleteIndex = 0;
-      renderAutocomplete();
-    });
-
-    textarea.addEventListener('keydown', (event) => {
-      if (autocomplete.hidden || !activeAutocompleteItems.length) {
-        return;
-      }
-
-      if (event.key === 'ArrowDown') {
-        event.preventDefault();
-        activeAutocompleteIndex = (activeAutocompleteIndex + 1) % activeAutocompleteItems.length;
-        renderAutocomplete();
-        return;
-      }
-
-      if (event.key === 'ArrowUp') {
-        event.preventDefault();
-        activeAutocompleteIndex = (activeAutocompleteIndex - 1 + activeAutocompleteItems.length) % activeAutocompleteItems.length;
-        renderAutocomplete();
-        return;
-      }
-
-      if (event.key === 'Enter' || event.key === 'Tab') {
-        event.preventDefault();
-        applyAutocompleteSelection(activeAutocompleteItems[activeAutocompleteIndex]);
-        return;
-      }
-
-      if (event.key === 'Escape') {
-        closeAutocomplete();
-      }
-    });
-
-    textarea.addEventListener('blur', () => {
-      window.setTimeout(closeAutocomplete, 120);
-    });
-
-    const insertSlackEmojiMarkdown = (emoji) => {
-      SU.insertTextAtCursor(textarea, `![:${emoji.name}:](${emoji.imageUrl})`);
-    };
-
-    const getEmojiPickerRoot = () => {
-      const picker = emojiPopover.querySelector('em-emoji-picker');
-      if (!picker) {
-        return null;
-      }
-
-      return picker.shadowRoot || picker;
-    };
-
-    const mountSlackPickerUI = () => {
-      const pickerRoot = getEmojiPickerRoot();
-      if (!pickerRoot) {
-        return false;
-      }
-
-      const navRow = pickerRoot.querySelector('#nav .flex.relative');
-      const categoriesContainer = pickerRoot.querySelector('.scroll.flex-grow.padding-lr > div > div');
-      const scrollArea = pickerRoot.querySelector('.scroll.flex-grow.padding-lr');
-      if (!navRow || !categoriesContainer || !scrollArea) {
-        return false;
-      }
-
-      let tabButton = pickerRoot.querySelector('.stardance-utils-slack-picker-tab');
-      let category = pickerRoot.querySelector('.stardance-utils-slack-category');
-
-      const setSlackTabActive = (active) => {
-        if (!tabButton) {
-          return;
-        }
-
-        const bar = navRow.querySelector('.bar');
-        navRow.querySelectorAll('button').forEach((button) => {
-          button.setAttribute('aria-selected', button === tabButton && active ? 'true' : 'false');
-          button.classList.toggle('stardance-utils-nav-tab-muted', active && button !== tabButton);
-        });
-
-        tabButton.setAttribute('aria-selected', active ? 'true' : 'false');
-        tabButton.classList.toggle('is-active', active);
-
-        if (bar && active) {
-          bar.style.width = `${tabButton.offsetWidth}px`;
-          bar.style.transform = `translateX(${tabButton.offsetLeft}px)`;
-        }
-      };
-
-      const renderSlackCategory = () => {
-        if (!category) {
-          return;
-        }
-
-        const body = category.querySelector('.stardance-utils-slack-category-body');
-        if (!body) {
-          return;
-        }
-
-        body.textContent = '';
-
-        const buildGrid = (items, label) => {
-          if (!items.length) {
-            return null;
-          }
-
-          const section = document.createElement('section');
-          section.className = 'stardance-utils-slack-picker-section';
-
-          if (label) {
-            const title = document.createElement('div');
-            title.className = 'sticky padding-small align-l stardance-utils-slack-picker-subhead';
-            title.textContent = label;
-            section.appendChild(title);
-          }
-
-          const grid = document.createElement('div');
-          grid.className = 'stardance-utils-slack-picker-grid';
-          items.forEach((emoji) => {
-            const item = document.createElement('button');
-            item.type = 'button';
-            item.className = 'flex flex-center flex-middle stardance-utils-slack-picker-emoji';
-            item.setAttribute('title', `:${emoji.name}:`);
-            item.setAttribute('aria-label', `:${emoji.name}:`);
-            const image = document.createElement('img');
-            const imageUrl = SU.getSafeSlackEmojiImageUrl(emoji.imageUrl);
-            if (imageUrl) {
-              image.src = imageUrl;
-            }
-            image.alt = `:${emoji.name}:`;
-            image.loading = 'lazy';
-            item.appendChild(image);
-            item.addEventListener('click', () => {
-              insertSlackEmojiMarkdown(emoji);
-              renderSlackCategory();
-              emojiPopover.hidden = true;
-            });
-            grid.appendChild(item);
-          });
-          section.appendChild(grid);
-          return section;
-        };
-
-        if (!allEmojis.length) {
-          const empty = document.createElement('div');
-          empty.className = 'padding-small align-l stardance-utils-slack-picker-empty';
-          empty.textContent = 'Loading Slack emojis...';
-          body.appendChild(empty);
-          return;
-        }
-
-        const allSection = buildGrid(allEmojis, '');
-        if (allSection) {
-          body.appendChild(allSection);
-        }
-      };
-
-      if (!tabButton) {
-        tabButton = document.createElement('button');
-        tabButton.type = 'button';
-        tabButton.className = 'flex flex-center stardance-utils-slack-picker-tab';
-        tabButton.setAttribute('aria-label', 'Slack emojis');
-        tabButton.setAttribute('title', 'Slack emojis');
-        tabButton.setAttribute('aria-selected', 'false');
-        tabButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.8 122.8" aria-hidden="true" class="stardance-utils-slack-icon"><path fill="currentColor" d="M30.7 77.1c0 8.5-6.9 15.4-15.4 15.4S0 85.6 0 77.1s6.9-15.4 15.4-15.4h15.4v15.4zM38.5 77.1c0-8.5 6.9-15.4 15.4-15.4s15.4 6.9 15.4 15.4v38.4c0 8.5-6.9 15.4-15.4 15.4s-15.4-6.9-15.4-15.4V77.1zM53.9 30.7c-8.5 0-15.4-6.9-15.4-15.4S45.4 0 53.9 0s15.4 6.9 15.4 15.4v15.4H53.9zM53.9 38.5c8.5 0 15.4 6.9 15.4 15.4s-6.9 15.4-15.4 15.4H15.4C6.9 69.3 0 62.4 0 53.9s6.9-15.4 15.4-15.4h38.5zM92.1 53.9c0-8.5 6.9-15.4 15.4-15.4s15.4 6.9 15.4 15.4-6.9 15.4-15.4 15.4H92.1V53.9zM84.3 53.9c0 8.5-6.9 15.4-15.4 15.4s-15.4-6.9-15.4-15.4V15.4C53.5 6.9 60.4 0 68.9 0s15.4 6.9 15.4 15.4v38.5zM68.9 92.1c8.5 0 15.4 6.9 15.4 15.4s-6.9 15.4-15.4 15.4-15.4-6.9-15.4-15.4V92.1h15.4zM68.9 84.3c-8.5 0-15.4-6.9-15.4-15.4s6.9-15.4 15.4-15.4h38.5c8.5 0 15.4 6.9 15.4 15.4s-6.9 15.4-15.4 15.4H68.9z"/></svg>';
-        tabButton.addEventListener('click', () => {
-          setSlackTabActive(true);
-          mountSlackPickerUI();
-          scrollArea.scrollTop = Math.max(category?.offsetTop ?? 0, 0);
-        });
-        const bar = navRow.querySelector('.bar');
-        navRow.insertBefore(tabButton, bar || null);
-
-        navRow.querySelectorAll('button').forEach((button) => {
-          if (button === tabButton) {
-            return;
-          }
-
-          button.addEventListener('click', () => setSlackTabActive(false));
-        });
-      }
-
-      if (!category) {
-        category = document.createElement('div');
-        category.className = 'category stardance-utils-slack-category';
-        category.setAttribute('data-id', 'stardance-utils-slack');
-        category.innerHTML = `
-          <div class="sticky padding-small align-l">Slack emojis</div>
-          <div class="relative stardance-utils-slack-category-body">
-          </div>
-        `;
-        categoriesContainer.appendChild(category);
-      }
-
-      renderSlackCategory();
-      return true;
-    };
-
-    const scheduleSlackPickerMount = () => {
-      let attempts = 0;
-      const tryMount = () => {
-        attempts += 1;
-        if (mountSlackPickerUI() || attempts > 12) {
-          return;
-        }
-        window.setTimeout(tryMount, 120);
-      };
-      tryMount();
-    };
-
-    const pickerObserver = new MutationObserver(() => {
-      scheduleSlackPickerMount();
-    });
-    pickerObserver.observe(emojiPopover, { childList: true, subtree: true });
-
-    SU.fetchSlackEmojis().then((emojis) => {
-      allEmojis = emojis;
-      scheduleSlackPickerMount();
-    });
-
-    scheduleSlackPickerMount();
+    SU.cleanupLegacySlackEmojiEnhancements(composerSection);
   };
 
   SU.enhanceDevlogSpeech = (composerSection) => {
@@ -2240,7 +1825,6 @@
     const changelogShell = activeInlineComposer?.closest('.stardance-utils-inline-composer-shell') || null;
     void SU.enhanceProjectChangelog(projectMain, changelogShell, changelogTextarea, projectId);
     SU.bindDevlogDraftPersistence(activeInlineComposer);
-    SU.enhanceSlackEmoji(activeInlineComposer);
     SU.enhanceDevlogSpeech(activeInlineComposer);
     SU.enhanceInlineDevlogEdit(projectMain);
 
