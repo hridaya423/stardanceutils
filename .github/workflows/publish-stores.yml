@@ -262,9 +262,11 @@ jobs:
             -project "$PROJECT_PATH" \
             -scheme "$SCHEME" \
             -configuration Release \
+            -destination "generic/platform=macOS" \
             -archivePath "$ARCHIVE_PATH" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CODE_SIGN_STYLE=Automatic \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
             MACOSX_DEPLOYMENT_TARGET=14.0 \
             -allowProvisioningUpdates \
             -authenticationKeyPath "$ASC_KEY_PATH" \
