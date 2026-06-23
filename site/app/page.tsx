@@ -73,22 +73,43 @@ export default function Home() {
       </section>
 
       <section id="vouches" className="relative border-t border-[var(--border)] px-6 py-24 md:py-32">
-        <div className="mx-auto max-w-4xl text-center" data-reveal>
-          <div className="mb-7 flex justify-center gap-1">
-            {Array.from({ length: 5 }).map((_, j) => (
-              <Star key={j} size={18} weight="fill" className="text-[var(--accent)]" />
-            ))}
+        <div className="mx-auto max-w-[96rem]" data-reveal>
+          <div className="grid gap-10 text-center md:grid-cols-2 md:gap-10 lg:gap-12">
+            <article>
+              <div className="mb-5 flex justify-center gap-1">
+                {Array.from({ length: 5 }).map((_, j) => (
+                  <Star key={j} size={16} weight="fill" className="text-[var(--accent)]" />
+                ))}
+              </div>
+              <blockquote className="font-display text-[clamp(1.35rem,2.45vw,2rem)] font-medium leading-[1.28] tracking-[-0.02em] text-white">
+                “Truly life changing. Before using Stardance Utils I had broken wrists…
+                <span className="text-white/40">
+                  {" "}now I still have broken wrists but hey, at least I can make a devlog now!”
+                </span>
+              </blockquote>
+              <div className="mt-6 text-sm text-[var(--fg-muted)]">
+                <span className="font-medium text-white/80">Rupnil</span> · Chrome Web Store
+              </div>
+            </article>
+
+            <article>
+              <div className="mb-5 flex justify-center gap-1">
+                {Array.from({ length: 5 }).map((_, j) => (
+                  <Star key={j} size={16} weight="fill" className="text-[var(--accent)]" />
+                ))}
+              </div>
+              <blockquote className="font-display text-[clamp(1.35rem,2.45vw,2rem)] font-medium leading-[1.28] tracking-[-0.02em] text-white">
+                “Before this, I had to look at deep purples. With this extension, I selected the Catppuccin Mocha theme and it instantly reduced my eye strain.
+                <span className="text-white/40">
+                  {" "}Thank you Hridya for helping differently-abled people!”
+                </span>
+              </blockquote>
+              <div className="mt-6 text-sm text-[var(--fg-muted)]">
+                <span className="font-medium text-white/80">Keyboard1000n17</span> · Mozilla Addons
+              </div>
+            </article>
           </div>
-          <blockquote className="font-display text-[clamp(1.6rem,3.6vw,2.6rem)] font-medium leading-[1.25] tracking-[-0.02em] text-white">
-            “Truly life changing. Before using Stardance Utils I had broken wrists…
-            <span className="text-white/40">
-              {" "}now I still have broken wrists but hey, at least I can make a devlog now!”
-            </span>
-          </blockquote>
-          <div className="mt-8 text-sm text-[var(--fg-muted)]">
-            <span className="font-medium text-white/80">Rupnil</span> · Chrome Web Store
-          </div>
-          <div className="mt-2 text-xs text-[var(--fg-subtle)]">
+          <div className="mt-8 text-center text-xs text-[var(--fg-subtle)]">
             Helping people with disabilities use Stardance, apparently.
           </div>
         </div>

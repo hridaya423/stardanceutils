@@ -247,9 +247,10 @@ async function runPreflight() {
   validateManifestVersion(publishVersion);
   const publishChromeRequested = getEnv('PUBLISH_CHROME', 'true') === 'true';
   const publishFirefoxRequested = getEnv('PUBLISH_FIREFOX', 'true') === 'true';
+  const publishSafariRequested = getEnv('PUBLISH_SAFARI', 'false') === 'true';
 
-  if (!publishChromeRequested && !publishFirefoxRequested) {
-    throw new Error('Nothing to do: both PUBLISH_CHROME and PUBLISH_FIREFOX are false');
+  if (!publishChromeRequested && !publishFirefoxRequested && !publishSafariRequested) {
+    throw new Error('Nothing to do: PUBLISH_CHROME, PUBLISH_FIREFOX, and PUBLISH_SAFARI are all false');
   }
 
   let chromeLiveVersion = '';
@@ -260,12 +261,14 @@ async function runPreflight() {
   let firefoxBlockedPending = false;
   let publishChrome = false;
   let publishFirefox = false;
+  let publishSafari = publishSafariRequested;
 
   if (compareVersions(version, publishVersion) <= 0) {
     setOutput('manifest_version', version);
     setOutput('publish_version', publishVersion);
     setOutput('publish_chrome', 'false');
     setOutput('publish_firefox', 'false');
+    setOutput('publish_safari', 'false');
     setOutput('chrome_blocked_pending', 'false');
     setOutput('firefox_blocked_pending', 'false');
     setOutput('source_commit', sourceCommit || 'none');
@@ -276,6 +279,7 @@ async function runPreflight() {
       `- Local manifest version: \`${version}\``,
       `- Lagged publish target version: \`${publishVersion}\``,
       `- Publish source commit: \`${sourceCommit}\``,
+      `- Publish Safari: \`${publishSafariRequested}\``,
       '- Publish skipped: current manifest version has not advanced beyond the lagged publish target.'
     ]);
     return;
@@ -354,6 +358,7 @@ async function runPreflight() {
   setOutput('publish_version', publishVersion);
   setOutput('publish_chrome', String(publishChrome));
   setOutput('publish_firefox', String(publishFirefox));
+  setOutput('publish_safari', String(publishSafari));
   setOutput('chrome_blocked_pending', String(chromeBlockedPending));
   setOutput('firefox_blocked_pending', String(firefoxBlockedPending));
   setOutput('source_commit', sourceCommit || 'none');
@@ -374,6 +379,7 @@ async function runPreflight() {
     `- Firefox live version: \`${firefoxLiveVersion || 'none'}\``,
     `- Firefox pending version: \`${firefoxPendingVersion || 'none'}\``,
     `- Firefox blocked by pending review: \`${firefoxBlockedPending}\``,
+    `- Publish Safari: \`${publishSafari}\``,
     `- Publish Chrome: \`${publishChrome}\``,
     `- Publish Firefox: \`${publishFirefox}\``
   ]);

@@ -51,6 +51,7 @@ jobs:
       source_commit: ${{ steps.preflight.outputs.source_commit }}
       publish_chrome: ${{ steps.preflight.outputs.publish_chrome }}
       publish_firefox: ${{ steps.preflight.outputs.publish_firefox }}
+      publish_safari: ${{ steps.preflight.outputs.publish_safari }}
       chrome_blocked_pending: ${{ steps.preflight.outputs.chrome_blocked_pending }}
       firefox_blocked_pending: ${{ steps.preflight.outputs.firefox_blocked_pending }}
     steps:
@@ -75,6 +76,7 @@ jobs:
         env:
           PUBLISH_CHROME: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_chrome && 'true' || 'false') || 'true' }}
           PUBLISH_FIREFOX: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_firefox && 'true' || 'false') || 'true' }}
+          PUBLISH_SAFARI: ${{ github.event_name == 'workflow_dispatch' && (inputs.publish_safari && 'true' || 'false') || 'true' }}
           CHROME_ACCESS_TOKEN: ${{ steps.chrome-auth.outputs.access_token || secrets.CHROME_ACCESS_TOKEN }}
           CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
           CHROME_EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
@@ -200,7 +202,7 @@ jobs:
 
   publish-safari:
     needs: preflight
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_safari }}
+    if: ${{ needs.preflight.outputs.publish_safari == 'true' }}
     runs-on: macos-15
     permissions:
       contents: read

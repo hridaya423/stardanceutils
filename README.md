@@ -24,8 +24,7 @@ A utility extension for Stardance.
   - Drafts for devlogs.
   - Native browser speech-to-text.
   - Basic transcript cleanup for capitalization and punctuation.
-  - Slack emoji autocomplete and picker integration. (Functional when devlog images PR is merged)
-  - Markdown toolbar with live preview.
+  - Markdown toolbar layered onto Stardance's built-in Write composer.
 - Feed AI checks:
   - Adds a `Check AI` action to feed cards.
   - Sends image checks through OpenAI Verify.
