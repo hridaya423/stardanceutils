@@ -59,8 +59,8 @@ function patchProject(manifestVersion, buildNumber, deploymentTarget) {
   const projectFile = path.join(APP_XCODEPROJ, 'project.pbxproj');
   let content = fs.readFileSync(projectFile, 'utf8');
 
-  content = content.replace(/PRODUCT_BUNDLE_IDENTIFIER = com\.hridyaagrawal\.stardanceutils\.Extension;/g, `PRODUCT_BUNDLE_IDENTIFIER = ${EXTENSION_BUNDLE_ID};`);
-  content = content.replace(/PRODUCT_BUNDLE_IDENTIFIER = "com\.hridyaagrawal\.Stardance-Utils-Safari";/g, `PRODUCT_BUNDLE_IDENTIFIER = ${APP_BUNDLE_ID};`);
+  content = content.replace(/PRODUCT_BUNDLE_IDENTIFIER = "?com\.hridyaagrawal\.(?:stardanceutils|Stardance-Utils-Safari)\.Extension"?;/g, `PRODUCT_BUNDLE_IDENTIFIER = ${EXTENSION_BUNDLE_ID};`);
+  content = content.replace(/PRODUCT_BUNDLE_IDENTIFIER = "?com\.hridyaagrawal\.Stardance-Utils-Safari"?;/g, `PRODUCT_BUNDLE_IDENTIFIER = ${APP_BUNDLE_ID};`);
   content = content.replace(/MARKETING_VERSION = [^;]+;/g, `MARKETING_VERSION = ${manifestVersion};`);
   content = content.replace(/CURRENT_PROJECT_VERSION = [^;]+;/g, `CURRENT_PROJECT_VERSION = ${buildNumber};`);
   content = content.replace(/MACOSX_DEPLOYMENT_TARGET = [^;]+;/g, `MACOSX_DEPLOYMENT_TARGET = ${deploymentTarget};`);
