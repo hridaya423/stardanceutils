@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Stardance Utils",
-    "version": "0.0.9",
+    "version": "0.1.1",
     "description": "A utility extension for Stardance, with multiple useful features to enhance the experience",
     "icons": {
         "32": "icon32.png",
