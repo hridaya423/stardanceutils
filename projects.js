@@ -5,6 +5,7 @@
   const DEVLOG_BODY_COLLAPSED_CLASS = 'stardance-utils-devlog-body--collapsed';
   const DEVLOG_BODY_EXPANDED_CLASS = 'stardance-utils-devlog-body--expanded';
   const DEVLOG_BODY_HIDDEN_CLASS = 'stardance-utils-devlog-body-hidden';
+  const DEVLOG_COMPOSER_REQUEST_ATTR = 'data-stardance-utils-devlog-composer-requested';
   const DEVLOG_BODY_COLLAPSE_MIN_HEIGHT = 520;
   const DEVLOG_BODY_COLLAPSED_HEIGHT = 420;
 
@@ -1368,7 +1369,8 @@
   };
 
   SU.addProjectChangelogToDevlog = (textarea, commits) => {
-    if (!textarea) {
+    const targetTextarea = textarea || document.querySelector('textarea[name="post_devlog[body]"]');
+    if (!targetTextarea) {
       return;
     }
 
@@ -1377,8 +1379,15 @@
       return;
     }
 
-    const spacer = textarea.value.trim() ? '\n\n' : '';
-    SU.insertTextAtCursor(textarea, `${spacer}${markdown}`);
+    const spacer = targetTextarea.value.trim() ? '\n\n' : '';
+    SU.insertTextAtCursor(targetTextarea, `${spacer}${markdown}`);
+
+    const editor = targetTextarea.closest('.feed-composer__field')?.querySelector('.feed-composer__textarea[contenteditable="true"]');
+    if (editor) {
+      editor.textContent = targetTextarea.value;
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: `${spacer}${markdown}` }));
+      editor.focus();
+    }
   };
 
   SU.renderProjectChangelogPanel = (panel, textarea, state, refresh) => {
@@ -1788,7 +1797,13 @@
 
     const composerSection = composerDialog?.querySelector('.feed-composer')
       ?? [...projectMain.querySelectorAll('.feed-composer')].find((composer) => isDevlogComposer(composer));
-    const inlineComposerShell = projectMain.querySelector('.stardance-utils-inline-composer-shell');
+    let inlineComposerShell = projectMain.querySelector('.stardance-utils-inline-composer-shell');
+    if (!composerSection && postDevlogButton && postDevlogButton.getAttribute(DEVLOG_COMPOSER_REQUEST_ATTR) !== 'true') {
+      postDevlogButton.setAttribute(DEVLOG_COMPOSER_REQUEST_ATTR, 'true');
+      postDevlogButton.click();
+      return;
+    }
+
     if (composerSection && composerSection.getAttribute(SU.INLINE_COMPOSER_ATTR) !== 'true' && !inlineComposerShell) {
       const composerShell = document.createElement('section');
       composerShell.className = 'stardance-utils-inline-composer-shell';
@@ -1819,6 +1834,8 @@
         composerDialog.classList.add('stardance-utils-hidden-dialog');
         document.body.appendChild(composerDialog);
       }
+
+      inlineComposerShell = composerShell;
     }
 
     const activeComposer = [...projectMain.querySelectorAll('.stardance-utils-inline-composer.feed-composer, .feed-composer')]
@@ -1830,6 +1847,8 @@
     SU.enhanceDevlogSpeech(activeComposer);
     SU.enhanceInlineDevlogEdit(projectMain);
 
-    actionsNav?.remove();
+    if (inlineComposerShell) {
+      actionsNav?.remove();
+    }
   };
 })();
