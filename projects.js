@@ -1709,8 +1709,9 @@
     const actionsNav = projectMain?.querySelector('.project-show__actions');
     const heroBanner = projectMain?.querySelector('.project-show__banner');
     const feedSection = projectMain?.querySelector('.project-show__feed');
-    const prefersNativeComposer = /firefox/i.test(globalThis.navigator?.userAgent || '');
-    if (!projectMain || !heroBanner || !feedSection) {
+    const onboardingSection = projectMain?.querySelector('.project-show__onboarding');
+    const composerAnchor = feedSection || onboardingSection;
+    if (!projectMain || !heroBanner || !composerAnchor) {
       return;
     }
 
@@ -1788,7 +1789,7 @@
     const composerSection = composerDialog?.querySelector('.feed-composer')
       ?? [...projectMain.querySelectorAll('.feed-composer')].find((composer) => isDevlogComposer(composer));
     const inlineComposerShell = projectMain.querySelector('.stardance-utils-inline-composer-shell');
-    if (!prefersNativeComposer && composerSection && composerSection.getAttribute(SU.INLINE_COMPOSER_ATTR) !== 'true' && !inlineComposerShell) {
+    if (composerSection && composerSection.getAttribute(SU.INLINE_COMPOSER_ATTR) !== 'true' && !inlineComposerShell) {
       const composerShell = document.createElement('section');
       composerShell.className = 'stardance-utils-inline-composer-shell';
 
@@ -1809,7 +1810,7 @@
 
       composerShell.appendChild(composerHeader);
       composerShell.appendChild(composerSection);
-      feedSection.parentNode.insertBefore(composerShell, feedSection);
+      composerAnchor.parentNode.insertBefore(composerShell, composerAnchor);
 
       if (composerDialog) {
         composerDialog.removeAttribute('open');
@@ -1820,21 +1821,15 @@
       }
     }
 
-    const activeComposer = prefersNativeComposer
-      ? (composerDialog?.querySelector('.feed-composer') ?? composerSection)
-      : [...projectMain.querySelectorAll('.stardance-utils-inline-composer.feed-composer, .feed-composer')]
-          .find((composer) => isDevlogComposer(composer));
+    const activeComposer = [...projectMain.querySelectorAll('.stardance-utils-inline-composer.feed-composer, .feed-composer')]
+      .find((composer) => isDevlogComposer(composer));
     const changelogTextarea = activeComposer?.querySelector('textarea[name="post_devlog[body]"]') || null;
     const changelogShell = activeComposer?.closest('.stardance-utils-inline-composer-shell') || null;
-    if (!prefersNativeComposer) {
-      void SU.enhanceProjectChangelog(projectMain, changelogShell, changelogTextarea, projectId);
-    }
+    void SU.enhanceProjectChangelog(projectMain, changelogShell, changelogTextarea, projectId);
     SU.bindDevlogDraftPersistence(activeComposer);
     SU.enhanceDevlogSpeech(activeComposer);
     SU.enhanceInlineDevlogEdit(projectMain);
 
-    if (!prefersNativeComposer) {
-      actionsNav?.remove();
-    }
+    actionsNav?.remove();
   };
 })();
