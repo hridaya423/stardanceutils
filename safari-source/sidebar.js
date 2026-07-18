@@ -210,7 +210,17 @@
     }
   };
 
-  SU.hasTryModeSurface = () => Boolean(document.querySelector('.discover-rail') && document.querySelector('#primary-nav'));
+  SU.hasTryModeSurface = () => Boolean(
+    document.querySelector('#primary-nav')
+    && (document.querySelector('.discover-rail') || document.querySelector('.app-layout__main') || document.querySelector('main'))
+  );
+
+  SU.findTryModeMountPoint = () => {
+    return document.querySelector('.discover-rail')
+      || document.querySelector('.app-layout__main')
+      || document.querySelector('main')
+      || document.body;
+  };
 
   SU.goToTryModeSurface = () => {
     const targetUrl = new URL(SU.TRY_MODE_FALLBACK_PATH, window.location.origin);
@@ -238,7 +248,7 @@
       return false;
     }
 
-    const rail = document.querySelector('.discover-rail');
+    const mountPoint = SU.findTryModeMountPoint();
     let panel = document.getElementById(SU.TRY_PANEL_ID);
     if (!panel) {
       panel = document.createElement('section');
@@ -343,7 +353,10 @@
       panel.appendChild(actions);
     }
 
-    rail.appendChild(panel);
+    if (panel.parentElement !== mountPoint) {
+      mountPoint.appendChild(panel);
+    }
+    panel.classList.toggle('stardance-utils-try-panel--standalone', mountPoint !== document.querySelector('.discover-rail'));
     SU.applyFontPairing(SU.getEffectivePairing());
     SU.updateTryPanel();
     return true;
