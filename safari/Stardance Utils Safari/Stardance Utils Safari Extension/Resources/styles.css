@@ -878,6 +878,12 @@ html.stardance-utils-sidebar-reordering #primary-nav .sidebar__nav-item:hover .s
   padding: 0;
 }
 
+.stardance-utils-try-panel--standalone {
+  margin: 1.25rem auto;
+  max-width: min(720px, calc(100vw - 32px));
+  width: 100%;
+}
+
 .stardance-utils-try-header {
   align-items: start;
   background: transparent;
