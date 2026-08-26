@@ -3485,3 +3485,322 @@ html body .vote-page__gate-btn--primary:focus-visible {
   background: var(--color-brand-highlight-secondary) !important;
   border-color: var(--color-brand-highlight-secondary) !important;
 }
+
+html.stardance-utils-home-page .discover-rail {
+  gap: 0.75rem;
+}
+
+html.stardance-utils-home-page .discover-rail__search-input {
+  background: transparent !important;
+  border: 1px solid var(--color-space-border, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  height: 2.5rem !important;
+}
+
+html.stardance-utils-home-page .discover-rail__search-input:focus {
+  border-color: var(--color-brand-highlight) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brand-highlight) 24%, transparent) !important;
+}
+
+html.stardance-utils-home-page .discover-rail__search-clear {
+  height: 2rem;
+  right: 0.25rem;
+  width: 2rem;
+}
+
+html.stardance-utils-home-page .discover-rail__widgets {
+  border-top: 1px solid var(--color-space-border, rgba(255, 255, 255, 0.12));
+  gap: 0;
+}
+
+html.stardance-utils-home-page .discover-rail__widget-frame {
+  border-bottom: 1px solid var(--color-space-border, rgba(255, 255, 255, 0.12));
+  padding: 0.75rem 0.15rem;
+}
+
+html.stardance-utils-home-page .discover-rail__widgets > .rail-widget,
+html.stardance-utils-home-page .discover-rail__widgets > .raffle-widget {
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--color-space-border, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0.75rem 0.15rem !important;
+}
+
+html.stardance-utils-home-page .discover-rail__widget-frame > .streak-widget {
+  background: var(--color-space-card, rgba(255, 255, 255, 0.04)) !important;
+  border: 1px solid var(--color-space-border, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: 0.9rem !important;
+  box-shadow: none !important;
+}
+
+html.stardance-utils-home-page .discover-rail .rail-widget__title,
+html.stardance-utils-home-page .discover-rail .raffle-widget__title {
+  font-size: 0.88rem;
+  letter-spacing: 0.03em;
+  line-height: 1.25;
+}
+
+html.stardance-utils-home-page .discover-rail .raffle-widget__link-url {
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--color-space-border, rgba(255, 255, 255, 0.12)) !important;
+  border-radius: 0 !important;
+  overflow: hidden;
+  padding: 0.15rem 0 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: normal;
+}
+
+html.stardance-utils-home-page .discover-rail .raffle-widget__raffle-link {
+  border-top: 0 !important;
+  margin-top: 0.5rem !important;
+  padding-top: 0 !important;
+}
+
+html.stardance-utils-home-page .discover-rail .streak-widget__header {
+  padding: 0.65rem 0.75rem;
+}
+
+html.stardance-utils-home-page .discover-rail .streak-widget__comet {
+  height: 28px;
+  width: 36px;
+}
+
+html.stardance-utils-home-page .discover-rail .streak-widget__week {
+  padding: 0.7rem 0.55rem 0.3rem;
+}
+
+html.stardance-utils-home-page .discover-rail .streak-widget__star-img {
+  height: 24px;
+  width: 24px;
+}
+
+html.stardance-utils-home-page .discover-rail .streak-widget__today {
+  padding: 0 0.75rem 0.55rem;
+}
+
+html.stardance-utils-home-page .discover-rail .streak-widget__toggle {
+  min-height: 2rem;
+}
+
+html.stardance-utils-home-page .discover-rail #daily-roll-widget .daily-roll-widget__button {
+  animation: none !important;
+}
+
+html body .notifications-page__header {
+  margin-bottom: var(--space-l);
+}
+
+html body .notifications-page__actions .action-btn {
+  border-radius: 999px;
+  min-height: 2.5rem;
+  padding-inline: 1.1rem;
+}
+
+html body .notifications-page__list {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  gap: 0;
+  overflow: visible;
+}
+
+html body .notifications-page .notifications-item {
+  align-items: flex-start;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-space-border, rgba(255, 255, 255, 0.12));
+  border-radius: 0;
+  box-shadow: none;
+  gap: 0.85rem;
+  min-height: 3.9rem;
+  padding: 0.95rem 1.1rem;
+}
+
+html body .notifications-page .notifications-item:last-child {
+  border-bottom: 0;
+}
+
+html body .notifications-page .notifications-item:hover {
+  background: var(--color-space-surface-faint, rgba(255, 255, 255, 0.04));
+}
+
+html body .notifications-page .notifications-item--unread {
+  background: color-mix(in srgb, var(--color-brand-highlight) 8%, transparent);
+  box-shadow: inset 3px 0 0 var(--color-brand-highlight);
+}
+
+html body .notifications-page .notifications-item:not(:has(.notifications-item__preview)) {
+  align-items: center;
+  min-height: 3.25rem;
+  padding-bottom: 0.75rem;
+  padding-top: 0.75rem;
+}
+
+html body .notifications-page .notifications-item:not(:has(.notifications-item__preview)) .notifications-item__icon {
+  align-self: center;
+}
+
+html body .notifications-page .notifications-item__icon,
+html body .notifications-page .notifications-item__icon-avatar {
+  height: 2.25rem;
+  width: 2.25rem;
+}
+
+html body .notifications-page .notifications-item__icon-svg {
+  height: 1.35rem;
+  width: 1.35rem;
+}
+
+html body .notifications-page .notifications-item__main {
+  gap: 0.35rem;
+}
+
+html body .notifications-page .notifications-item__title {
+  line-height: 1.35;
+}
+
+html body .notifications-page .notifications-item__actor {
+  color: var(--color-brand-highlight);
+}
+
+html body .notifications-page .notifications-item__preview {
+  color: var(--color-space-text-muted);
+  line-height: 1.35;
+}
+
+html body .notifications-page .notifications-item__time {
+  color: var(--color-space-text-muted);
+  opacity: 0.78;
+}
+
+html body .notifications-page .notifications-item:not(:has(.notifications-item__icon--avatar)) .notifications-item__icon {
+  color: var(--color-brand-yellow);
+  opacity: 0.9;
+}
+
+html body .notifications-page > .series-nav {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  margin: var(--space-l) 0 0;
+}
+
+html body .notifications-page > .series-nav a {
+  align-items: center;
+  background: var(--color-space-card, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--color-space-border, rgba(255, 255, 255, 0.12));
+  color: var(--color-space-text);
+  display: inline-flex;
+  font-size: var(--font-size-s);
+  font-variant-numeric: tabular-nums;
+  height: 2.5rem;
+  justify-content: center;
+  min-width: 2.5rem;
+  padding: 0 0.75rem;
+  text-decoration: none;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+html body .notifications-page > .series-nav a + a {
+  margin-left: -1px;
+}
+
+html body .notifications-page > .series-nav a:first-child {
+  border-radius: 0.75rem 0 0 0.75rem;
+}
+
+html body .notifications-page > .series-nav a:last-child {
+  border-radius: 0 0.75rem 0.75rem 0;
+}
+
+html body .notifications-page > .series-nav a[aria-current='page'] {
+  background: var(--color-brand-highlight);
+  border-color: var(--color-brand-highlight);
+  color: var(--color-set-1-bg);
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
+}
+
+html body .notifications-page > .series-nav a[href]:hover,
+html body .notifications-page > .series-nav a[href]:focus-visible {
+  background: var(--color-space-surface-strong, rgba(255, 255, 255, 0.12));
+  border-color: var(--color-border-input-focus);
+  color: var(--color-space-text);
+  position: relative;
+  z-index: 1;
+}
+
+html body .notifications-page > .series-nav a[aria-current='page']:hover,
+html body .notifications-page > .series-nav a[aria-current='page']:focus-visible {
+  background: var(--color-brand-highlight-secondary);
+  border-color: var(--color-brand-highlight-secondary);
+  color: var(--color-set-1-bg);
+}
+
+html body .notifications-page > .series-nav a[aria-disabled='true']:not([aria-current='page']) {
+  color: var(--color-space-text-muted);
+  cursor: default;
+  opacity: 0.62;
+  pointer-events: none;
+}
+
+html body .notifications-page > .series-nav a:focus-visible {
+  outline: 2px solid var(--color-border-input-focus);
+  outline-offset: 2px;
+}
+
+html body .notifications-page > .series-nav a[aria-label='Previous'],
+html body .notifications-page > .series-nav a[aria-label='Next'] {
+  font-size: 0;
+  width: 3.25rem;
+}
+
+html body .notifications-page > .series-nav a[aria-label='Previous']::before,
+html body .notifications-page > .series-nav a[aria-label='Next']::before {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+html body .notifications-page > .series-nav a[aria-label='Previous']::before {
+  content: '\2190';
+}
+
+html body .notifications-page > .series-nav a[aria-label='Next']::before {
+  content: '\2192';
+}
+
+@media (max-width: 640px) {
+  html body .notifications-page__header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  html body .notifications-page__actions .action-btn {
+    min-height: 2.25rem;
+    padding-inline: 0.85rem;
+  }
+
+  html body .notifications-page .notifications-item {
+    gap: 0.65rem;
+    padding-inline: 0.8rem;
+  }
+
+  html body .notifications-page .notifications-item__icon,
+  html body .notifications-page .notifications-item__icon-avatar {
+    height: 2rem;
+    width: 2rem;
+  }
+
+  html body .notifications-page > .series-nav a {
+    height: 2.35rem;
+    min-width: 2.35rem;
+    padding-inline: 0.55rem;
+  }
+}
