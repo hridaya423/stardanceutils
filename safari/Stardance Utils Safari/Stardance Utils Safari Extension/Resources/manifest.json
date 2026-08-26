@@ -8,6 +8,7 @@
     ],
     "host_permissions": [
         "https://stardance.hackclub.com/*",
+        "https://raffle.stardance.hackclub.com/*",
         "https://api.github.com/*",
         "https://openai.com/*"
     ],
@@ -19,7 +20,8 @@
     "content_scripts": [
         {
             "matches": [
-                "https://stardance.hackclub.com/*"
+                "https://stardance.hackclub.com/*",
+                "https://raffle.stardance.hackclub.com/*"
             ],
             "css": [
                 "styles.css",

@@ -1127,7 +1127,16 @@
       return editInputRepo;
     }
 
+    const pillRepo = [...(projectMain?.querySelectorAll('a.project-show__pill[href*="github.com"]') || [])]
+      .map((link) => SU.normalizeGithubRepoInfo(link.getAttribute('href')))
+      .find(Boolean);
+    if (pillRepo) {
+      return pillRepo;
+    }
+
+    const excludedSelector = 'article.feed-post-card, .markdown-content, [data-stardance-utils-changelog]';
     const links = [...(projectMain?.querySelectorAll('a[href*="github.com"]') || [])]
+      .filter((link) => !link.closest(excludedSelector))
       .map((link) => SU.normalizeGithubRepoInfo(link.getAttribute('href')))
       .filter(Boolean);
     if (!links.length) {
@@ -1649,6 +1658,19 @@
     SU.placeDevlogBodyCollapseLink(body, button, expanded);
   };
 
+  SU.removeDevlogBodyCollapse = (body) => {
+    body.querySelectorAll(`[${DEVLOG_BODY_COLLAPSE_BUTTON_ATTR}]`).forEach((button) => button.remove());
+    if (body.getAttribute(DEVLOG_BODY_COLLAPSE_ATTR) !== 'true') {
+      return;
+    }
+    body.removeAttribute(DEVLOG_BODY_COLLAPSE_ATTR);
+    body.classList.remove(DEVLOG_BODY_COLLAPSED_CLASS, DEVLOG_BODY_EXPANDED_CLASS);
+    body.querySelectorAll(`.${DEVLOG_BODY_HIDDEN_CLASS}`).forEach((child) => {
+      child.classList.remove(DEVLOG_BODY_HIDDEN_CLASS);
+      child.hidden = false;
+    });
+  };
+
   SU.clearDevlogBodyCollapse = () => {
     document.querySelectorAll(`[${DEVLOG_BODY_COLLAPSE_BUTTON_ATTR}]`).forEach((button) => button.remove());
     document.querySelectorAll(`[${DEVLOG_BODY_COLLAPSE_ATTR}]`).forEach((body) => {
@@ -1674,6 +1696,11 @@
     ].join(', ');
 
     document.querySelectorAll(selector).forEach((body) => {
+      if (body.closest('.feed-post-card__body-clamp')) {
+        SU.removeDevlogBodyCollapse(body);
+        return;
+      }
+
       if (body.getAttribute(DEVLOG_BODY_COLLAPSE_ATTR) === 'true') {
         return;
       }

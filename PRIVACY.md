@@ -26,7 +26,7 @@ Stored in extension storage may include:
 | Permission | Purpose |
 |------------|---------|
 | `storage` | Read and migrate older extension-saved settings when available |
-| `https://stardance.hackclub.com/*` | Run extension features on Stardance pages |
+| `https://stardance.hackclub.com/*`, `https://raffle.stardance.hackclub.com/*` | Run extension features on Stardance pages |
 
 ## Third-Party Services
 
